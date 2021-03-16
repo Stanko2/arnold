@@ -1,17 +1,20 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <Viewport></Viewport>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import Viewport from './components/Viewport.vue'
+import { TextAnnotation } from './components/Annotation.ts'
+
+var annotation = new TextAnnotation();
+console.log(annotation);
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    Viewport
   }
 }
 </script>
