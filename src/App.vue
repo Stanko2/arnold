@@ -1,11 +1,16 @@
 <template>
   <div id="app">
     <nav class="navbar sticky-top navbar-light bg-primary">
-      <Toolbar @save="save" @select="select" class="pdf"></Toolbar>
+      <Toolbar @save="save" @select="selectDir" class="pdf"></Toolbar>
     </nav>
     <div class="d-flex main">
       <div class="right-bar bg-secondary">
         prava lista - asi pojde list rieseni
+        <ul class="list-group">
+          <li class="list-group-item" v-for="(name, i) in names" :key="name" :class="{ 'active': index == i, 'list-group-item-action': index != i}" @click="selectIndex(i)">
+            {{i}}. {{ name }}
+          </li>
+        </ul>
       </div>
       <Viewport :pdf="pdf" :key="source"></Viewport>
     </div>
@@ -25,12 +30,28 @@ var sources = [
   'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pdf-download-10-mb.pdf',
   'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pdf-with-images.pdf'
 ];
+var names= [
+  'pdf1',
+  'pdf2',
+  'pdf3',
+  'pdf4'
+]
 var index = 3;
 // var pdfs: PDFdocument[] = [];
 
 // for (const pdf of sources) {
 //   pdfs.push(new PDFdocument(pdf));
 // }
+
+function select(this: any, dir: number){
+  if(dir < sources.length && dir >= 0){
+    index = dir;
+    this.$data.index = index;
+    console.log(index);
+    this.$data.source = sources[index];
+    this.$data.pdf = new PDFdocument(sources[index]);
+  }
+}
 
 @Component({
   components: {
@@ -42,19 +63,19 @@ var index = 3;
     return {
       pdf: pdf,
       source: sources[index],
+      index: index,
+      names: names,
     }
   },
   methods:{
     save() {
       this.$data.pdf.save();
     },
-    select(dir: number){
-      if(index + dir < sources.length && index + dir >= 0){
-        index += dir;
-        console.log(index);
-        this.$data.source = sources[index];
-        this.$data.pdf = new PDFdocument(sources[index]);
-      }
+    selectDir(dir: number){
+      select.call(this, index + dir);
+    },
+    selectIndex(index: number){
+      select.call(this, index);
     }
   }
 })
@@ -80,5 +101,8 @@ export default class App extends Vue {
 }
 .right-bar{
   width: 25vw;
+}
+.pdf-tab{
+  width: 100%;
 }
 </style>

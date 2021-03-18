@@ -32,6 +32,7 @@ export class PDFdocument{
 
     private LoadPdfToViewport(pdfbytes: ArrayBuffer) {
         this.viewref = pdf.default.createLoadingTask(new Uint8Array(pdfbytes));
+        console.log('loading');
         var progressUpdated = false;
         this.viewref.onProgress = (progress: number) => {
             progressUpdated = true;
