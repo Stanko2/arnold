@@ -5,7 +5,7 @@
     </nav>
     <div class="d-flex main">
       <div class="right-bar bg-secondary">
-        ahoj
+        prava lista - asi pojde list rieseni
       </div>
       <Viewport :pdf="pdf" :key="source"></Viewport>
     </div>
@@ -49,13 +49,11 @@ var index = 3;
       this.$data.pdf.save();
     },
     select(dir: number){
-      console.log(index);
       if(index + dir < sources.length && index + dir >= 0){
         index += dir;
+        console.log(index);
         this.$data.source = sources[index];
         this.$data.pdf = new PDFdocument(sources[index]);
-        console.log(this.$data.pdf.viewref);
-        
       }
     }
   }

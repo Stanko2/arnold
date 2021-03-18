@@ -10,7 +10,7 @@
             <button class="btn btn-secondary">Move</button>
         </div>
         <div>
-            <button class="btn btn-success" @click="save">Save</button>
+            <button class="btn btn-success" v-shortkey.once="['ctrl', 's']" @shortkey="save" @click="save">Save</button>
         </div>
     </div>
 </template>

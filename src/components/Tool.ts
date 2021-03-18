@@ -16,7 +16,7 @@ export var selectedTool: Tool = {
         text: '',
         lockRotation: true,
         width: 100,
-        height: 30,
+        height: 20,
         borderColor: 'red',
         hasBorders: true,
         hasRotatingPoint: false,

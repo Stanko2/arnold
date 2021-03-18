@@ -17,27 +17,31 @@ export class PDFdocument{
         return this.pages.length;
     } 
     constructor(url: string){
-        this.viewref = pdf.default.createLoadingTask(url);
-        var progressUpdated = false;
-        this.viewref.onProgress = (progress: number)=>{
-            progressUpdated = true;
-        }
-        // setTimeout(() => {
-        //     if(!progressUpdated){
-        //         // console.log(PDFdocument.initDocument);
-        //         this.viewref = pdf.default.createLoadingTask(url);
-                // PDFdocument.initDocument.call(PDFdocument.viewport, this.viewref);
-        //     }
-        // }, 200);
         this.init(url);
     }
 
     async init(url: string){
         var pdfbytes = await fetch(url).then(res => res.arrayBuffer());
+        this.LoadPdfToViewport(pdfbytes);
+        PDFdocument.initDocument.call(PDFdocument.viewport, this.viewref);
         this.modifyRef = await PDFDocument.load(pdfbytes);
         this.font = await this.modifyRef.embedFont(StandardFonts.Helvetica);
         TextAnnotation.font = this.font;
         this.pages = this.modifyRef.getPages();
+    }
+
+    private LoadPdfToViewport(pdfbytes: ArrayBuffer) {
+        this.viewref = pdf.default.createLoadingTask(new Uint8Array(pdfbytes));
+        var progressUpdated = false;
+        this.viewref.onProgress = (progress: number) => {
+            progressUpdated = true;
+        };
+        setTimeout(() => {
+            if (!progressUpdated) {
+                this.LoadPdfToViewport(pdfbytes);
+                console.error('retry');
+            }
+        }, 500);
     }
 
     write(annotation: Annotation){
@@ -63,20 +67,42 @@ export class PDFdocument{
         document.body.removeChild(a);
     }
 
+    get mouseOverDocument(): boolean {
+        return this.hovering.some(e=>e);
+    }
+    hovering: boolean[] = []
     initCanvases(){
+        this.hovering = [];
         for (const canvas of this.pageCanvases) {
+            this.hovering.push(false);
+            // canvas.on('mouse:over', ()=>{
+            //     this.hovering[this.pageCanvases.indexOf(canvas)] = true;
+            // });
+            // canvas.on('mouse:out', ()=>{
+            //     this.hovering[this.pageCanvases.indexOf(canvas)] = false;
+            // });
             canvas.on('mouse:down', (e)=>{
                 if(e.absolutePointer == null) return;
+                // var activeCanvas = this.hovering.indexOf(true);
+                // for (let i = 0; i < this.pageCanvases.length; i++) {
+                //     if(i == activeCanvas) continue;
+                //     const cnv = this.pageCanvases[i];
+                //     cnv.discardActiveObject().renderAll();
+                // }
                 for (const annotation of this.annotations) {
                     if(annotation.object.containsPoint(e.absolutePointer)){
                         return;
                     }
                 }
-                var options = selectedTool.defaultOptions as fabric.IObjectOptions;
-                options.top = e.absolutePointer?.y;
-                options.left = e.absolutePointer?.x;
-                selectedTool.defaultOptions = options;
-                selectedTool.click(this, this.pageCanvases.indexOf(canvas));
+                if(canvas.getActiveObjects().length == 0){
+                    var options = selectedTool.defaultOptions as fabric.IObjectOptions;
+                    const width = selectedTool.defaultOptions.width || 0;
+                    const height = selectedTool.defaultOptions.height || 0;
+                    options.top = e.absolutePointer?.y - height / 2;
+                    options.left = e.absolutePointer?.x - width /2;
+                    selectedTool.defaultOptions = options;
+                    selectedTool.click(this, this.pageCanvases.indexOf(canvas));
+                }
             });
             canvas.on('object:scaling', (e)=>{
                 e.target?.setOptions({ scaleX: 1, scaleY: 1});
@@ -84,14 +110,18 @@ export class PDFdocument{
             canvas.on('selection:updated', (e)=>{
                 for (const object of this.annotations){
                     if(object instanceof TextAnnotation){
-                        var textbox = object as TextAnnotation;
-                        if(textbox.object.text === ''){
-                            textbox.delete();
-                            this.annotations.splice(this.annotations.indexOf(textbox), 1);
-                        }
+                        this.Delete(object);
                     }
                 }
             });
+        }
+    }
+
+    public Delete(object: Annotation) {
+        var textbox = object as TextAnnotation;
+        if (textbox.object.text === '') {
+            textbox.delete();
+            this.annotations.splice(this.annotations.indexOf(textbox), 1);
         }
     }
 
