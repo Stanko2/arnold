@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <nav class="navbar sticky-top navbar-light bg-primary">
-      <Toolbar @save="save" @select="selectDir" class="pdf"></Toolbar>
+      <topbar @save="save" @select="selectDir" class="pdf"></topbar>
     </nav>
     <div class="d-flex main">
       <div class="right-bar bg-secondary">
@@ -12,7 +12,13 @@
           </li>
         </ul>
       </div>
-      <Viewport :pdf="pdf" :key="source"></Viewport>
+      <div style="width:100%">
+        <toolbar></toolbar>
+        <div class="viewportWrapper">
+          <Viewport :pdf="pdf" :key="source"></Viewport>
+        </div>
+      </div>
+      
     </div>
     
   </div>
@@ -21,7 +27,8 @@
 <script lang="ts">
 import { Component, Vue } from 'vue-property-decorator';
 import Viewport from './components/Viewport.vue';
-import Toolbar from './components/Toolbar.vue'
+import Topbar from './components/Topbar.vue';
+import Toolbar from './components/Toolbar.vue';
 import { PDFdocument } from './components/PDFdocument';
 
 var sources = [
@@ -56,6 +63,7 @@ function select(this: any, dir: number){
 @Component({
   components: {
     Viewport,
+    Topbar,
     Toolbar
   },
   data(){
@@ -104,5 +112,8 @@ export default class App extends Vue {
 }
 .pdf-tab{
   width: 100%;
+}
+.viewportWrapper{
+  height: 93.5%;
 }
 </style>
