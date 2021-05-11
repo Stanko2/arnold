@@ -13,8 +13,8 @@
         </ul>
       </div>
       <div style="width:100%">
-        <toolbar></toolbar>
-        <div class="viewportWrapper">
+        <toolbar :pdf="pdf"></toolbar>
+        <div class="viewportWrapper" v-if="pdf != null">
           <Viewport :pdf="pdf" :key="source"></Viewport>
         </div>
       </div>
@@ -29,36 +29,38 @@ import { Component, Vue } from 'vue-property-decorator';
 import Viewport from './components/Viewport.vue';
 import Topbar from './components/Topbar.vue';
 import Toolbar from './components/Toolbar.vue';
-import { PDFdocument } from './components/PDFdocument';
+import { PDFdocument } from "./components/PDFdocument";
+import { setPdf } from "./DocumentSelector";
 
-var sources = [
-  'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pdf-file.pdf',
-  'http://www.africau.edu/images/default/sample.pdf',
-  'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pdf-download-10-mb.pdf',
-  'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pdf-with-images.pdf'
-];
-var names= [
-  'pdf1',
-  'pdf2',
-  'pdf3',
-  'pdf4'
-]
-var index = 3;
-// var pdfs: PDFdocument[] = [];
 
-// for (const pdf of sources) {
-//   pdfs.push(new PDFdocument(pdf));
-// }
+export var sources = [
+    'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pdf-file.pdf',
+    'http://www.africau.edu/images/default/sample.pdf',
+    'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pdf-download-10-mb.pdf',
+    'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pdf-with-images.pdf'
+  ];
+ export var names= [
+    'pdf1',
+    'pdf2',
+    'pdf3',
+    'pdf4'
+  ]
+  
+export var index = 3;
+export var pdf: PDFdocument = new PDFdocument(sources[index]);
 
-function select(this: any, dir: number){
-  if(dir < sources.length && dir >= 0){
-    index = dir;
-    this.$data.index = index;
-    console.log(index);
-    this.$data.source = sources[index];
-    this.$data.pdf = new PDFdocument(sources[index]);
-  }
+export function select(this: any, dir: number){
+    if(dir < sources.length && dir >= 0){
+        index = dir;
+        this.$data.index = index;
+        console.log(index);
+        this.$data.source = sources[index];
+        this.$data.pdf = new PDFdocument(sources[index]);
+        setPdf(this.$data.pdf);
+        pdf = this.$data.pdf;
+    }
 }
+  
 
 @Component({
   components: {
@@ -67,10 +69,9 @@ function select(this: any, dir: number){
     Toolbar
   },
   data(){
-    var pdf = new PDFdocument(sources[index]);
     return {
       pdf: pdf,
-      source: sources[index],
+      source: pdf?.pageCount,
       index: index,
       names: names,
     }
@@ -80,7 +81,9 @@ function select(this: any, dir: number){
       this.$data.pdf.save();
     },
     selectDir(dir: number){
-      select.call(this, index + dir);
+      console.log(dir);
+      
+      select.call(this, dir);
     },
     selectIndex(index: number){
       select.call(this, index);

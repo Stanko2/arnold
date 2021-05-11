@@ -59,7 +59,10 @@ function initDocument(task){
         }, 300);
     });
 }
-PDFdocument.initDocument = initDocument;        
+if(PDFdocument != null){
+    PDFdocument.initDocument = initDocument;        
+}
+
 export default {
     props: ['pdf'],
     components:{

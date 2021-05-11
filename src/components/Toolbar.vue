@@ -18,20 +18,19 @@
         <b-dropdown-item>Helvetica</b-dropdown-item>
       </b-dropdown>
     </div>
-    <div class="d-flex align-items-center">
+    <div v-if="selectedTool.defaultOptions != null" class="d-flex align-items-center">
       <p style="margin: 5px">Fill</p> 
-      <v-swatches v-model="fill"></v-swatches>
+      <v-swatches v-model="selectedTool.defaultOptions.fill"></v-swatches>
     </div>
-    <div class="d-flex align-items-center">
+    <div v-if="selectedTool.defaultOptions != null" class="d-flex align-items-center">
       <p style="margin: 5px">Stroke</p> 
-      <v-swatches v-model="stroke"></v-swatches>
+      <v-swatches v-model="selectedTool.defaultOptions.stroke"></v-swatches>
     </div>
   </div>
-    <!-- <div> <vue-file-toolbar-menu :content="my_menu" /> </div> -->
 </template>
 
 <script>
-import { selectedTool, selectTool, tools} from './Tool'
+import { selectedTool, selectTool, tools, init } from './Tool'
 
 import VSwatches from 'vue-swatches'
 
@@ -49,6 +48,9 @@ export default {
       fill: '#ffffff',
       stroke: '#000000'
     }
+  },
+  mounted() {
+    init(this);
   },
   methods:{
     select(tool){
