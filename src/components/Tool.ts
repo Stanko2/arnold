@@ -14,11 +14,15 @@ export interface Tool {
     tooltip: string,
     onSelect: Function,
     onDeselect: Function,
+    options: any
 }
 var vue: Vue | null = null;
 
 export function init(VueRef: Vue){
     vue = VueRef;
+    TextAnnotation.toolOptions = tools[0];
+    LineAnnotation.toolOptions = tools[3];
+    RectAnnotation.toolOptions = tools[5];
 }
 
 // = {
@@ -54,15 +58,24 @@ export var tools: Tool[] = [
         },
         icon: 'A',
         tooltip: 'Text',
-        defaultOptions: <fabric.IObjectOptions>{
+        defaultOptions: <fabric.ITextboxOptions>{
             width: 0,
             height: 0,
+            fontFamily: 'Helvetica',
+            fill: '#000000',
+            fontSize: 12
         },
         onSelect: () => {
             console.log(pdf);
             pdf?.pageCanvases.forEach((e)=>{
                 e.selection = false;
             });
+        },
+        options: {
+            hasFill: true,
+            hasStroke: false,
+            hasText: true,
+            hasStrokeWidth: false,
         }
     },
     <Tool><unknown>{
@@ -72,20 +85,26 @@ export var tools: Tool[] = [
         tooltip: 'Kreslit',
         defaultOptions: {
             stroke: '#000000',
-            width: 10,
+            strokeWidth: 10,
         },
         onSelect: () => {
             pdf?.pageCanvases.forEach((e) => {
                 e.isDrawingMode = true;
                 var ref = tools.find(e=>e.name == 'Draw');
                 e.freeDrawingBrush.color = ref?.defaultOptions.stroke || '#000000';
-                e.freeDrawingBrush.width = ref?.defaultOptions.width || 10;
+                e.freeDrawingBrush.width = ref?.defaultOptions.strokeWidth || 10;
             });
         },
         onDeselect: () => {
             pdf?.pageCanvases.forEach((e) => {
                 e.isDrawingMode = false;
             });
+        },
+        options: {
+            hasFill: false,
+            hasStroke: true,
+            hasStrokeWidth: true,
+            hasText: false,
         }
     },
     <Tool>{
@@ -93,6 +112,12 @@ export var tools: Tool[] = [
         cursor: 'pointer',
         icon: 'add_photo_alternate',
         tooltip: 'Pridat peciatku',
+        options: {
+            hasFill: false,
+            hasStroke: false,
+            hasText: false,
+            hasStrokeWidth: false,
+        }
     },
     <Tool><unknown>{
         name: 'Arrow',
@@ -110,12 +135,24 @@ export var tools: Tool[] = [
             console.log(annot.object);
             return annot.object;
         },
+        options: {
+            hasFill: false,
+            hasStroke: true,
+            hasStrokeWidth: true,
+            hasText: false,
+        }
     },
     <Tool>{
         name: 'Circle',
         cursor: 'pointer',
         icon: 'circle',
         tooltip: 'Pridat kruh / elipsu',
+        options: {
+            hasFill: false,
+            hasStroke: false,
+            hasText: false,
+            hasStrokeWidth: false,
+        }
     },
     <Tool><unknown>{
         name: 'Rect',
@@ -132,24 +169,42 @@ export var tools: Tool[] = [
             selectTool(tools[7]);
             return annot.object;
         },
+        options: {
+            hasFill: true,
+            hasStroke: true,
+            hasStrokeWidth: true,
+            hasText: false,
+        }
     },
     <Tool>{
         name: 'Sign',
         cursor: 'pointer',
         icon: 'edit',
         tooltip: 'Pridat podpis',
+        options: {
+            hasFill: false,
+            hasStroke: false,
+            hasText: false,
+            hasStrokeWidth: false,
+        }
     },
     <Tool><unknown>{
         name: 'Select',
         cursor: 'pointer',
         icon: 'select_all',
         tooltip: 'Vybrat objekty',
+        defaultOptions: {},
         onSelect: () => {
             console.log(pdf);
             pdf?.pageCanvases.forEach((e)=>{
                 e.selection = true;
-                console.log(e.selection);
-            });
+            })
+        },
+        options: {
+            hasFill: false,
+            hasStroke: false,
+            hasStrokeWidth: false,
+            hasText: false,
         }
     },
 ]
@@ -162,5 +217,8 @@ export function selectTool(tool: Tool){
     if(tool.onSelect){
         tool.onSelect();
     }
-    if(vue!= null) vue.$data.selectedTool = selectedTool;
+    if(vue!= null) {
+        vue.$data.selectedTool = selectedTool;
+        vue.$data.selectedOptions = selectedTool.options;
+    }
 }

@@ -1,3 +1,4 @@
+import Vue from "*.vue";
 import fabric, { ILineOptions } from "fabric/fabric-impl";
 import { PDFDocument, PDFFont, PDFPage, StandardFonts } from "pdf-lib";
 import { Annotation, TextAnnotation } from "./Annotation";
@@ -10,8 +11,10 @@ interface Point{
 }
 
 export class PDFdocument{
-    static viewport: any;
+    static viewport: Vue;
+    static toolbarRef: any;
     static initDocument: Function;
+    static activeObject: fabric.Object;
     modifyRef: PDFDocument | undefined;
     viewref: any;
     pages: PDFPage[] = [];
@@ -150,13 +153,16 @@ export class PDFdocument{
             canvas.on('mouse:up', (e) =>{
                 this.creating = null;
                 this.dragStart = <Point>{x:0, y:0};
-            })
-            canvas.on('selection:updated', (e)=>{
-                for (const object of this.annotations){
-                    if(object instanceof TextAnnotation){
-                        this.Delete(object);
-                    }
+            });
+            canvas.on('selection:created', (e) =>{
+                if(selectedTool.name == 'Select'){
+                    PDFdocument.activeObject = canvas.getActiveObject();
+                    var activeObjectTool = (canvas.getActiveObject() as any).tool;
+                    PDFdocument.toolbarRef.$data.selectedTool.defaultOptions = activeObjectTool.defaultOptions;
+                    PDFdocument.toolbarRef.$data.selectedOptions = activeObjectTool.options;
+
                 }
+                
             });
         }
     }

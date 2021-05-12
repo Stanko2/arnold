@@ -1,14 +1,16 @@
 import Color from 'color';
 import { fabric } from 'fabric';
 import { PDFFont, PDFPage, rgb, UnexpectedFieldTypeError } from 'pdf-lib';
+import { Tool } from './Tool';
 
 export class TextAnnotation implements Annotation{
-    
+    static toolOptions: any;
     static font: PDFFont;
     object: fabric.Textbox;
     id: string = '';
     constructor(public page:number, options: fabric.ITextboxOptions, private canvas: fabric.Canvas) {
         this.object = new fabric.Textbox('Text', options);
+        (this.object as any).tool = TextAnnotation.toolOptions;
         canvas.add(this.object);
         this.options = options;
         canvas.setActiveObject(this.object);
@@ -42,12 +44,11 @@ export class TextAnnotation implements Annotation{
 }
 
 export class RectAnnotation implements Annotation{
-    
-    static font: PDFFont;
+    static toolOptions: any;
     object: fabric.Rect;
-    id: string = '';
     constructor(public page:number, options: fabric.IRectOptions, private canvas: fabric.Canvas) {
         this.object = new fabric.Rect(options);
+        (this.object as any).tool = RectAnnotation.toolOptions;
         canvas.add(this.object);
         this.options = options;
         canvas.setActiveObject(this.object);
@@ -80,12 +81,11 @@ export class RectAnnotation implements Annotation{
 }
 
 export class LineAnnotation implements Annotation{
-    
-    static font: PDFFont;
+    static toolOptions: any;
     object: fabric.Line;
-    id: string = '';
     constructor(public page:number, options: fabric.ILineOptions, private canvas: fabric.Canvas) {
         this.object = new fabric.Line([0,0,200,200], options);
+        (this.object as any).tool = LineAnnotation.toolOptions;
         canvas.add(this.object);
         this.options = options;
         canvas.setActiveObject(this.object);
