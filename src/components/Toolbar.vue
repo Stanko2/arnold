@@ -11,16 +11,18 @@
       </b-tooltip>
     </div>
     <div class="btn" v-if="selectedOptions.hasText">
-      <b-dropdown v-model="selectedTool.defaultOptions.fontFamily" text="Font">
-        <b-dropdown-item>Arial</b-dropdown-item>
-        <b-dropdown-item>Calibri</b-dropdown-item>
-        <b-dropdown-item>Comic Sans</b-dropdown-item>
-        <b-dropdown-item>Helvetica</b-dropdown-item>
+      <b-dropdown text="Font">
+        <b-dropdown-item v-for="font in fonts" :key="font.viewport" :style="{'font-family': font.viewport}"
+        ><button @click="selectedTool.defaultOptions.fontFamily = font.viewport">{{font.viewport}}</button></b-dropdown-item>
       </b-dropdown>
     </div>
     <div class="form-inline" v-if="selectedOptions.hasText">
       <p class="d-flex align-items-center">Font Size</p>
-      <input class="form-control" style="width:100px" type="number" v-model="selectedTool.defaultOptions.fontSize">
+      <input class="form-control" min="0" style="width:100px" type="number" v-model="selectedTool.defaultOptions.fontSize">
+    </div>
+    <div class="form-inline" v-if="selectedOptions.hasStrokeWidth">
+      <p class="d-flex align-items-center">Stroke Width</p>
+      <input class="form-control" min="0" style="width:100px" type="number" v-model="selectedTool.defaultOptions.strokeWidth">
     </div>
     <div v-if="selectedOptions.hasFill" class="d-flex align-items-center">
       <p style="margin: 5px">Fill</p> 
@@ -36,6 +38,8 @@
 <script>
 import { selectedTool, selectTool, tools, init } from './Tool'
 import { PDFdocument } from './PDFdocument';
+import { FontsAvailable } from './Fonts';
+import { Canvas } from '../Canvas';
 
 import VSwatches from 'vue-swatches'
 
@@ -52,12 +56,13 @@ export default {
       selectedTool: selectedTool,
       selectedOptions: selectedTool.options,
       fill: '#ffffff',
-      stroke: '#000000'
+      stroke: '#000000',
+      fonts: FontsAvailable
     }
   },
   mounted() {
     init(this);
-    PDFdocument.toolbarRef = this;
+    Canvas.toolbarRef = this;
   },
   methods:{
     select(tool){
@@ -67,13 +72,11 @@ export default {
   },
   created(){
     this.$watch('selectedTool.defaultOptions', ()=>{
-
       if(this.$data.selectedTool.name == 'Select'){
-        console.log(this.$data.selectedTool.defaultOptions);
-        this.$data.selectedTool.defaultOptions.width = null;
-        this.$data.selectedTool.defaultOptions.height = null;
-        this.$data.selectedTool.defaultOptions.top = PDFdocument.activeObject.top;
-        this.$data.selectedTool.defaultOptions.left = PDFdocument.activeObject.left;
+        this.$data.selectedTool.defaultOptions.width = PDFdocument.activeObject?.width;
+        this.$data.selectedTool.defaultOptions.height = PDFdocument.activeObject?.height;
+        this.$data.selectedTool.defaultOptions.top = PDFdocument.activeObject?.top;
+        this.$data.selectedTool.defaultOptions.left = PDFdocument.activeObject?.left;
         PDFdocument.activeObject.set(this.$data.selectedTool.defaultOptions);
         PDFdocument.activeObject.canvas?.renderAll();
       }

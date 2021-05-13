@@ -22,13 +22,12 @@
 
 <script>
 import pdf from 'vue-pdf';
-import { fabric } from 'fabric';
+import { Canvas } from '../Canvas'
 import {PDFdocument} from './PDFdocument'
 
 var pdfDocument = null;
 
-function initDocument(task){
-    console.log(pdfDocument);
+function initDocument(task, document){
     if(task) this.src = task;
     this.src.promise.then(pdf=>{
         this.pageCount = pdf.numPages;
@@ -38,7 +37,7 @@ function initDocument(task){
             var dimensions = this.$refs.page[0].parentNode.parentNode.getBoundingClientRect();
             for(var i = 0; i < this.$refs.page.length; i++){
                 const page = this.$refs.page[i];
-                const canvas = new fabric.Canvas(page);                    
+                const canvas = new Canvas(page, document, i);                    
                 canvas.setHeight(dimensions.height);
                 canvas.setWidth(dimensions.width);
                 canvas.pageIndex = i;

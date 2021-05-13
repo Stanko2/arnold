@@ -1,3 +1,4 @@
+import { Canvas } from '@/Canvas';
 import Color from 'color';
 import { fabric } from 'fabric';
 import { PDFFont, PDFPage, rgb, UnexpectedFieldTypeError } from 'pdf-lib';
@@ -8,13 +9,17 @@ export class TextAnnotation implements Annotation{
     static font: PDFFont;
     object: fabric.Textbox;
     id: string = '';
-    constructor(public page:number, options: fabric.ITextboxOptions, private canvas: fabric.Canvas) {
+    constructor(public page:number, options: fabric.ITextboxOptions, private canvas: Canvas) {
         this.object = new fabric.Textbox('Text', options);
         (this.object as any).tool = TextAnnotation.toolOptions;
         canvas.add(this.object);
         this.options = options;
         canvas.setActiveObject(this.object);
         this.object.selectAll();
+        this.object.controls = {
+            mr: new fabric.Control({visible: true}),
+            ml: new fabric.Control({visible: true})
+        }
     }
     x: number = 0;
     y: number = 0;
