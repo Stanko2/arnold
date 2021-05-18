@@ -3,11 +3,12 @@
     <div :key="tool.name" v-for="tool in tools">
       <button :id="tool.name" class="btn "
        :class="{'btn-primary': selectedTool.name == tool.name, 
-       'btn-outline-primary': selectedTool.name != tool.name}" @click="select(tool)">
+       'btn-outline-primary': selectedTool.name != tool.name}" @click="select(tool)" v-shortkey.once="[tool.shortcut]"
+       @shortkey="select(tool)">
         <span class="material-icons">{{ tool.icon }}</span>
       </button>
       <b-tooltip :target="tool.name" triggers="hover">
-        {{ tool.tooltip }}
+        {{ tool.tooltip }} ({{tool.shortcut}})
       </b-tooltip>
     </div>
     <div class="btn" v-if="selectedOptions.hasText">

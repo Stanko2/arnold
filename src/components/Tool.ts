@@ -14,7 +14,8 @@ export interface Tool {
     tooltip: string,
     onSelect: Function,
     onDeselect: Function,
-    options: any
+    options: any,
+    shortcut: string,
 }
 var vue: Vue | null = null;
 
@@ -76,7 +77,8 @@ export var tools: Tool[] = [
             hasStroke: false,
             hasText: true,
             hasStrokeWidth: false,
-        }
+        },
+        shortcut: 'T',
     },
     <Tool><unknown>{
         name: 'Draw',
@@ -105,7 +107,8 @@ export var tools: Tool[] = [
             hasStroke: true,
             hasStrokeWidth: true,
             hasText: false,
-        }
+        },
+        shortcut: 'D'
     },
     <Tool>{
         name: 'Photo',
@@ -174,7 +177,8 @@ export var tools: Tool[] = [
             hasStroke: true,
             hasStrokeWidth: true,
             hasText: false,
-        }
+        },
+        shortcut: 'R',
     },
     <Tool>{
         name: 'Sign',
@@ -205,7 +209,8 @@ export var tools: Tool[] = [
             hasStroke: false,
             hasStrokeWidth: false,
             hasText: false,
-        }
+        },
+        shortcut: 'S',
     },
 ]
 

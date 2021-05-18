@@ -16,9 +16,14 @@ export class TextAnnotation implements Annotation{
         this.options = options;
         canvas.setActiveObject(this.object);
         this.object.selectAll();
-        this.object.controls = {
-            mr: new fabric.Control({visible: true}),
-            ml: new fabric.Control({visible: true})
+        this.object._controlsVisibility = {
+            bl: false,
+            br: false,
+            mtr: false,
+            tl: false,
+            tr: false,
+            mb: false,
+            mt: false,
         }
     }
     x: number = 0;

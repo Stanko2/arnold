@@ -15,6 +15,10 @@ export const FontsAvailable = {
     },
     'Comic Sans':{
         pdf: '',
-        viewport: 'Comic Sans MS'
+        viewport: 'Comic Sans'
+    },
+    'roboto': {
+        pdf: '',
+        viewport: 'Roboto'
     }
 }
