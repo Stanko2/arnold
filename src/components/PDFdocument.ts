@@ -25,12 +25,16 @@ export class PDFdocument{
     get pageCount(): number {
         return this.pages.length;
     } 
-    constructor(url: string){
+    constructor(url: string | ArrayBuffer){
         this.init(url);
     }
 
-    async init(url: string){
-        var pdfbytes = await fetch(url).then(res => res.arrayBuffer());
+    async init(data: string | ArrayBuffer){
+        var pdfbytes = data as ArrayBuffer;
+        if(data instanceof String){
+            pdfbytes = await fetch(data as string).then(res => res.arrayBuffer());
+        }
+        
         this.LoadPdfToViewport(pdfbytes);
         PDFdocument.initDocument.call(PDFdocument.viewport, this.viewref, this);
         this.modifyRef = await PDFDocument.load(pdfbytes);
@@ -41,7 +45,6 @@ export class PDFdocument{
 
     private LoadPdfToViewport(pdfbytes: ArrayBuffer) {
         this.viewref = pdf.default.createLoadingTask(new Uint8Array(pdfbytes));
-        console.log('loading');
         var progressUpdated = false;
         this.viewref.onProgress = (progress: number) => {
             progressUpdated = true;

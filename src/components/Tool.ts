@@ -1,7 +1,7 @@
 import { ILineOptions, IObjectOptions, ITextboxOptions } from "fabric/fabric-impl";
 import { Annotation, LineAnnotation, RectAnnotation, TextAnnotation } from "./Annotation";
 import { PDFdocument } from "./PDFdocument";
-import { pdf } from '@/DocumentSelector';
+import { getViewedDocument } from '@/DocumentManager';
 import Vue from "*.vue";
 export interface Tool {
     defaultOptions: IObjectOptions,
@@ -52,6 +52,8 @@ export var tools: Tool[] = [
         name: 'Text',
         cursor: 'pointer',
         click: (pdf: PDFdocument, page: number) => {
+            console.log(pdf.pageCanvases);
+            
             var annot = new TextAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
             selectTool(tools[7]);
@@ -67,8 +69,7 @@ export var tools: Tool[] = [
             fontSize: 12
         },
         onSelect: () => {
-            console.log(pdf);
-            pdf?.pageCanvases.forEach((e)=>{
+            getViewedDocument()?.pageCanvases.forEach((e)=>{
                 e.selection = false;
             });
         },
@@ -90,7 +91,7 @@ export var tools: Tool[] = [
             strokeWidth: 10,
         },
         onSelect: () => {
-            pdf?.pageCanvases.forEach((e) => {
+            getViewedDocument()?.pageCanvases.forEach((e) => {
                 e.isDrawingMode = true;
                 var ref = tools.find(e=>e.name == 'Draw');
                 e.freeDrawingBrush.color = ref?.defaultOptions.stroke || '#000000';
@@ -98,7 +99,7 @@ export var tools: Tool[] = [
             });
         },
         onDeselect: () => {
-            pdf?.pageCanvases.forEach((e) => {
+            getViewedDocument()?.pageCanvases.forEach((e) => {
                 e.isDrawingMode = false;
             });
         },
@@ -199,8 +200,7 @@ export var tools: Tool[] = [
         tooltip: 'Vybrat objekty',
         defaultOptions: {},
         onSelect: () => {
-            console.log(pdf);
-            pdf?.pageCanvases.forEach((e)=>{
+            getViewedDocument()?.pageCanvases.forEach((e)=>{
                 e.selection = true;
             })
         },
