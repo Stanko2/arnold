@@ -7,7 +7,7 @@
       <input ref="fileInput" type="file" name="PDF" id="mainInput" placeholder="Vloz zip, v ktorom su vsetky riesenia" @change="fileAdded">
     </label>
     
-    <router-link tag="button" class="text btn btn-primary btn-lg btn-block" to="/edit">Zacat opravovat</router-link>
+    <router-link :disabled="!hasFile" tag="button" class="text btn btn-primary btn-lg btn-block" to="/edit">Zacat opravovat</router-link>
   </div>
 </template>
 
@@ -21,7 +21,8 @@ export default Vue.extend({
   },
   data() {
     return {
-      fileName: 'Vloz Zip s PDFkami na opravovanie'
+      fileName: 'Vloz Zip s PDFkami na opravovanie',
+      hasFile: false
     }
   },
   methods: {
@@ -29,6 +30,7 @@ export default Vue.extend({
       var file = (this.$refs.fileInput as HTMLInputElement).files?.item(0);
       if(file != null) readZip(file);
       this.$data.fileName = file?.name;
+      this.$data.hasFile = true;
     }
   }
 })

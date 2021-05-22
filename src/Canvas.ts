@@ -13,6 +13,7 @@ export class Canvas extends fabric.Canvas{
 
     dragStart = <Point>{x: 0, y: 0};
     creating: fabric.Object | null = null;
+    pageIndex = 0;
     constructor(el:any,private pdf: PDFdocument, private page: number){
         super(el);
     }

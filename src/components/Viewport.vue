@@ -7,7 +7,7 @@
             </div>
             
         </div>
-        <div class="viewport" @click="deselect" v-shortkey.once="['delete']" @shortkey="deleteSelected">
+        <div class="viewport" v-shortkey.once="['delete']" @shortkey="deleteSelected">
             <div class="pdf" >
                 <div v-for="i in pageCount" :key="i" class="page">
                     <pdf
@@ -16,11 +16,10 @@
                         :page="i"
                         class="card page-data"
                         @error="err"
+                        @loaded="documentLoaded"
                     ></pdf>
-                    <div class="pageAnnot" 
-                        @mouseover="pdf.hovering[i] = true" 
-                        @mouseleave="pdf.hovering[i] = false">
-                            <canvas ref="page"></canvas>
+                    <div class="pageAnnot">
+                        <canvas ref="page"></canvas>
                     </div>
                 </div>
             </div>
@@ -28,54 +27,13 @@
     </div>
 </template>
 
-<script>
-import pdf from 'vue-pdf';
+<script lang="ts">
+var pdf = require("vue-pdf").default;
 import { Canvas } from '../Canvas'
-import {PDFdocument} from './PDFdocument'
+import { PDFdocument } from './PDFdocument';
 import { getViewedDocument } from '@/DocumentManager';
 
 var pdfDocument = null;
-
-function initDocument(task, document){
-    this.$data.loaded = false;
-    if(task) this.src = task;
-    this.src.promise.then(pdf=>{
-        this.pageCount = pdf.numPages;
-        var pageCanvases = []
-        this.ro = []
-        // setTimeout musi byt, lebo z nejakych dovodov sa to pdfko resizne na co canvas nevie reagovat 
-        // nepodarilo sa mi vyriesit v nejakom normalnom case
-        setTimeout(() => {
-            var dimensions = this.$refs.page[0].parentNode.parentNode.getBoundingClientRect();
-            for(var i = 0; i < this.$refs.page.length; i++){
-                const page = this.$refs.page[i];
-                const canvas = new Canvas(page, document, i);                    
-                canvas.setHeight(dimensions.height);
-                canvas.setWidth(dimensions.width);
-                canvas.pageIndex = i;
-                pageCanvases.push(canvas);
-
-                const observer = new MutationObserver((mutations)=>{
-                    mutations.forEach(mutation=>{
-                        if(mutation.type == 'attributes'){
-                            var dimensions = page.parentNode.parentNode.getBoundingClientRect();
-                            console.log(dimensions);
-                            canvas.setHeight(dimensions.height);
-                            canvas.setWidth(dimensions.width);                    
-                        }
-                    })
-                });
-                observer.observe(page.parentNode.parentNode, { attributes: true });
-            }
-            getViewedDocument().pageCanvases = pageCanvases;
-            getViewedDocument().initCanvases();
-            this.$data.loaded = true;
-        }, 50);
-    });
-}
-if(PDFdocument != null){
-    PDFdocument.initDocument = initDocument;        
-}
 
 export default {
     props: ['pdf'],
@@ -84,29 +42,72 @@ export default {
     },
     data() {
         pdfDocument = getViewedDocument();
-        PDFdocument.viewport = this;
         return {
-            src: pdfDocument.viewref,
-            pageCount: pdfDocument.pageCount,
+            src: pdfDocument?.viewref,
+            pageCount: pdfDocument?.pageCount,
             pagesLoaded: 0,
             loaded: false
         }
     },
+    mounted(){
+        PDFdocument.initDocument = (task: any, document: PDFdocument) => {
+            this.$data.loaded = false;
+            if(task) this.src = task;
+            this.src.promise.then((pdf: any)=>{
+                this.pageCount = pdf.numPages;
+                var pageCanvases: Canvas[] = []
+                // setTimeout musi byt, lebo z nejakych dovodov sa to pdfko resizne na co canvas nevie reagovat 
+                // nepodarilo sa mi vyriesit lepsie
+                setTimeout(() => {
+                    var dimensions: DOMRect | undefined = (this.$refs.page as Element[])[0]?.parentElement?.parentElement?.getBoundingClientRect();
+                    for(var i = 0; i < (this.$refs.page as Element[]).length; i++){
+                        const page = (this.$refs.page as Element[])[i];
+                        const canvas = new Canvas(page, document, i);                    
+                        if(dimensions != null){
+                            canvas.setHeight(dimensions?.height);
+                            canvas.setWidth(dimensions?.width);
+                        }
+                        
+                        canvas.pageIndex = i;
+                        pageCanvases.push(canvas);
+
+                        const observer = new MutationObserver((mutations)=>{
+                            mutations.forEach(mutation=>{
+                                if(mutation.type == 'attributes'){
+                                    var dimensions = page.parentElement?.parentElement?.getBoundingClientRect();
+                                    console.log(dimensions);
+                                    if(dimensions != null){
+                                        canvas.setHeight(dimensions.height);
+                                        canvas.setWidth(dimensions.width);                    
+                                    }
+                                }
+                            })
+                        });
+                        observer.observe(page.parentElement?.parentElement as HTMLElement, { attributes: true });
+                    }
+                    var doc = getViewedDocument();
+                    if(doc != null){
+                        doc.pageCanvases = pageCanvases;
+                        doc.initCanvases();
+                    }
+                    
+                    this.$data.loaded = true;
+                }, 50);
+            });
+        }  
+        PDFdocument.viewport = this;
+    },
     methods:{
-        err(err){
+        err(err: any){
             console.log(err);
-        },
-        deselect(){
-            for (const canvas of pdfDocument.pageCanvases) {
-                if(!pdfDocument.mouseOverDocument){
-                    canvas.discardActiveObject().renderAll();
-                }
-                
-            }
         },
         deleteSelected(){
             console.log('delete');
-        }
+        },
+        documentLoaded(){
+            console.log('loaded');
+        },
+        
     },
 }
 </script>

@@ -1,8 +1,5 @@
 import { PDFdocument } from "./components/PDFdocument";
-import 'jszip';
 import JSZip, { JSZipObject } from "jszip";
-
-var Documents: PDFdocument[] = [];
 
 export var functions = {
     updateUI: ()=>{},
@@ -23,11 +20,11 @@ export async function readZip(file: File){
     var buffer = await file.arrayBuffer();
     var zipReader = new JSZip();
     var zipFile = await zipReader.loadAsync(buffer);
+    var index = 0;
     zipFile.forEach(async (path, entry) => {
         if(!entry.name.endsWith('.pdf')) return;
-        console.log(entry);
         var data = await entry.async('arraybuffer');
-        var index = Documents.push(new PDFdocument(data));
+        index++;
         var splittedName = entry.name.split('/')[1].split('-');
         metaDatas.push({
             entry: entry,
@@ -35,12 +32,7 @@ export async function readZip(file: File){
             kategoria: splittedName[1],
             riesitel: splittedName[2] + ' ' + splittedName[3]
         });
-        console.log(data);
     })
-    // var subory = await zipReader.getEntries();
-    // subory.forEach(e=>{
-        // console.log(e.filename);
-    // })
 }
 
 export var metaDatas: DocumentMetadata[] = []

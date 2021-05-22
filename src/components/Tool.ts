@@ -93,6 +93,8 @@ export var tools: Tool[] = [
         onSelect: () => {
             getViewedDocument()?.pageCanvases.forEach((e) => {
                 e.isDrawingMode = true;
+                console.log(e);
+                
                 var ref = tools.find(e=>e.name == 'Draw');
                 e.freeDrawingBrush.color = ref?.defaultOptions.stroke || '#000000';
                 e.freeDrawingBrush.width = ref?.defaultOptions.strokeWidth || 10;
@@ -101,6 +103,8 @@ export var tools: Tool[] = [
         onDeselect: () => {
             getViewedDocument()?.pageCanvases.forEach((e) => {
                 e.isDrawingMode = false;
+                console.log('draw mode exited');
+                
             });
         },
         options: {

@@ -75,6 +75,9 @@ import { functions, getViewedDocument, metaDatas, selectedDocumentIndex, setPdf 
     }
   },
   mounted(){
+    if(getViewedDocument() == null){
+      setPdf(0);
+    }
     functions.updateUI = ()=>{
       this.$data.selectedIndex = selectedDocumentIndex;
       this.$data.pdf = getViewedDocument();
