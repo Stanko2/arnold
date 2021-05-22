@@ -16,6 +16,7 @@ export class Canvas extends fabric.Canvas{
     pageIndex = 0;
     constructor(el:any,private pdf: PDFdocument, private page: number){
         super(el);
+        this.selection = false;
     }
 
     initEvents(){
@@ -86,7 +87,7 @@ export class Canvas extends fabric.Canvas{
                 console.log(this.getActiveObject().type);
                 
                 PDFdocument.activeObject = this.getActiveObject();
-                if(this.getActiveObject().type == 'path'){
+                if(this.getActiveObject().type == 'path' || this.getActiveObject().type == 'activeSelection'){
                     Canvas.toolbarRef.$data.selectedTool.defaultOptions = {stroke: this.getActiveObject().stroke, strokeWidth: this.getActiveObject().strokeWidth};
                     Canvas.toolbarRef.$data.selectedOptions = { hasStrokeWidth: true, hasStroke: true, hasText: false, hasFill: false };
                     return;

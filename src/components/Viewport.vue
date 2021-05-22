@@ -70,20 +70,14 @@ export default {
                         
                         canvas.pageIndex = i;
                         pageCanvases.push(canvas);
-
-                        const observer = new MutationObserver((mutations)=>{
-                            mutations.forEach(mutation=>{
-                                if(mutation.type == 'attributes'){
-                                    var dimensions = page.parentElement?.parentElement?.getBoundingClientRect();
-                                    console.log(dimensions);
-                                    if(dimensions != null){
-                                        canvas.setHeight(dimensions.height);
-                                        canvas.setWidth(dimensions.width);                    
-                                    }
-                                }
-                            })
+                        window.addEventListener('resize', ()=>{
+                            var dimensions = page.parentElement?.parentElement?.getBoundingClientRect();
+                            console.log(dimensions);
+                            if(dimensions != null){
+                                canvas.setHeight(dimensions.height);
+                                canvas.setWidth(dimensions.width);                    
+                            }
                         });
-                        observer.observe(page.parentElement?.parentElement as HTMLElement, { attributes: true });
                     }
                     var doc = getViewedDocument();
                     if(doc != null){

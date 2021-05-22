@@ -57,6 +57,7 @@ export var tools: Tool[] = [
             var annot = new TextAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
             selectTool(tools[7]);
+            selectedTool.defaultOptions = tools.find(e=>e.name == 'Text')?.defaultOptions || {};
             return annot.object;
         },
         icon: 'A',
@@ -67,11 +68,6 @@ export var tools: Tool[] = [
             fontFamily: 'Helvetica',
             fill: '#000000',
             fontSize: 12
-        },
-        onSelect: () => {
-            getViewedDocument()?.pageCanvases.forEach((e)=>{
-                e.selection = false;
-            });
         },
         options: {
             hasFill: true,
@@ -92,9 +88,7 @@ export var tools: Tool[] = [
         },
         onSelect: () => {
             getViewedDocument()?.pageCanvases.forEach((e) => {
-                e.isDrawingMode = true;
-                console.log(e);
-                
+                e.isDrawingMode = true;                
                 var ref = tools.find(e=>e.name == 'Draw');
                 e.freeDrawingBrush.color = ref?.defaultOptions.stroke || '#000000';
                 e.freeDrawingBrush.width = ref?.defaultOptions.strokeWidth || 10;
@@ -103,7 +97,7 @@ export var tools: Tool[] = [
         onDeselect: () => {
             getViewedDocument()?.pageCanvases.forEach((e) => {
                 e.isDrawingMode = false;
-                console.log('draw mode exited');
+                console.log(e);
                 
             });
         },
@@ -140,6 +134,7 @@ export var tools: Tool[] = [
             var annot = new LineAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
             selectTool(tools[7]);
+            selectedTool.defaultOptions = tools.find(e=>e.name == 'Arrow')?.defaultOptions || {};
             console.log(annot.object);
             return annot.object;
         },
@@ -175,6 +170,7 @@ export var tools: Tool[] = [
             var annot = new RectAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
             selectTool(tools[7]);
+            selectedTool.defaultOptions = tools.find(e=>e.name == 'Rect')?.defaultOptions || {};
             return annot.object;
         },
         options: {
@@ -206,6 +202,11 @@ export var tools: Tool[] = [
         onSelect: () => {
             getViewedDocument()?.pageCanvases.forEach((e)=>{
                 e.selection = true;
+            })
+        },
+        onDeselect: () => {
+            getViewedDocument()?.pageCanvases.forEach((e)=>{
+                e.selection = false;
             })
         },
         options: {
