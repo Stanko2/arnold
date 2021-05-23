@@ -8,6 +8,9 @@ export var functions = {
 var pdf: null | PDFdocument = null;
 export async function setPdf(index: number) {
     var data = metaDatas[index];
+    if(pdf?.pageCanvases){
+        pdf.pageCanvases.forEach((e)=>e.dispose());
+    }
     pdf = new PDFdocument(await data.entry.async('arraybuffer'));
     functions.updateUI();
 }  

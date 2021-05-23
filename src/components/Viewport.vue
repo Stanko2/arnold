@@ -8,7 +8,7 @@
             
         </div>
         <div class="viewport" v-shortkey.once="['delete']" @shortkey="deleteSelected">
-            <div class="pdf" >
+            <div class="pdf" ref="pdf">
                 <div v-for="i in pageCount" :key="i" class="page">
                     <pdf
                         :key="i"
@@ -50,6 +50,23 @@ export default {
         }
     },
     mounted(){
+        window.addEventListener("resize",()=>{
+            setTimeout(() => {
+                var size = (this.$refs.pdf as Element).getBoundingClientRect();
+            
+                for (let i = 0; i < (this.$refs.page as Element[]).length; i++) {
+                    const page = (this.$refs.page as HTMLElement[])[i].getBoundingClientRect();
+                    
+                    // page.style.transform = `scale(${size.width / page.getBoundingClientRect().width})`;
+                    // console.log(page.style.transform);
+                    
+                    var canvas: Canvas = getViewedDocument()?.pageCanvases[i] as Canvas;
+                    canvas.setWidth(size.width);
+                    canvas.setHeight(page.height);
+                }    
+            }, 100);
+            
+        });
         PDFdocument.initDocument = (task: any, document: PDFdocument) => {
             this.$data.loaded = false;
             if(task) this.src = task;
@@ -70,14 +87,6 @@ export default {
                         
                         canvas.pageIndex = i;
                         pageCanvases.push(canvas);
-                        window.addEventListener('resize', ()=>{
-                            var dimensions = page.parentElement?.parentElement?.getBoundingClientRect();
-                            console.log(dimensions);
-                            if(dimensions != null){
-                                canvas.setHeight(dimensions.height);
-                                canvas.setWidth(dimensions.width);                    
-                            }
-                        });
                     }
                     var doc = getViewedDocument();
                     if(doc != null){
@@ -117,6 +126,7 @@ export default {
     .page {
         display: grid;
         margin: 10px;
+        transform-origin: top left;
     }
     .page-data {
         grid-row: 1;
@@ -131,7 +141,8 @@ export default {
     }
     .pdf{
         margin: auto;
-        width: 70vw;
+        max-width: 70vw;
+
     }
     .loadingOverlay{
         position: absolute;
