@@ -3,7 +3,7 @@
     <div :key="tool.name" v-for="tool in tools">
       <button :id="tool.name" class="btn "
        :class="{'btn-primary': selectedTool.name == tool.name, 
-       'btn-outline-primary': selectedTool.name != tool.name}" @click="select(tool)" v-shortkey.once="[tool.shortcut]"
+       'btn-outline-primary': selectedTool.name != tool.name}" @click="select(tool)" :v-shortkey="[tool.shortcut]"
        @shortkey="select(tool)">
         <span class="material-icons">{{ tool.icon }}</span>
       </button>
@@ -19,11 +19,11 @@
     </div>
     <div class="form-inline" v-if="selectedOptions.hasText">
       <p class="d-flex align-items-center">Font Size</p>
-      <input class="form-control" min="0" style="width:100px" type="number" v-model="selectedTool.defaultOptions.fontSize">
+      <input class="form-control" min="0" style="width:100px" type="number" v-model.number="selectedTool.defaultOptions.fontSize">
     </div>
     <div class="form-inline" v-if="selectedOptions.hasStrokeWidth">
       <p class="d-flex align-items-center">Stroke Width</p>
-      <input class="form-control" min="0" style="width:100px" type="number" v-model="selectedTool.defaultOptions.strokeWidth">
+      <input class="form-control" min="0" style="width:100px" type="number" v-model.number="selectedTool.defaultOptions.strokeWidth">
     </div>
     <div v-if="selectedOptions.hasFill" class="d-flex align-items-center">
       <p style="margin: 5px">Fill</p> 
@@ -32,6 +32,17 @@
     <div v-if="selectedOptions.hasStroke" class="d-flex align-items-center">
       <p style="margin: 5px">Stroke</p> 
       <v-swatches v-model="selectedTool.defaultOptions.stroke"></v-swatches>
+    </div>
+    <hr>
+    <div class="right-controls">
+      <button id="zoomInButton" class="btn btn-outline-primary"><span class="material-icons">add</span></button>
+      <button id="zoomOutButton" class="btn btn-outline-primary"><span class="material-icons">remove</span></button>
+      <b-tooltip target="zoomOutButton" triggers="hover">
+        Oddialit
+      </b-tooltip>
+      <b-tooltip target="zoomInButton" triggers="hover">
+        Priblizit
+      </b-tooltip>
     </div>
   </div>
 </template>
@@ -100,5 +111,8 @@ export default {
   }
   b-dropdown{
     margin: 0 2px;
+  }
+  .right-controls{
+    margin-right: 10px;
   }
 </style>

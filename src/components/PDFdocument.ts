@@ -64,6 +64,7 @@ export class PDFdocument{
     }
 
     async save(){
+        const previousPDF = await this.modifyRef?.save();
         for (const annotation of this.annotations) {
             this.write(annotation);
         }
@@ -79,6 +80,10 @@ export class PDFdocument{
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
+        if(previousPDF != null){
+            this.modifyRef = await PDFDocument.load(previousPDF);
+        }
+        
     }
     initCanvases(){
         for (const canvas of this.pageCanvases) {

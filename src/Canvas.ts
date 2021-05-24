@@ -19,6 +19,13 @@ export class Canvas extends fabric.Canvas{
         this.selection = false;
     }
 
+    setScale(viewportSize: DOMRect){
+        if(this.pdf.modifyRef){
+            const { width, height} = this.pdf.modifyRef?.getPage(this.page).getSize();
+            this.setZoom(viewportSize.width / width);
+        }
+    }
+
     initEvents(){
         this.on('mouse:down', (e)=>{
             if(e.absolutePointer == null) return;

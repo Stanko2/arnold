@@ -63,6 +63,7 @@ export default {
                     var canvas: Canvas = getViewedDocument()?.pageCanvases[i] as Canvas;
                     canvas.setWidth(size.width);
                     canvas.setHeight(page.height);
+                    canvas.setScale(size);
                 }    
             }, 100);
             
