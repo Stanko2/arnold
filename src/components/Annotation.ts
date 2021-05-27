@@ -1,7 +1,7 @@
 import { Canvas } from '@/Canvas';
-import Color from 'color';
 import { fabric } from 'fabric';
-import { PDFFont, PDFPage, rgb, UnexpectedFieldTypeError } from 'pdf-lib';
+import Color from 'color';
+import { PDFFont, PDFPage, rgb, stroke, UnexpectedFieldTypeError } from 'pdf-lib';
 import { Tool } from './Tool';
 
 export class TextAnnotation implements Annotation{
@@ -32,6 +32,8 @@ export class TextAnnotation implements Annotation{
         this.canvas.renderAll();
     }
     bake(page: PDFPage){
+        console.log('writing text');
+        
         const {width, height} = page.getSize();
         if(this.object == null || this.object.top == null || this.object.left == null || this.object.fontSize == null) return;
         var x = this.object.left || 0;
@@ -67,34 +69,61 @@ export class RectAnnotation implements Annotation{
         this.canvas.renderAll();
     }
     bake(page: PDFPage){
-        // const { width, height } = page.getSize();
-        // var textbox = this.object;
-        // if(textbox == null || textbox.top == null || textbox.left == null || textbox.fontSize == null) return;
-        // var x = (textbox.left) / this.canvas.getWidth() * width;
-        // var y = height - (textbox.top + textbox.fontSize) / this.canvas.getHeight() * height;
-        // var fontSize = this.options.fontSize / this.canvas.getHeight() * height;
-        // console.log(textbox.textLines);
-        // var color = Color(textbox.fill).object();
-        // page.drawText(textbox.textLines.join('\n'), {
-        //     x: x,
-        //     y: y,
-        //     size: fontSize,
-        //     font: TextAnnotation.font,
-        //     color: rgb(color.r/255,color.g/255,color.b/255),
-        //     lineHeight: textbox._fontSizeMult * fontSize,
-        // })
+        var fill: Color = Color(this.object.fill);
+        var stroke: Color = Color(this.object.stroke);
+        const { width, height} = page.getSize();
+        console.log(`drawing rectangle at ${this.object.left}, ${this.object.top}`);
+        console.log(`width: ${width} height ${height}`);
+        
+        page.drawRectangle({
+            borderColor: rgb(stroke.red()/255, stroke.green()/255, stroke.blue() / 255),
+            color: rgb(fill.blue() / 255, fill.green() / 255, fill.blue() / 255),
+            borderWidth: this.object.strokeWidth,
+            height: this.object.height,
+            width: this.object.width,
+            x: this.object.left,
+            y: height - (this.object.top || 0) - (this.object.height || 0),
+        })
     }
 }
 
 export class LineAnnotation implements Annotation{
     static toolOptions: any;
     object: fabric.Line;
+    start: fabric.Circle;
+    end: fabric.Circle;
     constructor(public page:number, options: fabric.ILineOptions, private canvas: fabric.Canvas) {
-        this.object = new fabric.Line([0,0,200,200], options);
+        options.hasControls = false;
+        options.hasBorders = false;
+        this.object = new fabric.Line([options.x1 || 0, options.y1 || 0,options.x1 || 0, options.y1 || 0], options);
         (this.object as any).tool = LineAnnotation.toolOptions;
         canvas.add(this.object);
+        
+        this.start = new fabric.Circle({top: options.y1, left: options.x1, radius: 10, fill: '#ff0000', hasControls: false, hasBorders: false});
+        this.end = new fabric.Circle({top: options.y1, left: options.x1, radius: 10, fill: '#ff0000', hasControls: false, hasBorders: false});
+        
+        this.object.lockMovementX = true;
+        this.object.lockMovementY = true;
+        this.start.on('moving', (e)=>{
+            this.object.set({
+                x1: this.start.left as number + (this.start.radius as number),
+                y1: this.start.top as number + (this.start.radius as number),
+            })
+        });
+        this.end.on('moving', (e)=>{
+            this.object.set({
+                x2: this.end.left as number + (this.end.radius as number),
+                y2: this.end.top as number + (this.end.radius as number),
+            })
+        })
+        canvas.add(this.start);
+        canvas.add(this.end);
+        canvas.bringToFront(this.end);
+        canvas.setActiveObject(this.end);
         this.options = options;
         canvas.setActiveObject(this.object);
+    }
+    updatePoints(){
     }
     options: any;
     delete() {
@@ -102,22 +131,20 @@ export class LineAnnotation implements Annotation{
         this.canvas.renderAll();
     }
     bake(page: PDFPage){
-        // const { width, height } = page.getSize();
-        // var textbox = this.object;
-        // if(textbox == null || textbox.top == null || textbox.left == null || textbox.fontSize == null) return;
-        // var x = (textbox.left) / this.canvas.getWidth() * width;
-        // var y = height - (textbox.top + textbox.fontSize) / this.canvas.getHeight() * height;
-        // var fontSize = this.options.fontSize / this.canvas.getHeight() * height;
-        // console.log(textbox.textLines);
-        // var color = Color(textbox.fill).object();
-        // page.drawText(textbox.textLines.join('\n'), {
-        //     x: x,
-        //     y: y,
-        //     size: fontSize,
-        //     font: TextAnnotation.font,
-        //     color: rgb(color.r/255,color.g/255,color.b/255),
-        //     lineHeight: textbox._fontSizeMult * fontSize,
-        // })
+        var stroke: Color = Color(this.object.stroke);
+        const { width, height} = page.getSize();
+        page.drawLine({
+            start: {
+                x: this.object.x1 || 0,
+                y: height - (this.object.y1 || 0)
+            },
+            end: {
+                x: this.object.x2 || 0, 
+                y: height - (this.object.y2 || 0)
+            },
+            color: rgb(stroke.red()/255, stroke.green()/255, stroke.blue()/255),
+            thickness: this.object.strokeWidth,
+        });
     }
 }
 export interface Annotation{

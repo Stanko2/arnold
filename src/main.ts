@@ -6,10 +6,12 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import router from './router'
 
+const shortkey = require('vue-shortkey');
+
 Vue.config.productionTip = false
 Vue.use(BootstrapVue)
 Vue.use(IconsPlugin)
-Vue.use(require('vue-shortkey'))
+Vue.use(shortkey, { prevent: ['input', 'textarea'] })
 
 new Vue({
   router,

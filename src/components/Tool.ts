@@ -75,7 +75,7 @@ export var tools: Tool[] = [
             hasText: true,
             hasStrokeWidth: false,
         },
-        shortcut: 'T',
+        shortcut: 't',
     },
     <Tool><unknown>{
         name: 'Draw',
@@ -107,7 +107,7 @@ export var tools: Tool[] = [
             hasStrokeWidth: true,
             hasText: false,
         },
-        shortcut: 'D'
+        shortcut: 'd'
     },
     <Tool>{
         name: 'Photo',
@@ -130,10 +130,13 @@ export var tools: Tool[] = [
             stroke: '#000000',
             strokeWidth: 5,
         },
-        click: (pdf: PDFdocument, page: number) => {
+        click: (pdf: PDFdocument, page: number, position: {x: number, y: number}) => {
+            var options = (selectedTool.defaultOptions as fabric.ILineOptions);
+            options.x1 = position.x;
+            options.y1 = position.y;
             var annot = new LineAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
-            selectTool(tools[7]);
+            // selectTool(tools[7]);
             selectedTool.defaultOptions = tools.find(e=>e.name == 'Arrow')?.defaultOptions || {};
             console.log(annot.object);
             return annot.object;
@@ -163,8 +166,8 @@ export var tools: Tool[] = [
         icon: 'crop_3_2',
         tooltip: 'Pridat obdlznik',
         defaultOptions: <fabric.IObjectOptions>{
-            width: 0,
-            height: 0,
+            width: 30,
+            height: 30,
         },
         click: (pdf: PDFdocument, page: number) => {
             var annot = new RectAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
@@ -179,7 +182,7 @@ export var tools: Tool[] = [
             hasStrokeWidth: true,
             hasText: false,
         },
-        shortcut: 'R',
+        shortcut: 'r',
     },
     <Tool>{
         name: 'Sign',
@@ -215,7 +218,7 @@ export var tools: Tool[] = [
             hasStrokeWidth: false,
             hasText: false,
         },
-        shortcut: 'S',
+        shortcut: 's',
     },
 ]
 

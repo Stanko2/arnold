@@ -32,10 +32,11 @@ var pdf = require("vue-pdf").default;
 import { Canvas } from '../Canvas'
 import { PDFdocument } from './PDFdocument';
 import { getViewedDocument } from '@/DocumentManager';
+import Vue from 'vue';
 
 var pdfDocument = null;
 
-export default {
+export default Vue.extend({
     props: ['pdf'],
     components:{
         pdf
@@ -84,6 +85,8 @@ export default {
                         if(dimensions != null){
                             canvas.setHeight(dimensions?.height);
                             canvas.setWidth(dimensions?.width);
+
+                        canvas.setScale(dimensions);
                         }
                         
                         canvas.pageIndex = i;
@@ -113,7 +116,7 @@ export default {
         },
         
     },
-}
+});
 </script>
 <style scoped>
     .pageAnnot{

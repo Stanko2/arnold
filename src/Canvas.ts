@@ -11,9 +11,10 @@ interface Point{
 export class Canvas extends fabric.Canvas{
     static toolbarRef: any;
 
-    dragStart = <Point>{x: 0, y: 0};
+    dragStart: fabric.Point = new fabric.Point(0, 0);
     creating: fabric.Object | null = null;
     pageIndex = 0;
+    drawnShapes: fabric.Path[] = [];
     constructor(el:any,private pdf: PDFdocument, private page: number){
         super(el);
         this.selection = false;
@@ -27,6 +28,21 @@ export class Canvas extends fabric.Canvas{
     }
 
     initEvents(){
+        this.on('mouse:move', (e)=>{
+            if(this.creating != null){
+                console.log(this.creating);
+                var position = this.getPointer(e.e);
+                if(this.creating.type == 'line'){
+                    (this.creating as fabric.Line).y2 = this.dragStart.y - position.y;
+                    (this.creating as fabric.Line).x2 = this.dragStart.x - position.x;
+                    return;
+                }
+                this.creating.set({
+                    'height': Math.abs(this.dragStart.y - (position.y || 0)),
+                    'width': Math.abs(this.dragStart.x - (position.x || 0)),
+                })
+            }
+        });
         this.on('mouse:down', (e)=>{
             if(e.absolutePointer == null) return;
             if(this.isDrawingMode) return;
@@ -42,11 +58,12 @@ export class Canvas extends fabric.Canvas{
                 options.top = e.absolutePointer?.y - height / 2;
                 options.left = e.absolutePointer?.x - width /2;
                 selectedTool.defaultOptions = options;
-                this.dragStart = <Point>{x:e.absolutePointer.x, y:e.absolutePointer.y};
-                this.creating = selectedTool.click?.(this.pdf, this.page);
+                var pointerPos = this.getPointer(e.e);
+                this.dragStart = new fabric.Point(pointerPos.x, pointerPos.y);
+                this.creating = selectedTool.click?.(this.pdf, this.page, pointerPos);
                 if(selectedTool.name == 'Arrow'){
-                    (selectedTool.defaultOptions as fabric.ILineOptions).x1 = e.absolutePointer.x;
-                    (selectedTool.defaultOptions as fabric.ILineOptions).y1 = e.absolutePointer.y;
+                    (selectedTool.defaultOptions as fabric.ILineOptions).x1 = pointerPos.x;
+                    (selectedTool.defaultOptions as fabric.ILineOptions).y1 = pointerPos.y;
                 }
             }
             
@@ -72,22 +89,10 @@ export class Canvas extends fabric.Canvas{
                 });
             }
         });
-        this.on('mouse:move', (e)=>{
-            if(this.creating != null){
-                if(this.creating.type == 'line'){
-                    (this.creating as fabric.Line).y2 = this.dragStart.y - (e.absolutePointer?.y || 0);
-                    (this.creating as fabric.Line).x2 = this.dragStart.x - (e.absolutePointer?.x || 0);
-                    return;
-                }
-                this.creating.set({
-                    'height': Math.abs(this.dragStart.y - (e.absolutePointer?.y || 0)),
-                    'width': Math.abs(this.dragStart.x - (e.absolutePointer?.x || 0)),
-                })
-            }
-        });
+        
         this.on('mouse:up', (e) =>{
             this.creating = null;
-            this.dragStart = <Point>{x:0, y:0};
+            this.dragStart = new fabric.Point(0, 0);
         });
         this.on('selection:created', (e) =>{
             if(selectedTool.name == 'Select'){
@@ -108,6 +113,7 @@ export class Canvas extends fabric.Canvas{
             var obj = e.target;
             if(obj instanceof fabric.Path){
                 obj.controls = {};
+                this.drawnShapes.push(obj);
             }
         })
     }

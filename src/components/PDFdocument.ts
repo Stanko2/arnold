@@ -3,13 +3,8 @@ import { Canvas } from "@/Canvas";
 import { fabric } from "fabric";
 import { PDFDocument, PDFFont, PDFPage, StandardFonts } from "pdf-lib";
 import { Annotation, TextAnnotation } from "./Annotation";
-import { selectedTool, Tool } from "./Tool";
+import { Tool } from "./Tool";
 var pdf = require('vue-pdf');
-
-interface Point{
-    x: number;
-    y: number;
-}
 
 export class PDFdocument{
     static viewport: Vue;
@@ -25,19 +20,32 @@ export class PDFdocument{
     get pageCount(): number {
         return this.pages.length;
     } 
+    pdfbytes: ArrayBuffer | undefined;
     constructor(url: string | ArrayBuffer){
-        this.init(url);
+        this.init(url).then(pdf=>{
+            this.pdfbytes = pdf;
+            this.InitModifyRef();
+        });
+        this.pdfbytes = undefined;
     }
 
     async init(data: string | ArrayBuffer){
         var pdfbytes = data as ArrayBuffer;
+        console.log('init');
+        
         if(data instanceof String){
             pdfbytes = await fetch(data as string).then(res => res.arrayBuffer());
         }
-        
         this.LoadPdfToViewport(pdfbytes);
-        
-        this.modifyRef = await PDFDocument.load(pdfbytes);
+        return pdfbytes
+    }
+
+    private async InitModifyRef() {
+        if(this.pdfbytes == null) {
+            console.error('PDF not loaded')
+            return;    
+        }
+        this.modifyRef = await PDFDocument.load(this.pdfbytes);
         this.font = await this.modifyRef.embedFont(StandardFonts.Helvetica);
         TextAnnotation.font = this.font;
         this.pages = this.modifyRef.getPages();
@@ -64,11 +72,18 @@ export class PDFdocument{
     }
 
     async save(){
-        const previousPDF = await this.modifyRef?.save();
+        await this.InitModifyRef();
         for (const annotation of this.annotations) {
             this.write(annotation);
         }
-
+        for (let i = 0; i < this.pageCanvases.length; i++) {
+            const canvas = this.pageCanvases[i];
+            for (const shape of canvas.drawnShapes) {
+                const path = shape.toClipPathSVG().split('d=')[1].split('"')[1];
+                console.log(path);
+                this.pages[i].drawSvgPath(path, {x: 25, y: 25, borderWidth: 10});
+            }
+        }
         const pdfBytes = await this.modifyRef?.save();
         if(pdfBytes == null) return;
         var blob = new Blob([pdfBytes], {type: 'application/pdf'});
@@ -76,14 +91,11 @@ export class PDFdocument{
         document.body.appendChild(a);
         var url = window.URL.createObjectURL(blob);
         a.href = url;
-        a.download = 'opravene.pdf';
+        a.download = `opravene_${Math.random() * 1000000}.pdf`;
         a.click();
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-        if(previousPDF != null){
-            this.modifyRef = await PDFDocument.load(previousPDF);
-        }
-        
+        await this.InitModifyRef();
     }
     initCanvases(){
         for (const canvas of this.pageCanvases) {

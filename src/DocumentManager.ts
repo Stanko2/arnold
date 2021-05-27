@@ -1,17 +1,24 @@
 import { PDFdocument } from "./components/PDFdocument";
 import JSZip, { JSZipObject } from "jszip";
+import { selectedTool } from "./components/Tool";
 
 export var functions = {
     updateUI: ()=>{},
 };
 
+
 var pdf: null | PDFdocument = null;
 export async function setPdf(index: number) {
+    if(index < 0 || index >= metaDatas.length) return;
+    selectedDocumentIndex = index;
     var data = metaDatas[index];
     if(pdf?.pageCanvases){
         pdf.pageCanvases.forEach((e)=>e.dispose());
     }
     pdf = new PDFdocument(await data.entry.async('arraybuffer'));
+    // setTimeout(() => {
+    //     selectedTool?.onSelect();
+    // }, 100);
     functions.updateUI();
 }  
 

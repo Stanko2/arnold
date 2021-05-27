@@ -1,16 +1,15 @@
 <template>
     <div class="d-flex justify-content-between w-100">
-        <div>
-            <button class="btn btn-primary" @click="select(-1)">prev</button>
-            <button class="btn btn-primary" @click="select(1)">next</button>
+        <div style="width:90%" class="d-flex align-items-center">
+            <b-progress  max="100" show-value class="top-progress">
+                <b-progress-bar value="50" variant="success"></b-progress-bar>
+                <b-progress-bar value="25" variant="info"></b-progress-bar>
+                <b-progress-bar value="10" variant="danger"></b-progress-bar>
+                <b-progress-bar value="10" variant="warning"></b-progress-bar>
+            </b-progress>
         </div>
-        <div class="btn-group" role="group">
-            <button class="btn btn-secondary">Text</button>
-            <button class="btn btn-secondary">Select</button>
-            <button class="btn btn-secondary">Move</button>
-        </div>
         <div>
-            <button class="btn btn-success" v-shortkey.once="['ctrl', 's']" @shortkey="save" @click="save">Save</button>
+            <button class="btn btn-success" @click="save">Save</button>
         </div>
     </div>
 </template>
@@ -32,3 +31,11 @@ export default Vue.extend({
     }    
 })
 </script>
+
+<style>
+.top-progress{
+    margin: 0;
+    width: 100%;
+    height: 1.5vw;
+}
+</style>

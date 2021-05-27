@@ -1,12 +1,12 @@
 <template>
   <div id="app">
-    <nav class="navbar sticky-top navbar-light bg-primary">
+    <nav class="navbar sticky-top navbar-light bg-primary" style="padding: 0">
       <topbar @save="save" @select="selectDir" class="pdf"></topbar>
     </nav>
     <div class="d-flex main">
       <div class="right-bar bg-secondary">
         <ul class="list-group">
-          <li class="list-group-item" v-for="(document, i) in metadatas" :key="document.riesitel" :class="{ 'active': document.index == i, 'list-group-item-action': document.index != i}" @click="selectIndex(i)">
+          <li class="list-group-item" v-for="(document, i) in metadatas" :key="document.riesitel" :class="{ 'active': document.index == selectedIndex+1, 'list-group-item-action': document.index != selectedIndex+1}" @click="selectIndex(i)">
             <p>{{i}}. {{ document.riesitel }}  <span class="badge badge-secondary">{{ document.kategoria }}</span></p>
           </li>
         </ul>
@@ -19,7 +19,8 @@
       </div>
       
     </div>
-    
+    <div v-shortkey.once="['ctrl', 'arrowup']" @shortkey="selectDir(-1)"></div>
+    <div v-shortkey.once="['ctrl', 'arrowdown']" @shortkey="selectDir(1)"></div>
   </div>
 </template>
 
@@ -29,36 +30,6 @@ import Viewport from '../components/Viewport.vue';
 import Topbar from '../components/Topbar.vue';
 import Toolbar from '../components/Toolbar.vue';
 import { functions, getViewedDocument, metaDatas, selectedDocumentIndex, setPdf } from "../DocumentManager";
-
-
-// export var sources = [
-//     'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pdf-file.pdf',
-//     'http://www.africau.edu/images/default/sample.pdf',
-//     'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pdf-download-10-mb.pdf',
-//     'https://www.learningcontainer.com/wp-content/uploads/2019/09/sample-pdf-with-images.pdf'
-//   ];
-//  export var names= [
-//     'pdf1',
-//     'pdf2',
-//     'pdf3',
-//     'pdf4'
-//   ]
-  
-// export var index = 3;
-// export var pdf: PDFdocument = new PDFdocument(sources[index]);
-
-// export function select(this: any, dir: number){
-//     if(dir < sources.length && dir >= 0){
-//         index = dir;
-//         this.$data.index = index;
-//         console.log(index);
-//         this.$data.source = sources[index];
-//         this.$data.pdf = new PDFdocument(sources[index]);
-//         setPdf(this.$data.pdf);
-//         pdf = this.$data.pdf;
-//     }
-// }
-  
 
 @Component({
   components: {
@@ -76,7 +47,9 @@ import { functions, getViewedDocument, metaDatas, selectedDocumentIndex, setPdf 
   },
   mounted(){
     if(getViewedDocument() == null){
-      setPdf(0);
+      setPdf(0).catch(()=>{
+        this.$router.back();
+      })
     }
     functions.updateUI = ()=>{
       this.$data.selectedIndex = selectedDocumentIndex;
@@ -92,7 +65,9 @@ import { functions, getViewedDocument, metaDatas, selectedDocumentIndex, setPdf 
       setPdf(selectedDocumentIndex + dir)      
     },
     selectIndex(index: number){
-      setPdf(index);
+      setPdf(index).catch(()=>{
+        this.$router.back();
+      });
     }
   }
 })

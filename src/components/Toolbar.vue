@@ -3,12 +3,12 @@
     <div :key="tool.name" v-for="tool in tools">
       <button :id="tool.name" class="btn "
        :class="{'btn-primary': selectedTool.name == tool.name, 
-       'btn-outline-primary': selectedTool.name != tool.name}" @click="select(tool)" :v-shortkey="[tool.shortcut]"
+       'btn-outline-primary': selectedTool.name != tool.name}" @click="select(tool)" v-shortkey="[`${tool.shortcut}`]"
        @shortkey="select(tool)">
         <span class="material-icons">{{ tool.icon }}</span>
       </button>
       <b-tooltip :target="tool.name" triggers="hover">
-        {{ tool.tooltip }} ({{tool.shortcut}})
+        {{ tool.tooltip }} ({{ tool.shortcut }})
       </b-tooltip>
     </div>
     <div class="btn" v-if="selectedOptions.hasText">
@@ -35,7 +35,7 @@
     </div>
     <hr>
     <div class="right-controls">
-      <button id="zoomInButton" class="btn btn-outline-primary"><span class="material-icons">add</span></button>
+      <button id="zoomInButton" class="btn btn-outline-primary" v-shortkey="['A']"><span class="material-icons">add</span></button>
       <button id="zoomOutButton" class="btn btn-outline-primary"><span class="material-icons">remove</span></button>
       <b-tooltip target="zoomOutButton" triggers="hover">
         Oddialit
@@ -89,8 +89,11 @@ export default {
         this.$data.selectedTool.defaultOptions.height = PDFdocument.activeObject?.height;
         this.$data.selectedTool.defaultOptions.top = PDFdocument.activeObject?.top;
         this.$data.selectedTool.defaultOptions.left = PDFdocument.activeObject?.left;
-        PDFdocument.activeObject.set(this.$data.selectedTool.defaultOptions);
-        PDFdocument.activeObject.canvas?.renderAll();
+        if(PDFdocument.activeObject != null){
+          PDFdocument.activeObject.set(this.$data.selectedTool.defaultOptions);
+          PDFdocument.activeObject.canvas?.renderAll();
+        }
+        
       }
     }, {deep: true});
   }
