@@ -12,8 +12,9 @@
 </template>
 
 <script lang="ts">
+import { Database } from '@/Db';
 import Vue from 'vue';
-import { readZip } from '../DocumentManager';
+import { loadFromDatabase, readZip } from '../DocumentManager';
 
 export default Vue.extend({
   name: 'Home',
@@ -24,6 +25,18 @@ export default Vue.extend({
       fileName: 'Vloz Zip s PDFkami na opravovanie',
       hasFile: false
     }
+  },
+  mounted() {
+    return new Promise<void>((resolve, reject) =>{
+      Database.getAllDocuments().then(docs =>{
+        if(docs.length > 0){
+          loadFromDatabase().catch(err=>reject(err)).then(() =>{
+            this.$router.push("edit");
+            resolve();
+          });
+        }
+      });
+    })
   },
   methods: {
     fileAdded: function() {

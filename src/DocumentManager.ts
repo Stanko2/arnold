@@ -1,6 +1,7 @@
 import { PDFdocument } from "./components/PDFdocument";
 import JSZip, { JSZipObject } from "jszip";
 import { selectedTool } from "./components/Tool";
+import { Database } from "./Db";
 
 export var functions = {
     updateUI: ()=>{},
@@ -10,12 +11,13 @@ export var functions = {
 var pdf: null | PDFdocument = null;
 export async function setPdf(index: number) {
     if(index < 0 || index >= metaDatas.length) return;
+    // TODO: dump current document to database
     selectedDocumentIndex = index;
     var data = metaDatas[index];
     if(pdf?.pageCanvases){
         pdf.pageCanvases.forEach((e)=>e.dispose());
     }
-    pdf = new PDFdocument(await data.entry.async('arraybuffer'));
+    pdf = new PDFdocument(data.pdfData);
     // setTimeout(() => {
     //     selectedTool?.onSelect();
     // }, 100);
@@ -37,19 +39,31 @@ export async function readZip(file: File){
         index++;
         var splittedName = entry.name.split('/')[1].split('-');
         metaDatas.push({
-            entry: entry,
+            pdfData: data,
             index: index,
             kategoria: splittedName[1],
-            riesitel: splittedName[2] + ' ' + splittedName[3]
+            riesitel: splittedName[2] + ' ' + splittedName[3],
+            id: parseInt(splittedName[splittedName.length -1].substring(0,4)),
+            changes: []
         });
+        Database.addDocument(metaDatas[metaDatas.length - 1]);
     })
 }
 
-export var metaDatas: DocumentMetadata[] = []
+export async function loadFromDatabase(){
+    var docs = await Database.getAllDocuments();
+    docs.forEach(e=>{
+        metaDatas.push(e);
+    })
+}
 
-export interface DocumentMetadata{
+export var metaDatas: Document[] = []
+
+export interface Document{
     riesitel: string;
     kategoria: string;
     index: number;
-    entry: JSZipObject;
+    id: number;
+    pdfData: ArrayBuffer;
+    changes: any[];
 }

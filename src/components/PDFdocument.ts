@@ -101,6 +101,7 @@ export class PDFdocument{
         for (const canvas of this.pageCanvases) {
             canvas.initEvents();
         }
+        // TODO add loading from database
     }
 
     public Delete(object: Annotation) {
