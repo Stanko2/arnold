@@ -28,6 +28,8 @@ export class Canvas extends fabric.Canvas{
     }
 
     initEvents(){
+        // this.clear();
+        // this.removeListeners();
         this.on('mouse:move', (e)=>{
             if(this.creating != null){
                 console.log(this.creating);
@@ -98,8 +100,9 @@ export class Canvas extends fabric.Canvas{
             if(selectedTool.name == 'Select'){
                 console.log(this.getActiveObject().type);
                 
+                if(this.getActiveObject().type == 'activeSelection') return;
                 PDFdocument.activeObject = this.getActiveObject();
-                if(this.getActiveObject().type == 'path' || this.getActiveObject().type == 'activeSelection'){
+                if(this.getActiveObject().type == 'path'){
                     Canvas.toolbarRef.$data.selectedTool.defaultOptions = {stroke: this.getActiveObject().stroke, strokeWidth: this.getActiveObject().strokeWidth};
                     Canvas.toolbarRef.$data.selectedOptions = { hasStrokeWidth: true, hasStroke: true, hasText: false, hasFill: false };
                     return;

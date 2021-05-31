@@ -12,12 +12,13 @@ var pdf: null | PDFdocument = null;
 export async function setPdf(index: number) {
     if(index < 0 || index >= metaDatas.length) return;
     // TODO: dump current document to database
+
     selectedDocumentIndex = index;
     var data = metaDatas[index];
     if(pdf?.pageCanvases){
         pdf.pageCanvases.forEach((e)=>e.dispose());
     }
-    pdf = new PDFdocument(data.pdfData);
+    pdf = new PDFdocument(data.initialPdf, data.id);
     // setTimeout(() => {
     //     selectedTool?.onSelect();
     // }, 100);
@@ -40,6 +41,7 @@ export async function readZip(file: File){
         var splittedName = entry.name.split('/')[1].split('-');
         metaDatas.push({
             pdfData: data,
+            initialPdf: data,
             index: index,
             kategoria: splittedName[1],
             riesitel: splittedName[2] + ' ' + splittedName[3],
@@ -65,5 +67,6 @@ export interface Document{
     index: number;
     id: number;
     pdfData: ArrayBuffer;
+    initialPdf: ArrayBuffer;
     changes: any[];
 }

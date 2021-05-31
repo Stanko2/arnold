@@ -1,8 +1,9 @@
 import Vue from "*.vue";
 import { Canvas } from "@/Canvas";
+import { Database } from "@/Db";
 import { fabric } from "fabric";
 import { PDFDocument, PDFFont, PDFPage, StandardFonts } from "pdf-lib";
-import { Annotation, TextAnnotation } from "./Annotation";
+import { Annotation, LineAnnotation, RectAnnotation, TextAnnotation } from "./Annotation";
 import { Tool } from "./Tool";
 var pdf = require('vue-pdf');
 
@@ -21,7 +22,7 @@ export class PDFdocument{
         return this.pages.length;
     } 
     pdfbytes: ArrayBuffer | undefined;
-    constructor(url: string | ArrayBuffer){
+    constructor(url: string | ArrayBuffer, private id: number){
         this.init(url).then(pdf=>{
             this.pdfbytes = pdf;
             this.InitModifyRef();
@@ -31,7 +32,6 @@ export class PDFdocument{
 
     async init(data: string | ArrayBuffer){
         var pdfbytes = data as ArrayBuffer;
-        console.log('init');
         
         if(data instanceof String){
             pdfbytes = await fetch(data as string).then(res => res.arrayBuffer());
@@ -86,15 +86,24 @@ export class PDFdocument{
         }
         const pdfBytes = await this.modifyRef?.save();
         if(pdfBytes == null) return;
-        var blob = new Blob([pdfBytes], {type: 'application/pdf'});
-        var a = document.createElement("a");
-        document.body.appendChild(a);
-        var url = window.URL.createObjectURL(blob);
-        a.href = url;
-        a.download = `opravene_${Math.random() * 1000000}.pdf`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
+        var currDoc = await Database.getDocument(this.id);
+        currDoc.changes = [];
+        currDoc.pdfData = pdfBytes;
+        for (let i = 0; i < this.annotations.length; i++) {
+            const annot = this.annotations[i];
+            currDoc.changes.push(annot.serializeToJSON());
+        }
+        Database.updateDocument(this.id, currDoc);
+        // var blob = new Blob([pdfBytes], {type: 'application/pdf'});
+        // var a = document.createElement("a");
+        // document.body.appendChild(a);
+        // var url = window.URL.createObjectURL(blob);
+        // a.href = url;
+        // a.download = `opravene_${Math.random() * 1000000}.pdf`;
+        // a.click();
+        // window.URL.revokeObjectURL(url);
+        // document.body.removeChild(a);
+
         await this.InitModifyRef();
     }
     initCanvases(){
@@ -102,14 +111,27 @@ export class PDFdocument{
             canvas.initEvents();
         }
         // TODO add loading from database
-    }
-
-    public Delete(object: Annotation) {
-        var textbox = object as TextAnnotation;
-        if (textbox.object.text === '') {
-            textbox.delete();
-            this.annotations.splice(this.annotations.indexOf(textbox), 1);
-        }
+        Database.getDocument(this.id).then((doc) =>{
+            for (let i = 0; i < doc.changes.length; i++) {
+                const data = doc.changes[i];
+                var annotation = null;
+                switch (data.type) {
+                    case 'Text':
+                        annotation = new TextAnnotation(data.page, data.data, this.pageCanvases[data.page]);
+                        break;
+                    case 'Rect':
+                        annotation = new RectAnnotation(data.page, data.data, this.pageCanvases[data.page]);
+                        break;
+                    case 'Line':
+                        annotation = new LineAnnotation(data.page, data.data, this.pageCanvases[data.page]);
+                        break;
+                    default:
+                        break;
+                }
+                if(annotation != null) this.addAnnotation(annotation);
+            }
+        });
+        
     }
 
     addAnnotation(annotation: Annotation){
