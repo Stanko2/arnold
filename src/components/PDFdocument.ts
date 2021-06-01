@@ -131,7 +131,7 @@ export class PDFdocument{
                 if(annotation != null) this.addAnnotation(annotation);
             }
         });
-        
+        this.pageCanvases.forEach(c=>c.discardActiveObject());
     }
 
     addAnnotation(annotation: Annotation){

@@ -1,6 +1,6 @@
 import { PDFdocument } from "./components/PDFdocument";
 import JSZip, { JSZipObject } from "jszip";
-import { selectedTool } from "./components/Tool";
+import { selectedTool, selectTool } from "./components/Tool";
 import { Database } from "./Db";
 
 export var functions = {
@@ -19,9 +19,7 @@ export async function setPdf(index: number) {
         pdf.pageCanvases.forEach((e)=>e.dispose());
     }
     pdf = new PDFdocument(data.initialPdf, data.id);
-    // setTimeout(() => {
-    //     selectedTool?.onSelect();
-    // }, 100);
+    selectTool(selectedTool);
     functions.updateUI();
 }  
 

@@ -108,7 +108,7 @@ export class Canvas extends fabric.Canvas{
                     return;
                 }
                 var activeObjectTool = (this.getActiveObject() as any).tool;
-                Canvas.toolbarRef.$data.selectedTool.defaultOptions = activeObjectTool.defaultOptions;
+                Canvas.toolbarRef.$data.selectedTool.defaultOptions = activeObjectTool?.defaultOptions;
                 Canvas.toolbarRef.$data.selectedOptions = activeObjectTool.options;
             }
         });
@@ -118,6 +118,7 @@ export class Canvas extends fabric.Canvas{
                 obj.controls = {};
                 this.drawnShapes.push(obj);
             }
+            console.log(obj);
         })
     }
 

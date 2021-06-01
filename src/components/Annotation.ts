@@ -17,9 +17,11 @@ export abstract class Annotation{
         return {
             page: this.page,
             type: this.type,
-            data: this.object.toJSON()
+            data: this.serialize()
         }
     }
+
+    protected abstract serialize(): any;
 }
 export class TextAnnotation extends Annotation{
     static toolOptions: any;
@@ -28,11 +30,8 @@ export class TextAnnotation extends Annotation{
         return this.object as fabric.Textbox;
     }
     constructor(page:number, options: fabric.ITextboxOptions, canvas: Canvas) {
-        super(page, new fabric.Textbox('text', options), canvas, 'Text');
+        super(page, new fabric.Textbox(options.text || 'text', options), canvas, 'Text');
         (this.object as any).tool = TextAnnotation.toolOptions;
-
-        canvas.add(this.object);
-        this.options = options;
         canvas.setActiveObject(this.object);
         this.textbox.selectAll();
         this.object._controlsVisibility = {
@@ -45,7 +44,6 @@ export class TextAnnotation extends Annotation{
             mt: false,
         }
     }
-    options: any;
     delete() {
         this.canvas.remove(this.object);
         this.canvas.renderAll();
@@ -70,6 +68,18 @@ export class TextAnnotation extends Annotation{
         }
         page.drawText(this.textbox.textLines.join('\n'), options);
     }
+    serialize(): any{
+        return {
+            text: this.textbox.textLines.join('\n'),
+            top: this.object.top,
+            left: this.object.left,
+            fontFamily: this.textbox.fontFamily,
+            fontSize: this.textbox.fontSize,
+            fill: this.textbox.fill,
+            width: this.object.width,
+            height: this.object.height
+        };
+    }
 }
 
 export class RectAnnotation extends Annotation{
@@ -78,10 +88,8 @@ export class RectAnnotation extends Annotation{
         super(page, new fabric.Rect(options), canvas, 'Rect');
         this.object = new fabric.Rect(options);
         (this.object as any).tool = RectAnnotation.toolOptions;
-        this.options = options;
         canvas.setActiveObject(this.object);
     }
-    options: any;
     delete() {
         this.canvas.remove(this.object);
         this.canvas.renderAll();
@@ -103,22 +111,51 @@ export class RectAnnotation extends Annotation{
             y: height - (this.object.top || 0) - (this.object.height || 0),
         })
     }
+    serialize() : any {
+        return {
+            top: this.object.top,
+            left: this.object.left,
+            fill: this.object.fill,
+            stroke: this.object.stroke,
+            strokeWidth: this.object.strokeWidth,
+            width: this.object.width,
+            height: this.object.height
+        };
+    }
 }
 
 export class LineAnnotation extends Annotation{
     static toolOptions: any;
     start: fabric.Circle;
     end: fabric.Circle;
+    get line(): fabric.Line{
+        return this.object as fabric.Line;
+    }
     constructor(page:number, options: fabric.ILineOptions, canvas: Canvas) {
         options.hasControls = false;
         options.hasBorders = false;
-        super(page, new fabric.Line([options.x1 || 0, options.y1 || 0,options.x1 || 0, options.y1 || 0], options), canvas, 'Line');
+        super(page, new fabric.Line([options.x1 || 0, options.y1 || 0,options.x2 || options.x1 || 0, options.y2 || options.y1 || 0], options), canvas, 'Line');
         (this.object as any).tool = LineAnnotation.toolOptions;
         
         
-        this.start = new fabric.Circle({top: options.y1, left: options.x1, radius: 10, fill: '#ff0000', hasControls: false, hasBorders: false});
-        this.end = new fabric.Circle({top: options.y1, left: options.x1, radius: 10, fill: '#ff0000', hasControls: false, hasBorders: false});
-        
+        this.start = new fabric.Circle({
+            top: (options.y1 || 0) - 10, 
+            left: (options.x1 || 0) - 10, 
+            radius: 10, 
+            fill: '#ff0000', 
+            hasControls: false, 
+            hasBorders: false
+        });
+        this.end = new fabric.Circle({
+            top: (options.y2 || options.y1 || 0) - 10, 
+            left: (options.x2 || options.x1 || 0) - 10, 
+            radius: 10, 
+            fill: '#ff0000', 
+            hasControls: false, 
+            hasBorders: false
+        });
+        this.canvas.bringToFront(this.end);
+        this.canvas.bringToFront(this.start);
         this.object.lockMovementX = true;
         this.object.lockMovementY = true;
         this.start.on('moving', (e)=>{
@@ -163,5 +200,16 @@ export class LineAnnotation extends Annotation{
             color: rgb(stroke.red()/255, stroke.green()/255, stroke.blue()/255),
             thickness: this.object.strokeWidth,
         });
+    }
+
+    serialize() : any {
+        return {
+            x1: this.line.x1,
+            y1: this.line.y1,
+            x2: this.line.x2,
+            y2: this.line.y2,
+            stroke: this.object.stroke,
+            strokeWidth: this.object.strokeWidth,
+        };
     }
 }
