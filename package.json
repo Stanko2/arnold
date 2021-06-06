@@ -18,6 +18,7 @@
     "pdf-lib": "^1.16.0",
     "vue": "^2.6.11",
     "vue-class-component": "^7.2.3",
+    "vue-context-menu": "^2.0.6",
     "vue-pdf": "^4.2.0",
     "vue-property-decorator": "^9.1.2",
     "vue-router": "^3.2.0",

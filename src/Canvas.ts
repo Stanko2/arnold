@@ -24,10 +24,11 @@ export class Canvas extends fabric.Canvas{
         if(this.pdf.modifyRef){
             const { width, height} = this.pdf.modifyRef?.getPage(this.page).getSize();
             this.setZoom(viewportSize.width / width);
+            this.setHeight(this.getWidth() * height / width);
         }
     }
 
-    initEvents(){
+    initEvents(){   
         // this.clear();
         // this.removeListeners();
         this.on('mouse:move', (e)=>{
@@ -108,8 +109,11 @@ export class Canvas extends fabric.Canvas{
                     return;
                 }
                 var activeObjectTool = (this.getActiveObject() as any).tool;
-                Canvas.toolbarRef.$data.selectedTool.defaultOptions = activeObjectTool?.defaultOptions;
-                Canvas.toolbarRef.$data.selectedOptions = activeObjectTool.options;
+                if(activeObjectTool != null){
+                    Canvas.toolbarRef.$data.selectedTool.defaultOptions = activeObjectTool?.defaultOptions;
+                    Canvas.toolbarRef.$data.selectedOptions = activeObjectTool.options;
+                }
+                
             }
         });
         this.on('object:added', (e)=>{

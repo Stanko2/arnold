@@ -5,10 +5,14 @@
     </nav>
     <div class="d-flex main">
       <div class="right-bar bg-secondary">
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="Search Dcouments">
+          <div class="input-group-append">
+            <button class="btn btn-success"><span class="material-icons">search</span></button>
+          </div>
+        </div>
         <ul class="list-group">
-          <li class="list-group-item" v-for="(document, i) in metadatas" :key="document.riesitel" :class="{ 'active': document.index == selectedIndex+1, 'list-group-item-action': document.index != selectedIndex+1}" @click="selectIndex(i)">
-            <p>{{i}}. {{ document.riesitel }}  <span class="badge badge-secondary">{{ document.kategoria }}</span></p>
-          </li>
+          <document-preview ref="documentList" class="list-group-item" v-for="document in metadatas" :key="document.id" :documentID="document.id" :isSelected="selectedIndex == document.index+1" @click.native="selectIndex(document.index-1)"></document-preview>
         </ul>
       </div>
       <div style="width:100%">
@@ -29,15 +33,18 @@ import { Component, Vue } from 'vue-property-decorator';
 import Viewport from '../components/Viewport.vue';
 import Topbar from '../components/Topbar.vue';
 import Toolbar from '../components/Toolbar.vue';
+import DocumentPreview from '../components/DocumentPreview.vue';
 import { functions, getViewedDocument, metaDatas, selectedDocumentIndex, setPdf } from "../DocumentManager";
 
 @Component({
   components: {
     Viewport,
     Topbar,
-    Toolbar
+    Toolbar,
+    DocumentPreview
   },
   data(){
+    metaDatas.sort((a,b)=> a.index - b.index);
     return {
       pdf: getViewedDocument(),
       source: getViewedDocument()?.pageCount,
@@ -60,6 +67,10 @@ import { functions, getViewedDocument, metaDatas, selectedDocumentIndex, setPdf 
   methods:{
     save() {
       this.$data.pdf.save();
+      const editing = (this.$refs.documentList as Vue[]).find(e=>e.$data.document.id == this.$data.pdf.id) as any;
+      setTimeout(() => {
+        editing.updatePreview();  
+      }, 500);
     },
     selectDir(dir: number){
       setPdf(selectedDocumentIndex + dir)      

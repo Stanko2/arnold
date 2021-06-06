@@ -5,15 +5,15 @@ import { getViewedDocument } from '@/DocumentManager';
 import Vue from "*.vue";
 export interface Tool {
     defaultOptions: IObjectOptions,
-    click: Function,
+    click(pdf: PDFdocument, page: number, position: {x: number, y: number}): fabric.Object,
     mouseMove: Function,
     mouseUp: Function,
     cursor: string,
     icon: string,
     name: string, 
     tooltip: string,
-    onSelect: Function,
-    onDeselect: Function,
+    onSelect(): void,
+    onDeselect(): void,
     options: any,
     shortcut: string,
 }
@@ -26,32 +26,11 @@ export function init(VueRef: Vue){
     RectAnnotation.toolOptions = tools[5];
 }
 
-// = {
-//     defaultOptions: <ITextboxOptions>{
-//         fontSize: 14,
-//         fontFamily: 'Helvetica',
-//         text: '',
-//         lockRotation: true,
-//         width: 100,
-//         height: 20,
-//         borderColor: 'red',
-//         hasBorders: true,
-//         hasRotatingPoint: false,
-//     },
-    
-//     cursor: 'pointer',
-//     onSelect: (pdf: PDFdocument) => {
-//         for (const page of pdf.pageCanvases) {
-//             page.selection = false;
-//         }
-//     }
-// };
-
 export var tools: Tool[] = [
-    <Tool><unknown>{
+    <Tool>{
         name: 'Text',
         cursor: 'pointer',
-        click: (pdf: PDFdocument, page: number) => {
+        click: (pdf: PDFdocument, page: number, position: {x: number, y: number}): fabric.Object => {
             console.log(pdf.pageCanvases);
             
             var annot = new TextAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
@@ -77,7 +56,7 @@ export var tools: Tool[] = [
         },
         shortcut: 't',
     },
-    <Tool><unknown>{
+    <Tool>{
         name: 'Draw',
         cursor: 'pointer',
         icon: 'draw',
@@ -121,7 +100,7 @@ export var tools: Tool[] = [
             hasStrokeWidth: false,
         }
     },
-    <Tool><unknown>{
+    <Tool>{
         name: 'Arrow',
         cursor: 'pointer',
         icon: 'north_east',
@@ -160,7 +139,7 @@ export var tools: Tool[] = [
             hasStrokeWidth: false,
         }
     },
-    <Tool><unknown>{
+    <Tool>{
         name: 'Rect',
         cursor: 'pointer',
         icon: 'crop_3_2',
@@ -169,7 +148,7 @@ export var tools: Tool[] = [
             width: 30,
             height: 30,
         },
-        click: (pdf: PDFdocument, page: number) => {
+        click: (pdf: PDFdocument, page: number, position: {x: number, y: number}) => {
             var annot = new RectAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
             selectTool(tools[7]);

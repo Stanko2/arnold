@@ -22,7 +22,7 @@ export class PDFdocument{
         return this.pages.length;
     } 
     pdfbytes: ArrayBuffer | undefined;
-    constructor(url: string | ArrayBuffer, private id: number){
+    constructor(url: string | ArrayBuffer, public id: number){
         this.init(url).then(pdf=>{
             this.pdfbytes = pdf;
             this.InitModifyRef();
@@ -61,6 +61,7 @@ export class PDFdocument{
             if (!progressUpdated) {
                 this.LoadPdfToViewport(pdfbytes);
                 console.error('retry');
+                return;
             }
             PDFdocument.initDocument.call(PDFdocument.viewport, this.viewref, this);
         }, 500);
@@ -139,6 +140,6 @@ export class PDFdocument{
     }
 
     onToolSelect(tool: Tool){
-        tool.onSelect(this);
+        tool.onSelect();
     }   
 }

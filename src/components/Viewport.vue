@@ -7,8 +7,14 @@
             </div>
             
         </div>
+
         <div class="viewport" v-shortkey.once="['delete']" @shortkey="deleteSelected">
-            <div class="pdf" ref="pdf">
+            <context-menu id="context-menu" ref="ctxMenu" class="list-group">
+                <li class="list-group-item-action">Zmazat</li>
+                <li class="list-group-item-action">Presunut dopredu</li>
+                <li class="list-group-item-action">Presunut dozadu</li>
+            </context-menu>
+            <div class="pdf" ref="pdf" @contextmenu.prevent="$refs.ctxMenu.open">
                 <div v-for="i in pageCount" :key="i" class="page">
                     <pdf
                         :key="i"
@@ -33,13 +39,15 @@ import { Canvas } from '../Canvas'
 import { PDFdocument } from './PDFdocument';
 import { getViewedDocument } from '@/DocumentManager';
 import Vue from 'vue';
+const contextMenu = require('vue-context-menu');
 
 var pdfDocument = null;
 
 export default Vue.extend({
     props: ['pdf'],
     components:{
-        pdf
+        pdf,
+        contextMenu
     },
     data() {
         pdfDocument = getViewedDocument();
@@ -79,20 +87,22 @@ export default Vue.extend({
                 // nepodarilo sa mi vyriesit lepsie
                 setTimeout(() => {
                     var dimensions: DOMRect | undefined = (this.$refs.page as Element[])[0]?.parentElement?.parentElement?.getBoundingClientRect();
+                    var doc = getViewedDocument();
+                    if(!doc) return;
+                    if(doc?.pageCanvases.length > 0) return;
+
                     for(var i = 0; i < (this.$refs.page as Element[]).length; i++){
                         const page = (this.$refs.page as Element[])[i];
                         const canvas = new Canvas(page, document, i);                    
                         if(dimensions != null){
                             canvas.setHeight(dimensions?.height);
                             canvas.setWidth(dimensions?.width);
-
-                        canvas.setScale(dimensions);
+                            canvas.setScale(dimensions);
                         }
                         
                         canvas.pageIndex = i;
                         pageCanvases.push(canvas);
                     }
-                    var doc = getViewedDocument();
                     if(doc != null){
                         doc.pageCanvases = pageCanvases;
                         doc.initCanvases();

@@ -86,7 +86,6 @@ export class RectAnnotation extends Annotation{
     static toolOptions: any;
     constructor(page:number, options: fabric.IRectOptions, canvas: Canvas) {
         super(page, new fabric.Rect(options), canvas, 'Rect');
-        this.object = new fabric.Rect(options);
         (this.object as any).tool = RectAnnotation.toolOptions;
         canvas.setActiveObject(this.object);
     }

@@ -35,7 +35,6 @@ class DB{
     }
 
     addDocument(doc: Document){
-        console.log(doc);
         var riesenia = this.db?.transaction('riesenia', 'readwrite').objectStore('riesenia');        
         riesenia?.add(doc);
     }

@@ -44,7 +44,7 @@ export async function readZip(file: File){
             kategoria: splittedName[1],
             riesitel: splittedName[2] + ' ' + splittedName[3],
             id: parseInt(splittedName[splittedName.length -1].substring(0,4)),
-            changes: []
+            changes: [],
         });
         Database.addDocument(metaDatas[metaDatas.length - 1]);
     })
