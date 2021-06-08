@@ -2,8 +2,8 @@ import Vue from "*.vue";
 import { Canvas } from "@/Canvas";
 import { Database } from "@/Db";
 import { fabric } from "fabric";
-import { PDFDocument, PDFFont, PDFPage, StandardFonts } from "pdf-lib";
-import { Annotation, LineAnnotation, RectAnnotation, TextAnnotation } from "./Annotation";
+import { BlendMode, LineCapStyle, LineJoinStyle, PDFDocument, PDFFont, PDFPage, StandardFonts } from "pdf-lib";
+import { Annotation, LineAnnotation, PathAnnotation, RectAnnotation, TextAnnotation } from "./Annotation";
 import { Tool } from "./Tool";
 var pdf = require('vue-pdf');
 
@@ -77,14 +77,13 @@ export class PDFdocument{
         for (const annotation of this.annotations) {
             this.write(annotation);
         }
-        for (let i = 0; i < this.pageCanvases.length; i++) {
-            const canvas = this.pageCanvases[i];
-            for (const shape of canvas.drawnShapes) {
-                const path = shape.toClipPathSVG().split('d=')[1].split('"')[1];
-                console.log(path);
-                this.pages[i].drawSvgPath(path, {x: 25, y: 25, borderWidth: 10});
-            }
-        }
+        // for (let i = 0; i < this.pageCanvases.length; i++) {
+        //     const canvas = this.pageCanvases[i];
+        //     const height = this.pages[i].getHeight();
+        //     for (const shape of canvas.drawnShapes) {
+
+        //     }
+        // }
         const pdfBytes = await this.modifyRef?.save();
         if(pdfBytes == null) return;
         var currDoc = await Database.getDocument(this.id);
@@ -107,11 +106,13 @@ export class PDFdocument{
 
         await this.InitModifyRef();
     }
+
+    
     initCanvases(){
         for (const canvas of this.pageCanvases) {
             canvas.initEvents();
         }
-        // TODO add loading from database
+        // TODO: add path to changes and load it
         Database.getDocument(this.id).then((doc) =>{
             for (let i = 0; i < doc.changes.length; i++) {
                 const data = doc.changes[i];
@@ -125,6 +126,9 @@ export class PDFdocument{
                         break;
                     case 'Line':
                         annotation = new LineAnnotation(data.page, data.data, this.pageCanvases[data.page]);
+                        break;
+                    case 'Path':
+                        annotation = new PathAnnotation(data.page, data.data, this.pageCanvases[data.page]);
                         break;
                     default:
                         break;

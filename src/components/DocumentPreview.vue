@@ -1,7 +1,10 @@
 <template>
     <li class="list-group-item" :class="{ 'active': selected, 'list-group-item-action': !selected}">
         <div v-if="document != null" class="d-flex flex-row align-items-center">
-            <div class="card" style="width: 200px"><pdf :src="pdf" :page="1" style="display: inline-block; width: 100%;"></pdf></div>
+            <div class="card" style="width: 200px">
+                <div v-if="pdf == null" class="d-flex align-items-center justify-content-center text-danger">Save this document to load preview</div>
+                <pdf :src="pdf" :page="1" style="display: inline-block; width: 100%;"></pdf>
+            </div>
             <p class="ml-4">{{document.index}}. {{ document.riesitel }}  <span class="badge badge-secondary">{{ document.kategoria }}</span></p>
         </div>
         <div v-else>
@@ -34,7 +37,8 @@ export default Vue.extend({
     mounted() {
         Database.getDocument(this.documentID).then(doc=>{
             this.$data.document = doc;
-            this.$data.pdf = pdf.createLoadingTask(new Uint8Array(doc.pdfData));
+            // TODO: load only visible
+            // this.$data.pdf = pdf.createLoadingTask(new Uint8Array(doc.pdfData));
         })
     },
     methods: {

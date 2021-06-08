@@ -2,6 +2,7 @@
 import { PDFdocument } from "./components/PDFdocument";
 import { selectedTool } from "./components/Tool";
 import { fabric } from "fabric";
+import { PathAnnotation } from "./components/Annotation";
 
 interface Point{
     x: number;
@@ -29,8 +30,6 @@ export class Canvas extends fabric.Canvas{
     }
 
     initEvents(){   
-        // this.clear();
-        // this.removeListeners();
         this.on('mouse:move', (e)=>{
             if(this.creating != null){
                 console.log(this.creating);
@@ -72,7 +71,7 @@ export class Canvas extends fabric.Canvas{
             
         });
         this.on('object:scaling', (e)=>{
-            if(e.target?.type == 'textbox' || e.target?.type == 'active selection' || e.target?.type == 'path'){
+            if(e.target?.type == 'textbox' || e.target?.type == 'activeSelection' || e.target?.type == 'path'){
                 e.target?.setOptions({ scaleX: 1, scaleY: 1});
             }
             
@@ -113,16 +112,19 @@ export class Canvas extends fabric.Canvas{
                     Canvas.toolbarRef.$data.selectedTool.defaultOptions = activeObjectTool?.defaultOptions;
                     Canvas.toolbarRef.$data.selectedOptions = activeObjectTool.options;
                 }
-                
+                this.pdf.pageCanvases.forEach(e=>{
+                    if(e != this){
+                        e.discardActiveObject();
+                        e.renderAll();
+                    }
+                })
             }
         });
         this.on('object:added', (e)=>{
             var obj = e.target;
-            if(obj instanceof fabric.Path){
-                obj.controls = {};
-                this.drawnShapes.push(obj);
+            if(obj instanceof fabric.Path && this.isDrawingMode){
+                this.pdf.addAnnotation(new PathAnnotation(this.page, obj, this));
             }
-            console.log(obj);
         })
     }
 

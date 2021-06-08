@@ -14,7 +14,7 @@
                 <li class="list-group-item-action">Presunut dopredu</li>
                 <li class="list-group-item-action">Presunut dozadu</li>
             </context-menu>
-            <div class="pdf" ref="pdf" @contextmenu.prevent="$refs.ctxMenu.open">
+            <div class="pdf" ref="pdf" @contextmenu.prevent="contextMenuOpen">
                 <div v-for="i in pageCount" :key="i" class="page">
                     <pdf
                         :key="i"
@@ -115,6 +115,7 @@ export default Vue.extend({
         PDFdocument.viewport = this;
     },
     methods:{
+        // TODO: context menu functions
         err(err: any){
             console.log(err);
         },
@@ -124,7 +125,14 @@ export default Vue.extend({
         documentLoaded(){
             console.log('loaded');
         },
-        
+        contextMenuOpen(){
+            var doc = getViewedDocument();
+            doc?.pageCanvases.forEach(e=>{
+                if(e.getActiveObjects().length > 0){
+                    (this.$refs.ctxMenu as any).open();
+                }
+            }); 
+        }
     },
 });
 </script>

@@ -1,14 +1,12 @@
 import { Canvas } from '@/Canvas';
 import { fabric } from 'fabric';
 import Color from 'color';
-import { PDFFont, PDFPage, rgb, stroke, UnexpectedFieldTypeError } from 'pdf-lib';
-import { Tool } from './Tool';
-
+import { LineCapStyle, PDFFont, PDFPage, rgb } from 'pdf-lib';
 
 export abstract class Annotation{
-
-    constructor(public page:number, public object: fabric.Object, public canvas: Canvas, private type: string) {
-        canvas.add(this.object);
+    constructor(public page:number, public object: fabric.Object, public canvas: Canvas, private type: string, create: boolean = true) {
+        if(create)
+            canvas.add(this.object);
     }
 
     public abstract bake(page: PDFPage) : void;
@@ -23,6 +21,88 @@ export abstract class Annotation{
 
     protected abstract serialize(): any;
 }
+
+export class PathAnnotation extends Annotation{
+    public bake(page: PDFPage): void {
+        const path = this.convertSvgData(this.object.toClipPathSVG().split('d=')[1].split('"')[1]);
+        var color = Color(this.object.stroke).object();
+        page.drawSvgPath(path, {
+            borderWidth: this.object.strokeWidth, 
+            x: 0, 
+            y: page.getHeight(), 
+            borderLineCap: LineCapStyle.Round, 
+            borderDashPhase: 1, 
+            borderColor: rgb(color.r/255, color.g/255, color.b/255)
+        });
+    }
+    protected serialize() {
+        const path = this.convertSvgData(this.object.toClipPathSVG().split('d=')[1].split('"')[1]);
+        return {
+            path: path,
+            options: <Partial<fabric.IPathOptions>>{
+                stroke: this.object.stroke,
+                strokeWidth: this.object.strokeWidth,
+                fill: this.object.fill,
+                borderColor: this.object.borderColor,
+                backgroundColor: this.object.backgroundColor,
+                strokeDashArray: this.object.strokeDashArray,
+                strokeLineCap: this.object.strokeLineCap,
+                strokeDashOffset: this.object.strokeDashOffset,
+                strokeLineJoin: this.object.strokeLineJoin,
+
+            } 
+        }
+    }
+    constructor(page: number, object: fabric.Path | {path: string, options: fabric.IPathOptions}, canvas: Canvas){
+        if(object instanceof fabric.Path){
+            object.hasControls = false;
+            object.lockMovementX = true;
+            object.lockMovementY = true;
+            super(page, object, canvas, 'Path', false);
+        }
+        else{
+            var options = object.options;
+            options.hasControls = false;
+            options.lockMovementY = true;
+            options.lockMovementX = true;
+            super(page, new fabric.Path(object.path, options), canvas, 'Path');
+        }
+    }
+
+    convertSvgData(svg: string): string {
+        var commands: string[] = [];
+        var data = svg.split(' ');
+        var index = 0;
+        while (index < data.length) {
+            switch (data[index]) {
+                case 'M':
+                    commands.push(data[index]);
+                    commands.push(`${this.floorString(data[index+1])},${this.floorString(data[index+2])}`);
+                    index += 3;
+                    break;
+                case 'Q':
+                    commands.push(data[index]);
+                    commands.push(`${this.floorString(data[index+1])},${this.floorString(data[index+2])}`);
+                    index += 3;
+                    commands.push(`${this.floorString(data[index])},${this.floorString(data[index+1])}`);
+                    index += 2;
+                    break;
+                case 'L':
+                    commands.push(data[index]);
+                    commands.push(`${this.floorString(data[index+1])},${this.floorString(data[index+2])}`);
+                    index += 3;
+                    break;
+            }
+        }
+        return commands.join(" ");
+    }
+
+    floorString(str: string): number {
+        return Math.floor(parseInt(str));
+    }
+
+}
+
 export class TextAnnotation extends Annotation{
     static toolOptions: any;
     static font: PDFFont;
