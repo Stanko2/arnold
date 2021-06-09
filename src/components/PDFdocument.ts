@@ -4,10 +4,11 @@ import { Database } from "@/Db";
 import { fabric } from "fabric";
 import { BlendMode, LineCapStyle, LineJoinStyle, PDFDocument, PDFFont, PDFPage, StandardFonts } from "pdf-lib";
 import { Annotation, LineAnnotation, PathAnnotation, RectAnnotation, TextAnnotation } from "./Annotation";
-import { Tool } from "./Tool";
+import { Tool } from "./Tools/Tool";
 var pdf = require('vue-pdf');
 
 export class PDFdocument{
+
     static viewport: Vue;
     static toolbarRef: any;
     static initDocument: Function;
@@ -146,4 +147,14 @@ export class PDFdocument{
     onToolSelect(tool: Tool){
         tool.onSelect();
     }   
+
+    deleteAnnotation(name: string) {
+        var annotation = this.annotations.find(e=>e.object.name === name);
+        if(annotation == null){
+            console.error('Annotation not found');
+            return;
+        }
+        annotation.delete();
+        this.annotations.splice(this.annotations.indexOf(annotation), 1);
+    }
 }

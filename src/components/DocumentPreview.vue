@@ -31,6 +31,7 @@ export default Vue.extend({
         return {
             document: null,
             pdf: null,
+            // TODO: selected not working
             selected: this.isSelected,
         }
     },

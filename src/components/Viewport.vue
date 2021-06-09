@@ -8,13 +8,13 @@
             
         </div>
 
-        <div class="viewport" v-shortkey.once="['delete']" @shortkey="deleteSelected">
-            <context-menu id="context-menu" ref="ctxMenu" class="list-group">
-                <li class="list-group-item-action">Zmazat</li>
-                <li class="list-group-item-action">Presunut dopredu</li>
-                <li class="list-group-item-action">Presunut dozadu</li>
+        <div class="viewport" v-shortkey.once="['delete']" @shortkey="deleteSelected" @contextmenu="openCtxMenu">
+            <context-menu id="context-menu" ref="ctxMenu" class="list-group" style="user-select: none;">
+                <li class="list-group-item-action p-1" @click="deleteSelected">Zmazat</li>
+                <li class="list-group-item-action p-1" @click="moveToFront">Presunut dopredu</li>
+                <li class="list-group-item-action p-1" @click="moveToBack">Presunut dozadu</li>
             </context-menu>
-            <div class="pdf" ref="pdf" @contextmenu.prevent="contextMenuOpen">
+            <div class="pdf" ref="pdf" >
                 <div v-for="i in pageCount" :key="i" class="page">
                     <pdf
                         :key="i"
@@ -120,18 +120,54 @@ export default Vue.extend({
             console.log(err);
         },
         deleteSelected(){
+            const doc = getViewedDocument();
+            if(doc == null) return;
+            for (const cnv of doc.pageCanvases) {
+                cnv.deleteSelected();
+            }
             console.log('delete');
+        },
+        moveToFront(){
+            // TODO: move active object to front & its annotation to the beginning
+            const doc = getViewedDocument();
+            const data = doc?.annotations;
+            if(data == null) return;
+            for (const obj of this.getActiveObjects()) {
+                let index = data.findIndex(e=>e.object.name === obj.name);
+                obj.canvas?.bringToFront(obj);
+                data.push(data.splice(index, 1)[0]);
+            }
+        },
+        moveToBack(){
+            // TODO: move active object to back & its annotation to the end
+            const doc = getViewedDocument();
+            const data = doc?.annotations;
+            if(data == null) return;
+            console.log('back');
+            
+            for (const obj of this.getActiveObjects()) {
+                let index = data.findIndex(e=>e.object.name === obj.name);
+                obj.canvas?.sendToBack(obj);
+                data.unshift(data.splice(index, 1)[0]);
+            }
         },
         documentLoaded(){
             console.log('loaded');
         },
-        contextMenuOpen(){
-            var doc = getViewedDocument();
+        openCtxMenu(e: Event){
+            const doc = getViewedDocument();
+            if(doc?.pageCanvases.some(f=>f.canOpenCtxMenu(e))){
+                (this.$refs.ctxMenu as any).open();
+            }
+            e.preventDefault();
+        },
+        getActiveObjects() {
+            const doc = getViewedDocument();
+            var active: fabric.Object[] = [];
             doc?.pageCanvases.forEach(e=>{
-                if(e.getActiveObjects().length > 0){
-                    (this.$refs.ctxMenu as any).open();
-                }
-            }); 
+                e.getActiveObjects().forEach(f=>active.push(f));
+            });
+            return active;
         }
     },
 });

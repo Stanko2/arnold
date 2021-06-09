@@ -2,11 +2,14 @@ import { Canvas } from '@/Canvas';
 import { fabric } from 'fabric';
 import Color from 'color';
 import { LineCapStyle, PDFFont, PDFPage, rgb } from 'pdf-lib';
+import { getViewedDocument } from '@/DocumentManager';
 
 export abstract class Annotation{
     constructor(public page:number, public object: fabric.Object, public canvas: Canvas, private type: string, create: boolean = true) {
         if(create)
             canvas.add(this.object);
+        if(!this.object.name)
+            this.object.name = `${this.type}_${Math.random().toString(36).substr(2, 9)}`
     }
 
     public abstract bake(page: PDFPage) : void;
@@ -15,8 +18,16 @@ export abstract class Annotation{
         return {
             page: this.page,
             type: this.type,
-            data: this.serialize()
+            data: {
+                ...this.serialize(),
+                name: this.object.name
+            }
         }
+    }
+
+    public delete(): void {
+        this.canvas.remove(this.object);
+        this.canvas.renderAll();
     }
 
     protected abstract serialize(): any;
@@ -124,10 +135,6 @@ export class TextAnnotation extends Annotation{
             mt: false,
         }
     }
-    delete() {
-        this.canvas.remove(this.object);
-        this.canvas.renderAll();
-    }
     bake(page: PDFPage){
         console.log('writing text');
         
@@ -168,10 +175,6 @@ export class RectAnnotation extends Annotation{
         super(page, new fabric.Rect(options), canvas, 'Rect');
         (this.object as any).tool = RectAnnotation.toolOptions;
         canvas.setActiveObject(this.object);
-    }
-    delete() {
-        this.canvas.remove(this.object);
-        this.canvas.renderAll();
     }
     bake(page: PDFPage){
         var fill: Color = Color(this.object.fill);
@@ -260,8 +263,11 @@ export class LineAnnotation extends Annotation{
     }
     options: any;
     delete() {
-        this.canvas.remove(this.object);
-        this.canvas.renderAll();
+        this.canvas.remove(this.start);
+        this.canvas.remove(this.end);
+        console.log('deleting line');
+        
+        super.delete();
     }
     bake(page: PDFPage){
         var stroke: Color = Color(this.object.stroke);

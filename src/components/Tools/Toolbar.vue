@@ -35,7 +35,8 @@
     </div>
     <hr>
     <div class="right-controls">
-      <button id="zoomInButton" class="btn btn-outline-primary" v-shortkey="['A']"><span class="material-icons">add</span></button>
+      <!-- TODO: zooming canvas & document -->
+      <button id="zoomInButton" class="btn btn-outline-primary"><span class="material-icons">add</span></button>
       <button id="zoomOutButton" class="btn btn-outline-primary"><span class="material-icons">remove</span></button>
       <b-tooltip target="zoomOutButton" triggers="hover">
         Oddialit
@@ -49,9 +50,9 @@
 
 <script>
 import { selectedTool, selectTool, tools, init } from './Tool'
-import { PDFdocument } from './PDFdocument';
-import { FontsAvailable } from './Fonts';
-import { Canvas } from '../Canvas';
+import { PDFdocument } from '../PDFdocument';
+import { FontsAvailable } from '../Fonts';
+import { Canvas } from '../../Canvas';
 
 import VSwatches from 'vue-swatches'
 

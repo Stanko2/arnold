@@ -1,13 +1,8 @@
 
 import { PDFdocument } from "./components/PDFdocument";
-import { selectedTool } from "./components/Tool";
+import { selectedTool } from "./components/Tools/Tool";
 import { fabric } from "fabric";
 import { PathAnnotation } from "./components/Annotation";
-
-interface Point{
-    x: number;
-    y: number;
-}
 
 export class Canvas extends fabric.Canvas{
     static toolbarRef: any;
@@ -45,7 +40,7 @@ export class Canvas extends fabric.Canvas{
                 })
             }
         });
-        this.on('mouse:down', (e)=>{
+        this.on('mouse:down', (e)=>{    
             if(e.absolutePointer == null) return;
             if(this.isDrawingMode) return;
             for (const annotation of this.pdf.annotations) {
@@ -76,6 +71,19 @@ export class Canvas extends fabric.Canvas{
             }
             
         });
+        this.on('selection:cleared', (e)=>{
+            console.log('clr');
+            
+            if(selectedTool.name == 'select'){
+                selectedTool.defaultOptions = {};
+                Canvas.toolbarRef.$data.selectedOptions = {
+                    hasFill: false,
+                    hasStroke: false,
+                    hasStrokeWidth: false,
+                    hasText: false,
+                };
+            }
+        });
         this.on('object:scaled', (e)=>{
             if(e.target != null){    
                 var obj: fabric.Object = e.target,
@@ -98,7 +106,7 @@ export class Canvas extends fabric.Canvas{
         });
         this.on('selection:created', (e) =>{
             if(selectedTool.name == 'Select'){
-                console.log(this.getActiveObject().type);
+                console.log(this.getActiveObject());
                 
                 if(this.getActiveObject().type == 'activeSelection') return;
                 PDFdocument.activeObject = this.getActiveObject();
@@ -109,6 +117,7 @@ export class Canvas extends fabric.Canvas{
                 }
                 var activeObjectTool = (this.getActiveObject() as any).tool;
                 if(activeObjectTool != null){
+                    // TODO: fix hiding props on selection cleared or changed
                     Canvas.toolbarRef.$data.selectedTool.defaultOptions = activeObjectTool?.defaultOptions;
                     Canvas.toolbarRef.$data.selectedOptions = activeObjectTool.options;
                 }
@@ -126,6 +135,23 @@ export class Canvas extends fabric.Canvas{
                 this.pdf.addAnnotation(new PathAnnotation(this.page, obj, this));
             }
         })
+    }
+
+    deleteSelected() {
+        if(this.getActiveObjects().length == 0) return;
+        for (const obj of this.getActiveObjects()) {
+            if(obj.name)
+                this.pdf.deleteAnnotation(obj.name);
+        }
+    }
+
+    canOpenCtxMenu(e: Event): boolean {
+        var cursor = this.getPointer(e);
+        var point = new fabric.Point(cursor.x, cursor.y);
+        if(this.getActiveObjects().length > 0) {
+            return true;
+        }
+        return false;
     }
 
     updateObjectProps(newProps: fabric.IObjectOptions){

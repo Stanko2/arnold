@@ -1,6 +1,6 @@
 import { ILineOptions, IObjectOptions, ITextboxOptions } from "fabric/fabric-impl";
-import { Annotation, LineAnnotation, RectAnnotation, TextAnnotation } from "./Annotation";
-import { PDFdocument } from "./PDFdocument";
+import { Annotation, LineAnnotation, RectAnnotation, TextAnnotation } from "../Annotation";
+import { PDFdocument } from "../PDFdocument";
 import { getViewedDocument } from '@/DocumentManager';
 import Vue from "*.vue";
 export interface Tool {
@@ -93,6 +93,7 @@ export var tools: Tool[] = [
         cursor: 'pointer',
         icon: 'add_photo_alternate',
         tooltip: 'Pridat peciatku',
+        // TODO: add photo modal, photo embedding to pdf & photo support for canvas
         options: {
             hasFill: false,
             hasStroke: false,
@@ -132,6 +133,7 @@ export var tools: Tool[] = [
         cursor: 'pointer',
         icon: 'circle',
         tooltip: 'Pridat kruh / elipsu',
+        // TODO: add circle annotation class
         options: {
             hasFill: false,
             hasStroke: false,
@@ -168,6 +170,7 @@ export var tools: Tool[] = [
         cursor: 'pointer',
         icon: 'edit',
         tooltip: 'Pridat podpis',
+        // TODO: add sign edit modal
         options: {
             hasFill: false,
             hasStroke: false,

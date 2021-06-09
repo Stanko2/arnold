@@ -1,6 +1,6 @@
 import { PDFdocument } from "./components/PDFdocument";
 import JSZip, { JSZipObject } from "jszip";
-import { selectedTool, selectTool } from "./components/Tool";
+import { selectedTool, selectTool } from "./components/Tools/Tool";
 import { Database } from "./Db";
 
 export var functions = {

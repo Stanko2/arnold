@@ -32,10 +32,12 @@
 import { Component, Vue } from 'vue-property-decorator';
 import Viewport from '../components/Viewport.vue';
 import Topbar from '../components/Topbar.vue';
-import Toolbar from '../components/Toolbar.vue';
+import Toolbar from '../components/Tools/Toolbar.vue';
 import DocumentPreview from '../components/DocumentPreview.vue';
 import { functions, getViewedDocument, metaDatas, selectedDocumentIndex, setPdf } from "../DocumentManager";
 
+
+// TODO: fix misterious disapearance of documents on reload
 @Component({
   components: {
     Viewport,
