@@ -19,6 +19,8 @@ class DB{
                 var riesenia = md.db?.createObjectStore('riesenia', {keyPath: 'id'})
                 riesenia?.createIndex('id', 'id', {unique: true});
                 riesenia?.createIndex('riesitel', 'riesitel');
+                var templates = md.db?.createObjectStore('templates', {keyPath: 'id'});
+                templates?.createIndex('id', 'id', {unique: true});
                 resolve();
             }
             req.onsuccess = function (e:any){
@@ -86,6 +88,11 @@ class DB{
                 }
             }
         });
+    }
+
+    async getTemplate(id: number): Promise<void>{
+        var req = this.db?.transaction('templates', 'readonly').objectStore('templates');
+        req?.get(id);
     }
 }
 

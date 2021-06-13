@@ -14,7 +14,7 @@
     <div class="btn" v-if="selectedOptions.hasText">
       <b-dropdown text="Font">
         <b-dropdown-item v-for="font in fonts" :key="font.viewport" :style="{'font-family': font.viewport}"
-        ><button @click="selectedTool.defaultOptions.fontFamily = font.viewport">{{font.viewport}}</button></b-dropdown-item>
+         @click.native="selectedTool.defaultOptions.fontFamily = font.viewport">{{font.viewport}}</b-dropdown-item>
       </b-dropdown>
     </div>
     <div class="form-inline" v-if="selectedOptions.hasText">
@@ -33,6 +33,20 @@
       <p style="margin: 5px">Stroke</p> 
       <v-swatches v-model="selectedTool.defaultOptions.stroke"></v-swatches>
     </div>
+    <div v-if="selectedTool.name == 'Photo'">
+      <b-button variant="primary" @click="openImageModal">Open Image Menu</b-button>
+      
+    </div>
+    <div v-if="selectedTool.name == 'Sign'">
+      <b-button variant="primary" @click="openSignModal">Open Sign Menu</b-button>
+      
+    </div>
+    <b-modal ref="imageMenu" centered title="Organize Images" size="lg">
+        <image-modal></image-modal>
+      </b-modal>
+    <b-modal ref="signMenu" centered title="Organize signatures" size="lg">
+        <sign-modal></sign-modal>
+      </b-modal>
     <hr>
     <div class="right-controls">
       <!-- TODO: zooming canvas & document -->
@@ -54,14 +68,18 @@ import { PDFdocument } from '../PDFdocument';
 import { FontsAvailable } from '../Fonts';
 import { Canvas } from '../../Canvas';
 
-import VSwatches from 'vue-swatches'
+import VSwatches from 'vue-swatches';
+import SignModal from './SignModal.vue';
+import ImageModal from './ImageModal.vue';
 
 // Import the styles too, globally
 import "vue-swatches/dist/vue-swatches.css"
 
 export default {
   components: {
-    VSwatches
+    VSwatches,
+    SignModal,
+    ImageModal
   },
   data(){
     return{
@@ -81,6 +99,12 @@ export default {
     select(tool){
       this.$data.selectedTool = tool;
       selectTool(tool);
+    },
+    openSignModal(){
+      this.$refs.signMenu.show();
+    },
+    openImageModal(){
+      this.$refs.imageMenu.show();
     }
   },
   created(){

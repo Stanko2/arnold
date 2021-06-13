@@ -6,13 +6,16 @@
     <div class="d-flex main">
       <div class="right-bar bg-secondary">
         <div class="input-group">
-          <input type="text" class="form-control" placeholder="Search Dcouments">
+          <input type="text" class="form-control" placeholder="Search Documents ..." ref="searchInput" @input="search">
           <div class="input-group-append">
-            <button class="btn btn-success"><span class="material-icons">search</span></button>
+            <button class="btn btn-success" @click="search"><span class="material-icons">search</span></button>
           </div>
         </div>
         <ul class="list-group">
-          <document-preview ref="documentList" class="list-group-item" v-for="document in metadatas" :key="document.id" :documentID="document.id" :isSelected="selectedIndex == document.index+1" @click.native="selectIndex(document.index-1)"></document-preview>
+          <document-preview ref="documentList" class="list-group-item" v-for="document in matchedDocuments" :key="document.id" :documentID="document.id" :isSelected="selectedIndex == document.index+1" @click.native="selectIndex(document.index-1)"></document-preview>
+          <li v-if="matchedDocuments.length == 0">
+            <p class="text-danger">No matching documents</p>
+          </li>
         </ul>
       </div>
       <div style="width:100%">
@@ -50,7 +53,7 @@ import { functions, getViewedDocument, metaDatas, selectedDocumentIndex, setPdf 
     return {
       pdf: getViewedDocument(),
       source: getViewedDocument()?.pageCount,
-      metadatas: metaDatas,
+      matchedDocuments: metaDatas,
       selectedIndex: selectedDocumentIndex
     }
   },
@@ -69,21 +72,40 @@ import { functions, getViewedDocument, metaDatas, selectedDocumentIndex, setPdf 
   methods:{
     save() {
       this.$data.pdf.save();
-      const editing = (this.$refs.documentList as Vue[]).find(e=>e.$data.document.id == this.$data.pdf.id) as any;
-      setTimeout(() => {
-        editing.updatePreview();  
-      }, 500);
+      (this as any).UpdateCurrentPreview();
     },
     selectDir(dir: number){
-      setPdf(selectedDocumentIndex + dir)      
+      setPdf(selectedDocumentIndex + dir).then(()=>{
+        (this as any).UpdateCurrentPreview();
+      })
     },
     selectIndex(index: number){
       setPdf(index).catch(()=>{
         this.$router.back();
+      }).then(()=>{
+        (this as any).UpdateCurrentPreview();
       });
+    },
+    search() {
+      const query = (this.$refs.searchInput as any).value;
+      this.$data.matchedDocuments = [];
+      metaDatas.forEach(e => {
+        if(e.riesitel.match(query) != null){
+          this.$data.matchedDocuments.push(e);
+        }
+      });
+    },
+    UpdateCurrentPreview() {
+      const editing=(this.$refs.documentList as Vue[]).find(e => e.$data.document.id==this.$data.pdf.id) as any;
+      setTimeout(() => {
+        editing.updatePreview();
+      }, 500);
     }
   }
 })
+
+// function 
+
 export default class App extends Vue {
 
 }
