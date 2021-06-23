@@ -55,6 +55,7 @@ var pdf = require("vue-pdf").default;
 import { Canvas } from "../Canvas";
 import { PDFdocument } from "./PDFdocument";
 import { getViewedDocument } from "@/DocumentManager";
+import { eventHub } from "./Tools/Tool";
 import Vue from "vue";
 const contextMenu = require("vue-context-menu");
 
@@ -130,6 +131,7 @@ export default Vue.extend({
           }
 
           this.$data.loaded = true;
+          eventHub.$emit("initCurrent");
         }, 50);
       });
     };

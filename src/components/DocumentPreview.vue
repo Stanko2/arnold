@@ -59,10 +59,5 @@ export default Vue.extend({
       });
     },
   },
-  // watch: {
-  //   isSelected: function (old, newVal) {
-  //     this.$data.selected = newVal;
-  //   },
-  // },
 });
 </script>

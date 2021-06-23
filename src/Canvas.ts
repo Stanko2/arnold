@@ -74,10 +74,11 @@ export class Canvas extends fabric.Canvas {
 
         });
         this.on('selection:cleared', (e) => {
-            console.log('clr');
 
-            if (this.selectedTool && this.selectedTool.name == 'select') {
+            console.log(this.selectedTool);
+            if (this.selectedTool && this.selectedTool.name == 'Select') {
                 this.selectedTool.defaultOptions = {};
+                Canvas.toolbarRef.$data.selectedTool.defaultOptions = {};
                 Canvas.toolbarRef.$data.selectedOptions = {
                     hasFill: false,
                     hasStroke: false,
@@ -106,37 +107,50 @@ export class Canvas extends fabric.Canvas {
             this.creating = null;
             this.dragStart = new fabric.Point(0, 0);
         });
-        this.on('selection:created', (e) => {
-            if (this.selectedTool && this.selectedTool.name == 'Select') {
-                console.log(this.getActiveObject());
+        this.on('selection:updated', this.HandleSelectionChanged);
+        this.on('selection:created', this.HandleSelectionChanged);
 
-                if (this.getActiveObject().type == 'activeSelection') return;
-                PDFdocument.activeObject = this.getActiveObject();
-                if (this.getActiveObject().type == 'path') {
-                    Canvas.toolbarRef.$data.selectedTool.defaultOptions = { stroke: this.getActiveObject().stroke, strokeWidth: this.getActiveObject().strokeWidth };
-                    Canvas.toolbarRef.$data.selectedOptions = { hasStrokeWidth: true, hasStroke: true, hasText: false, hasFill: false };
-                    return;
-                }
-                var activeObjectTool = (this.getActiveObject() as any).tool;
-                if (activeObjectTool != null) {
-                    // TODO: fix hiding props on selection cleared or changed
-                    Canvas.toolbarRef.$data.selectedTool.defaultOptions = activeObjectTool?.defaultOptions;
-                    Canvas.toolbarRef.$data.selectedOptions = activeObjectTool.options;
-                }
-                this.pdf.pageCanvases.forEach(e => {
-                    if (e != this) {
-                        e.discardActiveObject();
-                        e.renderAll();
-                    }
-                })
-            }
-        });
+
+
         this.on('object:added', (e) => {
             var obj = e.target;
             if (obj instanceof fabric.Path && this.isDrawingMode) {
                 this.pdf.addAnnotation(new PathAnnotation(this.page, obj, this));
             }
         })
+        setTimeout(() => {
+            this.discardActiveObject();
+        }, 100);
+    }
+    HandleSelectionChanged() {
+        if (this.selectedTool && this.selectedTool.name == 'Select') {
+            console.log(this.getActiveObject());
+
+            if (this.getActiveObject().type == 'activeSelection') return;
+            PDFdocument.activeObject = this.getActiveObject();
+            if (this.getActiveObject().type == 'path') {
+                Canvas.toolbarRef.$data.selectedTool.defaultOptions = { stroke: this.getActiveObject().stroke, strokeWidth: this.getActiveObject().strokeWidth };
+                Canvas.toolbarRef.$data.selectedOptions = { hasStrokeWidth: true, hasStroke: true, hasText: false, hasFill: false };
+                return;
+            }
+            var activeObjectTool = (this.getActiveObject() as any).tool;
+            if (activeObjectTool != null) {
+                // TODO: fix hiding props on selection cleared or changed
+                Canvas.toolbarRef.$data.selectedTool.defaultOptions = {
+                    stroke: this.getActiveObject().stroke,
+                    strokeWidth: this.getActiveObject().strokeWidth,
+                    fill: this.getActiveObject().fill,
+                    fontFamily: (this.getActiveObject() as fabric.Textbox).fontFamily,
+                };
+                Canvas.toolbarRef.$data.selectedOptions = activeObjectTool.options;
+            }
+            this.pdf.pageCanvases.forEach(e => {
+                if (e != this) {
+                    e.discardActiveObject();
+                    e.renderAll();
+                }
+            })
+        }
     }
 
     deleteSelected() {

@@ -93,16 +93,19 @@ export default Vue.extend({
       (pdf: PDFdocument, metadata: Document) => {
         this.$data.selectedIndex = metadata.index;
         this.$data.pdf = pdf;
-        (this as any).UpdateCurrentPreview();
-        (this.$refs.documentList as any[]).forEach((doc, i) => {
-          doc.isSelected = this.$data.selectedIndex == i;
-        });
+        if (this.$refs.documentList) {
+          (this as any).UpdateCurrentPreview();
+          // (this.$refs.documentList as any[]).forEach((doc, i) => {
+          //   doc.isSelected = this.$data.selectedIndex == i;
+          // });
+        }
       }
     );
   },
   methods: {
     save() {
       this.$data.pdf.save();
+      this.UpdateCurrentPreview();
     },
     selectDir(dir: number) {
       DocEventHub.$emit("setDocument", this.$data.selectedIndex + dir);
@@ -123,11 +126,13 @@ export default Vue.extend({
       this.$forceUpdate();
     },
     UpdateCurrentPreview() {
-      const editing = (this.$refs.documentList as Vue[]).find(
+      const documents = this.$refs.documentList as Vue[];
+      if (!documents.some((e: Vue) => e.$data.document.id != null)) return;
+      const editing = documents.find(
         (e) => e.$data.document.id == this.$data.pdf.id
       ) as any;
       setTimeout(() => {
-        editing.updatePreview();
+        if (editing) editing.updatePreview();
       }, 500);
     },
   },

@@ -43,11 +43,13 @@
       <p class="d-flex align-items-center">Stroke Width</p>
       <input
         class="form-control"
-        min="0"
+        min="1"
         style="width: 100px"
-        type="number"
+        type="range"
+        max="20"
         v-model.number="selectedTool.defaultOptions.strokeWidth"
       />
+      {{ selectedTool.defaultOptions.strokeWidth }}
     </div>
     <div v-if="selectedOptions.hasFill" class="d-flex align-items-center">
       <p style="margin: 5px">Fill</p>
@@ -93,6 +95,7 @@ import { eventHub as ToolEvents, tools } from "./Tool";
 import { PDFdocument } from "../PDFdocument";
 import { FontsAvailable } from "../Fonts";
 import { Canvas } from "../../Canvas";
+import { getViewedDocument } from "@/DocumentManager";
 
 import VSwatches from "vue-swatches";
 import SignModal from "./SignModal.vue";
@@ -152,6 +155,13 @@ export default {
             );
             PDFdocument.activeObject.canvas?.renderAll();
           }
+        } else if (this.$data.selectedTool.name == "Draw") {
+          getViewedDocument()?.pageCanvases.forEach((e) => {
+            e.freeDrawingBrush.color =
+              this.$data.selectedTool.defaultOptions.stroke || "#000000";
+            e.freeDrawingBrush.width =
+              this.$data.selectedTool.defaultOptions.strokeWidth || 10;
+          });
         }
       },
       { deep: true }

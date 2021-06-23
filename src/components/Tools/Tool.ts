@@ -72,10 +72,10 @@ export const tools: Tool[] = [
         },
         onSelect: () => {
             getViewedDocument()?.pageCanvases.forEach((e) => {
-                e.isDrawingMode = true;
                 var ref = tools.find(e => e.name == 'Draw');
                 e.freeDrawingBrush.color = ref?.defaultOptions.stroke || '#000000';
                 e.freeDrawingBrush.width = ref?.defaultOptions.strokeWidth || 10;
+                e.isDrawingMode = true;
             });
         },
         onDeselect: () => {
