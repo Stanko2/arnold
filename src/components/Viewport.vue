@@ -1,222 +1,242 @@
 <template>
-    <div class="viewportSpace">
-        <div class="loadingOverlay" v-if="!loaded">
-            <div>
-                <b-spinner variant="primary" label="loading..."></b-spinner>
-                <p>Loading...</p>
-            </div>
-            
-        </div>
-
-        <div class="viewport" v-shortkey.once="['delete']" @shortkey="deleteSelected" @contextmenu="openCtxMenu">
-            <context-menu id="context-menu" ref="ctxMenu" class="list-group" style="user-select: none;">
-                <li class="list-group-item-action p-1" @click="deleteSelected">Zmazat</li>
-                <li class="list-group-item-action p-1" @click="moveToFront">Presunut dopredu</li>
-                <li class="list-group-item-action p-1" @click="moveToBack">Presunut dozadu</li>
-            </context-menu>
-            <div class="pdf" ref="pdf" >
-                <div v-for="i in pageCount" :key="i" class="page">
-                    <pdf
-                        :key="i"
-                        :src="src"
-                        :page="i"
-                        class="card page-data"
-                        @error="err"
-                        @loaded="documentLoaded"
-                    ></pdf>
-                    <div class="pageAnnot">
-                        <canvas ref="page"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
+  <div class="viewportSpace">
+    <div class="loadingOverlay" v-if="!loaded">
+      <div>
+        <b-spinner variant="primary" label="loading..."></b-spinner>
+        <p>Loading...</p>
+      </div>
     </div>
+
+    <div
+      class="viewport"
+      v-shortkey.once="['delete']"
+      @shortkey="deleteSelected"
+      @contextmenu="openCtxMenu"
+    >
+      <context-menu
+        id="context-menu"
+        ref="ctxMenu"
+        class="list-group"
+        style="user-select: none"
+      >
+        <li class="list-group-item-action p-1" @click="deleteSelected">
+          Zmazat
+        </li>
+        <li class="list-group-item-action p-1" @click="moveToFront">
+          Presunut dopredu
+        </li>
+        <li class="list-group-item-action p-1" @click="moveToBack">
+          Presunut dozadu
+        </li>
+      </context-menu>
+      <div class="pdf" ref="pdf">
+        <div v-for="i in pageCount" :key="i" class="page">
+          <keep-alive>
+            <pdf
+              :key="i.toString() + id.toString()"
+              :src="src"
+              :page="i"
+              class="card page-data"
+              @error="err"
+              @loaded="documentLoaded"
+            ></pdf>
+          </keep-alive>
+          <div class="pageAnnot">
+            <canvas ref="page"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
 var pdf = require("vue-pdf").default;
-import { Canvas } from '../Canvas'
-import { PDFdocument } from './PDFdocument';
-import { getViewedDocument } from '@/DocumentManager';
-import Vue from 'vue';
-const contextMenu = require('vue-context-menu');
+import { Canvas } from "../Canvas";
+import { PDFdocument } from "./PDFdocument";
+import { getViewedDocument } from "@/DocumentManager";
+import Vue from "vue";
+const contextMenu = require("vue-context-menu");
 
 var pdfDocument = null;
 
 export default Vue.extend({
-    props: ['pdf'],
-    components:{
-        pdf,
-        contextMenu
-    },
-    data() {
-        pdfDocument = getViewedDocument();
-        return {
-            src: pdfDocument?.viewref,
-            pageCount: pdfDocument?.pageCount,
-            pagesLoaded: 0,
-            loaded: false
-        }
-    },
-    mounted(){
-        window.addEventListener("resize",()=>{
-            setTimeout(() => {
-                var size = (this.$refs.pdf as Element).getBoundingClientRect();
-            
-                for (let i = 0; i < (this.$refs.page as Element[]).length; i++) {
-                    const page = (this.$refs.page as HTMLElement[])[i].getBoundingClientRect();
-                    
-                    // page.style.transform = `scale(${size.width / page.getBoundingClientRect().width})`;
-                    // console.log(page.style.transform);
-                    
-                    var canvas: Canvas = getViewedDocument()?.pageCanvases[i] as Canvas;
-                    canvas.setWidth(size.width);
-                    canvas.setHeight(page.height);
-                    canvas.setScale(size);
-                }    
-            }, 100);
-            
-        });
-        PDFdocument.initDocument = (task: any, document: PDFdocument) => {
-            this.$data.loaded = false;
-            if(task) this.src = task;
-            this.src.promise.then((pdf: any)=>{
-                this.pageCount = pdf.numPages;
-                var pageCanvases: Canvas[] = []
-                // setTimeout musi byt, lebo z nejakych dovodov sa to pdfko resizne na co canvas nevie reagovat 
-                // nepodarilo sa mi vyriesit lepsie
-                setTimeout(() => {
-                    var dimensions: DOMRect | undefined = (this.$refs.page as Element[])[0]?.parentElement?.parentElement?.getBoundingClientRect();
-                    var doc = getViewedDocument();
-                    if(!doc) return;
-                    if(doc?.pageCanvases.length > 0) return;
+  props: ["pdf"],
+  components: {
+    pdf,
+    contextMenu,
+  },
+  data() {
+    pdfDocument = getViewedDocument();
+    return {
+      src: pdfDocument?.viewref,
+      pageCount: pdfDocument?.pageCount,
+      id: pdfDocument?.id,
+      pagesLoaded: 0,
+      loaded: false,
+    };
+  },
+  mounted() {
+    window.addEventListener("resize", () => {
+      setTimeout(() => {
+        var size = (this.$refs.pdf as Element).getBoundingClientRect();
 
-                    for(var i = 0; i < (this.$refs.page as Element[]).length; i++){
-                        const page = (this.$refs.page as Element[])[i];
-                        const canvas = new Canvas(page, document, i);                    
-                        if(dimensions != null){
-                            canvas.setHeight(dimensions?.height);
-                            canvas.setWidth(dimensions?.width);
-                            canvas.setScale(dimensions);
-                        }
-                        
-                        canvas.pageIndex = i;
-                        pageCanvases.push(canvas);
-                    }
-                    if(doc != null){
-                        doc.pageCanvases = pageCanvases;
-                        doc.initCanvases();
-                    }
-                    
-                    this.$data.loaded = true;
-                }, 50);
-            });
-        }  
-        PDFdocument.viewport = this;
-    },
-    methods:{
-        // TODO: context menu functions
-        err(err: any){
-            console.log(err);
-        },
-        deleteSelected(){
-            const doc = getViewedDocument();
-            if(doc == null) return;
-            for (const cnv of doc.pageCanvases) {
-                cnv.deleteSelected();
-            }
-            console.log('delete');
-        },
-        moveToFront(){
-            // TODO: move active object to front & its annotation to the beginning
-            const doc = getViewedDocument();
-            const data = doc?.annotations;
-            if(data == null) return;
-            for (const obj of this.getActiveObjects()) {
-                let index = data.findIndex(e=>e.object.name === obj.name);
-                obj.canvas?.bringToFront(obj);
-                data.push(data.splice(index, 1)[0]);
-            }
-        },
-        moveToBack(){
-            // TODO: move active object to back & its annotation to the end
-            const doc = getViewedDocument();
-            const data = doc?.annotations;
-            if(data == null) return;
-            console.log('back');
-            
-            for (const obj of this.getActiveObjects()) {
-                let index = data.findIndex(e=>e.object.name === obj.name);
-                obj.canvas?.sendToBack(obj);
-                data.unshift(data.splice(index, 1)[0]);
-            }
-        },
-        documentLoaded(){
-            console.log('loaded');
-        },
-        openCtxMenu(e: Event){
-            const doc = getViewedDocument();
-            if(doc?.pageCanvases.some(f=>f.canOpenCtxMenu(e))){
-                (this.$refs.ctxMenu as any).open();
-            }
-            e.preventDefault();
-        },
-        getActiveObjects() {
-            const doc = getViewedDocument();
-            var active: fabric.Object[] = [];
-            doc?.pageCanvases.forEach(e=>{
-                e.getActiveObjects().forEach(f=>active.push(f));
-            });
-            return active;
+        for (let i = 0; i < (this.$refs.page as Element[]).length; i++) {
+          const page = (this.$refs.page as HTMLElement[])[
+            i
+          ].getBoundingClientRect();
+
+          // page.style.transform = `scale(${size.width / page.getBoundingClientRect().width})`;
+          // console.log(page.style.transform);
+
+          var canvas: Canvas = getViewedDocument()?.pageCanvases[i] as Canvas;
+          canvas.setWidth(size.width);
+          canvas.setHeight(page.height);
+          canvas.setScale(size);
         }
+      }, 100);
+    });
+    PDFdocument.initDocument = (task: any, document: PDFdocument) => {
+      this.$data.loaded = false;
+      if (task) this.src = task;
+      this.src.promise.then((pdf: any) => {
+        this.pageCount = pdf.numPages;
+        var pageCanvases: Canvas[] = [];
+        // setTimeout musi byt, lebo z nejakych dovodov sa to pdfko resizne na co canvas nevie reagovat
+        // nepodarilo sa mi vyriesit lepsie
+        setTimeout(() => {
+          var dimensions: DOMRect | undefined = (
+            this.$refs.page as Element[]
+          )[0]?.parentElement?.parentElement?.getBoundingClientRect();
+          var doc = getViewedDocument();
+          if (!doc) return;
+          if (doc?.pageCanvases.length > 0) return;
+
+          for (var i = 0; i < (this.$refs.page as Element[]).length; i++) {
+            const page = (this.$refs.page as Element[])[i];
+            const canvas = new Canvas(page, document, i);
+            if (dimensions != null) {
+              canvas.setHeight(dimensions?.height);
+              canvas.setWidth(dimensions?.width);
+              canvas.setScale(dimensions);
+            }
+
+            canvas.pageIndex = i;
+            pageCanvases.push(canvas);
+          }
+          if (doc != null) {
+            doc.pageCanvases = pageCanvases;
+            doc.initCanvases();
+          }
+
+          this.$data.loaded = true;
+        }, 50);
+      });
+    };
+    PDFdocument.viewport = this;
+  },
+  methods: {
+    // TODO: context menu functions
+    err(err: any) {
+      console.log(err);
     },
+    deleteSelected() {
+      const doc = getViewedDocument();
+      if (doc == null) return;
+      for (const cnv of doc.pageCanvases) {
+        cnv.deleteSelected();
+      }
+      console.log("delete");
+    },
+    moveToFront() {
+      // TODO: move active object to front & its annotation to the beginning
+      const doc = getViewedDocument();
+      const data = doc?.annotations;
+      if (data == null) return;
+      for (const obj of this.getActiveObjects()) {
+        let index = data.findIndex((e) => e.object.name === obj.name);
+        obj.canvas?.bringToFront(obj);
+        data.push(data.splice(index, 1)[0]);
+      }
+    },
+    moveToBack() {
+      // TODO: move active object to back & its annotation to the end
+      const doc = getViewedDocument();
+      const data = doc?.annotations;
+      if (data == null) return;
+      console.log("back");
+
+      for (const obj of this.getActiveObjects()) {
+        let index = data.findIndex((e) => e.object.name === obj.name);
+        obj.canvas?.sendToBack(obj);
+        data.unshift(data.splice(index, 1)[0]);
+      }
+    },
+    documentLoaded() {
+      console.log("loaded");
+    },
+    openCtxMenu(e: Event) {
+      const doc = getViewedDocument();
+      if (doc?.pageCanvases.some((f) => f.canOpenCtxMenu(e))) {
+        (this.$refs.ctxMenu as any).open();
+      }
+      e.preventDefault();
+    },
+    getActiveObjects() {
+      const doc = getViewedDocument();
+      var active: fabric.Object[] = [];
+      doc?.pageCanvases.forEach((e) => {
+        e.getActiveObjects().forEach((f) => active.push(f));
+      });
+      return active;
+    },
+  },
 });
 </script>
 <style scoped>
-    .pageAnnot{
-        width: 100%;
-        height: 100%;
-        top: 0;
-        left: 0;
-        grid-row: 1;
-        grid-column: 1;
-    }
-    .page {
-        display: grid;
-        margin: 10px;
-        transform-origin: top left;
-    }
-    .page-data {
-        grid-row: 1;
-        grid-column: 1;
-    }
-    .viewport{
-        position: absolute;
-        overflow-y: scroll;
-        width: 100%;
-        max-height: 100%;
-        background: silver;
-    }
-    .pdf{
-        margin: auto;
-        max-width: 70vw;
-
-    }
-    .loadingOverlay{
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: white;
-        z-index: 9999;
-        display:flex;
-        justify-content: center;
-        align-items: center;
-    }
-    .viewportSpace{
-        position: relative;
-        width: 100%;
-        height: 100%;
-    }
+.pageAnnot {
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  grid-row: 1;
+  grid-column: 1;
+}
+.page {
+  display: grid;
+  margin: 10px;
+  transform-origin: top left;
+}
+.page-data {
+  grid-row: 1;
+  grid-column: 1;
+}
+.viewport {
+  position: absolute;
+  overflow-y: scroll;
+  width: 100%;
+  max-height: 100%;
+  background: silver;
+}
+.pdf {
+  margin: auto;
+  max-width: 70vw;
+}
+.loadingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: white;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.viewportSpace {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
 </style>

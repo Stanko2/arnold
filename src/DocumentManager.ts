@@ -1,65 +1,73 @@
 import { PDFdocument } from "./components/PDFdocument";
 import JSZip, { JSZipObject } from "jszip";
-import { selectedTool, selectTool } from "./components/Tools/Tool";
+import { eventHub as ToolEvents } from "./components/Tools/Tool";
 import { Database } from "./Db";
+import Vue from "vue";
 
-export var functions = {
-    updateUI: ()=>{},
-};
+export const eventHub = new Vue();
 
+eventHub.$on('setDocument', setPdf);
+eventHub.$on('parseSolutions', readZip);
 
-var pdf: null | PDFdocument = null;
-export async function setPdf(index: number) {
-    if(index < 0 || index >= metaDatas.length) return;
+export let Documents: Document[] = []
+let pdf: null | PDFdocument = null;
+let selectedDocumentIndex = 0;
+async function setPdf(index: number) {
+    if (index < 0 || index >= Documents.length) return;
     // TODO: dump current document to database
 
     selectedDocumentIndex = index;
-    var data = metaDatas[index];
-    if(pdf?.pageCanvases){
-        pdf.pageCanvases.forEach((e)=>e.dispose());
+    var data = Documents[index];
+    if (pdf?.pageCanvases) {
+        pdf.pageCanvases.forEach((e) => e.dispose());
     }
     pdf = new PDFdocument(data.initialPdf, data.id);
-    selectTool(selectedTool);
-    functions.updateUI();
-}  
 
-export function getViewedDocument(){ return pdf}
+    eventHub.$emit('documentChanged', pdf, Documents[index]);
+}
 
-export var selectedDocumentIndex = 0;
+export function getViewedDocument() { return pdf }
 
-export async function readZip(file: File){
-    var buffer = await file.arrayBuffer();
-    var zipReader = new JSZip();
-    var zipFile = await zipReader.loadAsync(buffer);
-    var index = 0;
+
+export async function readZip(file: File) {
+    const metaDatas: Document[] = []
+    const buffer = await file.arrayBuffer();
+    const zipReader = new JSZip();
+    const zipFile = await zipReader.loadAsync(buffer);
+    let index = 0;
     zipFile.forEach(async (path, entry) => {
-        if(!entry.name.endsWith('.pdf')) return;
-        var data = await entry.async('arraybuffer');
+        if (!entry.name.endsWith('.pdf')) return;
+        const data = await entry.async('arraybuffer');
         index++;
-        var splittedName = entry.name.split('/')[1].split('-');
+        const splittedName = entry.name.split('/')[1].split('-');
         metaDatas.push({
             pdfData: data,
             initialPdf: data,
             index: index,
             kategoria: splittedName[1],
             riesitel: splittedName[2] + ' ' + splittedName[3],
-            id: parseInt(splittedName[splittedName.length -1].substring(0,4)),
+            id: parseInt(splittedName[splittedName.length - 1].substring(0, 4)),
             changes: [],
         });
         Database.addDocument(metaDatas[metaDatas.length - 1]);
-    })
+    });
+    Documents = metaDatas;
 }
 
-export async function loadFromDatabase(){
-    var docs = await Database.getAllDocuments();
-    docs.forEach(e=>{
+export async function loadFromDatabase() {
+    const metaDatas: Document[] = []
+    const docs = await Database.getAllDocuments();
+    docs.forEach(e => {
         metaDatas.push(e);
     })
+    metaDatas.sort((a: Document, b: Document) => a.index - b.index);
+    Documents = metaDatas;
+    return metaDatas;
 }
 
-export var metaDatas: Document[] = []
 
-export interface Document{
+
+export interface Document {
     riesitel: string;
     kategoria: string;
     index: number;

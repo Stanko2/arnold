@@ -8,7 +8,7 @@ const routes: Array<RouteConfig> = [
   {
     path: '/',
     name: 'Home',
-    component: Home, 
+    component: Home,
   },
   {
     path: '/edit',
@@ -16,7 +16,8 @@ const routes: Array<RouteConfig> = [
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route
     // which is lazy-loaded when the route is visited.
-    component: () => import('../views/Editor.vue')
+    component: () => import('../views/Editor.vue'),
+    props: true
   }
 ]
 
