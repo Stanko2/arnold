@@ -3,11 +3,11 @@ import { Canvas } from "@/Canvas";
 import { Database } from "@/Db";
 import { fabric } from "fabric";
 import { BlendMode, LineCapStyle, LineJoinStyle, PDFDocument, PDFFont, PDFPage, StandardFonts } from "pdf-lib";
-import { Annotation, LineAnnotation, PathAnnotation, RectAnnotation, TextAnnotation } from "./Annotation";
+import { Annotation, LineAnnotation, PathAnnotation, RectAnnotation, SignAnnotation, TextAnnotation } from "./Annotation";
 import { Tool } from "./Tools/Tool";
 var pdf = require('vue-pdf');
 
-export class PDFdocument{
+export class PDFdocument {
 
     static viewport: Vue;
     static toolbarRef: any;
@@ -21,20 +21,20 @@ export class PDFdocument{
     font: PDFFont | undefined;
     get pageCount(): number {
         return this.pages.length;
-    } 
+    }
     pdfbytes: ArrayBuffer | undefined;
-    constructor(url: string | ArrayBuffer, public id: number){
-        this.init(url).then(pdf=>{
+    constructor(url: string | ArrayBuffer, public id: number) {
+        this.init(url).then(pdf => {
             this.pdfbytes = pdf;
             this.InitModifyRef();
         });
         this.pdfbytes = undefined;
     }
 
-    async init(data: string | ArrayBuffer){
+    async init(data: string | ArrayBuffer) {
         var pdfbytes = data as ArrayBuffer;
-        
-        if(data instanceof String){
+
+        if (data instanceof String) {
             pdfbytes = await fetch(data as string).then(res => res.arrayBuffer());
         }
         this.LoadPdfToViewport(pdfbytes);
@@ -42,9 +42,9 @@ export class PDFdocument{
     }
 
     private async InitModifyRef() {
-        if(this.pdfbytes == null) {
+        if (this.pdfbytes == null) {
             console.error('PDF not loaded')
-            return;    
+            return;
         }
         this.modifyRef = await PDFDocument.load(this.pdfbytes);
         this.font = await this.modifyRef.embedFont(StandardFonts.Helvetica);
@@ -68,12 +68,12 @@ export class PDFdocument{
         }, 500);
     }
 
-    write(annotation: Annotation){
+    write(annotation: Annotation) {
         const page = this.pages[annotation.page];
         annotation.bake(page);
     }
 
-    async save(){
+    async save() {
         await this.InitModifyRef();
         for (const annotation of this.annotations) {
             this.write(annotation);
@@ -86,7 +86,7 @@ export class PDFdocument{
         //     }
         // }
         const pdfBytes = await this.modifyRef?.save();
-        if(pdfBytes == null) return;
+        if (pdfBytes == null) return;
         var currDoc = await Database.getDocument(this.id);
         currDoc.changes = [];
         currDoc.pdfData = pdfBytes;
@@ -108,13 +108,13 @@ export class PDFdocument{
         await this.InitModifyRef();
     }
 
-    
-    initCanvases(){
+
+    initCanvases() {
         for (const canvas of this.pageCanvases) {
             canvas.initEvents();
         }
         // TODO: add path to changes and load it
-        Database.getDocument(this.id).then((doc) =>{
+        Database.getDocument(this.id).then((doc) => {
             for (let i = 0; i < doc.changes.length; i++) {
                 const data = doc.changes[i];
                 var annotation = null;
@@ -131,26 +131,29 @@ export class PDFdocument{
                     case 'Path':
                         annotation = new PathAnnotation(data.page, data.data, this.pageCanvases[data.page]);
                         break;
+                    case 'Sign':
+                        annotation = new SignAnnotation(data.page, data.data, this.pageCanvases[data.page]);
+                        break;
                     default:
                         break;
                 }
-                if(annotation != null) this.addAnnotation(annotation);
+                if (annotation != null) this.addAnnotation(annotation);
             }
         });
-        this.pageCanvases.forEach(c=>c.discardActiveObject());
+        this.pageCanvases.forEach(c => c.discardActiveObject());
     }
 
-    addAnnotation(annotation: Annotation){
+    addAnnotation(annotation: Annotation) {
         this.annotations.push(annotation);
     }
 
-    onToolSelect(tool: Tool){
+    onToolSelect(tool: Tool) {
         tool.onSelect();
-    }   
+    }
 
     deleteAnnotation(name: string) {
-        var annotation = this.annotations.find(e=>e.object.name === name);
-        if(annotation == null){
+        var annotation = this.annotations.find(e => e.object.name === name);
+        if (annotation == null) {
             console.error('Annotation not found');
             return;
         }

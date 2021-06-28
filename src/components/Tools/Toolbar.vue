@@ -181,9 +181,22 @@ export default {
           this.$data.selectedTool.defaultOptions.left =
             PDFdocument.activeObject?.left;
           if (PDFdocument.activeObject != null) {
-            PDFdocument.activeObject.set(
-              this.$data.selectedTool.defaultOptions
-            );
+            if (PDFdocument.activeObject.type == "group") {
+              PDFdocument.activeObject.getObjects().forEach((obj) => {
+                obj.set({
+                  ...this.$data.selectedTool.defaultOptions,
+                  top: -PDFdocument.activeObject.height / 2,
+                  left: -PDFdocument.activeObject.width / 2,
+                  width: obj.width,
+                  height: obj.height,
+                });
+                console.log(obj);
+              });
+            } else {
+              PDFdocument.activeObject.set(
+                this.$data.selectedTool.defaultOptions
+              );
+            }
             PDFdocument.activeObject.canvas?.renderAll();
           }
         } else if (this.$data.selectedTool.name == "Draw") {

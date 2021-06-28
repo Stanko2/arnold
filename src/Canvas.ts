@@ -2,7 +2,7 @@
 import { PDFdocument } from "./components/PDFdocument";
 import { eventHub as ToolEvents, Tool, tools } from "./components/Tools/Tool";
 import { fabric } from "fabric";
-import { PathAnnotation } from "./components/Annotation";
+import { PathAnnotation, SignAnnotation } from "./components/Annotation";
 
 export class Canvas extends fabric.Canvas {
     static toolbarRef: any;
@@ -88,7 +88,7 @@ export class Canvas extends fabric.Canvas {
             }
         });
         this.on('object:scaled', (e) => {
-            if (e.target != null) {
+            if (e.target != null && e.target.type != 'group') {
                 var obj: fabric.Object = e.target,
                     w = (obj.width || 0) * (obj.scaleX || 0),
                     h = (obj.height || 0) * (obj.scaleY || 0),
@@ -117,6 +117,9 @@ export class Canvas extends fabric.Canvas {
             if (obj instanceof fabric.Path && this.isDrawingMode) {
                 this.pdf.addAnnotation(new PathAnnotation(this.page, obj, this));
             }
+            if (obj instanceof fabric.Group) {
+                this.pdf.addAnnotation(new SignAnnotation(this.page, obj, this));
+            }
         })
         setTimeout(() => {
             this.discardActiveObject();
@@ -128,8 +131,15 @@ export class Canvas extends fabric.Canvas {
 
             if (activeObject.type == 'activeSelection') return;
             PDFdocument.activeObject = activeObject;
+
             if (activeObject.type == 'path') {
                 Canvas.toolbarRef.$data.selectedTool.defaultOptions = { stroke: activeObject.stroke, strokeWidth: activeObject.strokeWidth };
+                Canvas.toolbarRef.$data.selectedOptions = { hasStrokeWidth: true, hasStroke: true, hasText: false, hasFill: false };
+                return;
+            }
+            else if (activeObject.type == 'group') {
+                const obj = (activeObject as fabric.Group).getObjects()[0];
+                Canvas.toolbarRef.$data.selectedTool.defaultOptions = { stroke: obj.stroke, strokeWidth: obj.strokeWidth };
                 Canvas.toolbarRef.$data.selectedOptions = { hasStrokeWidth: true, hasStroke: true, hasText: false, hasFill: false };
                 return;
             }

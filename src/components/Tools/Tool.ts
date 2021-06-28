@@ -182,9 +182,15 @@ export const tools: Tool[] = [
                 const cnv = pdf.pageCanvases[page]
                 const paths: fabric.Path[] = [];
                 sign.data.objects.forEach((e: any) => {
-                    paths.push(new fabric.Path(e.path, e));
+                    e.stroke = selectedTool.defaultOptions.stroke || '#000000';
+                    e.strokeWidth = selectedTool.defaultOptions.strokeWidth || 10;
+                    const path = new fabric.Path(e.path, e);
+                    paths.push(path);
+                    // cnv.add(path);
+                    // console.log(position);
                 });
-                cnv.add(new fabric.Group(paths))
+
+                cnv.add(new fabric.Group(paths, { left: position.x, top: position.y }))
             });
         },
         options: {
