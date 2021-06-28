@@ -4,8 +4,8 @@
       <topbar @save="save" @select="selectDir" class="pdf"></topbar>
     </nav>
     <div class="d-flex main">
-      <div class="right-bar bg-secondary">
-        <div class="input-group">
+      <div class="right-bar bg-secondary position-relative">
+        <div class="input-group position-sticky">
           <input
             type="text"
             class="form-control"

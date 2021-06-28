@@ -47,7 +47,7 @@ export default Vue.extend({
     Database.getDocument(this.documentID).then((doc) => {
       this.$data.document = doc;
       setTimeout(() => {
-        this.$data.pdf = pdf.createLoadingTask(new Uint8Array(doc.pdfData));
+        // this.$data.pdf = pdf.createLoadingTask(new Uint8Array(doc.pdfData));
       }, 5000);
     });
   },

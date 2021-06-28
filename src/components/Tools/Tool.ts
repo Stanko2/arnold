@@ -1,10 +1,11 @@
-import { ILineOptions, IObjectOptions, ITextboxOptions } from "fabric/fabric-impl";
-import { Annotation, LineAnnotation, RectAnnotation, TextAnnotation } from "../Annotation";
+import { fabric } from "fabric";
+import { Annotation, LineAnnotation, PathAnnotation, RectAnnotation, TextAnnotation } from "../Annotation";
 import { PDFdocument } from "../PDFdocument";
 import { getViewedDocument, eventHub as DocEventHub } from '@/DocumentManager';
 import Vue from "vue";
+import { Database } from "@/Db";
 export interface Tool {
-    defaultOptions: IObjectOptions,
+    defaultOptions: fabric.IObjectOptions,
     click(pdf: PDFdocument, page: number, position: { x: number, y: number }): fabric.Object,
     mouseMove: Function,
     mouseUp: Function,
@@ -111,7 +112,7 @@ export const tools: Tool[] = [
         cursor: 'pointer',
         icon: 'north_east',
         tooltip: 'Pridat sipku',
-        defaultOptions: <ILineOptions>{
+        defaultOptions: <fabric.ILineOptions>{
             stroke: '#000000',
             strokeWidth: 5,
         },
@@ -175,15 +176,25 @@ export const tools: Tool[] = [
         cursor: 'pointer',
         icon: 'edit',
         tooltip: 'Pridat podpis',
-        // TODO: add sign edit modal
+        defaultOptions: {},
+        click: (pdf: PDFdocument, page: number, position: { x: number, y: number }) => {
+            Database.getTemplate((selectedTool.defaultOptions as any).sign).then((sign) => {
+                const cnv = pdf.pageCanvases[page]
+                const paths: fabric.Path[] = [];
+                sign.data.objects.forEach((e: any) => {
+                    paths.push(new fabric.Path(e.path, e));
+                });
+                cnv.add(new fabric.Group(paths))
+            });
+        },
         options: {
             hasFill: false,
-            hasStroke: false,
+            hasStroke: true,
             hasText: false,
-            hasStrokeWidth: false,
+            hasStrokeWidth: true,
         }
     },
-    <Tool><unknown>{
+    <Tool>{
         name: 'Select',
         cursor: 'pointer',
         icon: 'select_all',

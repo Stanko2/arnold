@@ -1,4 +1,5 @@
-import { StandardFonts } from 'pdf-lib'
+import { StandardFonts } from 'pdf-lib';
+const FontFaceObserver = require('fontfaceobserver');
 
 export const FontsAvailable = {
     'Helvetica': {
@@ -13,7 +14,7 @@ export const FontsAvailable = {
         pdf: StandardFonts.Courier,
         viewport: 'Courier New',
     },
-    'Comic Sans':{
+    'Comic Sans': {
         pdf: '',
         viewport: 'Comic Sans'
     },
@@ -22,3 +23,10 @@ export const FontsAvailable = {
         viewport: 'Roboto'
     }
 }
+
+// export function loadFonts() {
+//     Object.entries(FontsAvailable).forEach(e => {
+//         const font = new FontFaceObserver((e as any).viewport);
+//         font.load().then(() => console.log(e + ' loaded'));
+//     });
+// }

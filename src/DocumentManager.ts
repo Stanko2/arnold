@@ -7,14 +7,14 @@ import Vue from "vue";
 export const eventHub = new Vue();
 
 eventHub.$on('setDocument', setPdf);
-eventHub.$on('parseSolutions', readZip);
+eventHub.$on('parseDocuments', readZip);
 
 export let Documents: Document[] = []
 let pdf: null | PDFdocument = null;
 let selectedDocumentIndex = 0;
 async function setPdf(index: number) {
     if (index < 0 || index >= Documents.length) return;
-    // TODO: dump current document to database
+    if (index == selectedDocumentIndex) return;
 
     selectedDocumentIndex = index;
     var data = Documents[index];

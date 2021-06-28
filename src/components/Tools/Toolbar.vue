@@ -68,12 +68,26 @@
       <b-button variant="primary" @click="openSignModal"
         >Open Sign Menu</b-button
       >
+      <b-dropdown text="Select signature">
+        <b-dropdown-item
+          v-for="sign in signatures"
+          :key="sign.id"
+          @click.native="selectedTool.defaultOptions.sign = sign.id"
+          >{{ sign.name }}</b-dropdown-item
+        >
+      </b-dropdown>
     </div>
     <b-modal ref="imageMenu" centered title="Organize Images" size="lg">
       <image-modal></image-modal>
     </b-modal>
-    <b-modal ref="signMenu" centered title="Organize signatures" size="lg">
-      <sign-modal></sign-modal>
+    <b-modal
+      ref="signMenu"
+      centered
+      title="Organize signatures"
+      size="lg"
+      @ok="signModalAccepted"
+    >
+      <sign-modal :signs="getSigns" ref="signModal"></sign-modal>
     </b-modal>
     <hr />
     <div class="right-controls">
@@ -103,6 +117,7 @@ import ImageModal from "./ImageModal.vue";
 
 // Import the styles too, globally
 import "vue-swatches/dist/vue-swatches.css";
+import { Database } from "@/Db";
 
 export default {
   components: {
@@ -118,11 +133,15 @@ export default {
       fill: "#ffffff",
       stroke: "#000000",
       fonts: FontsAvailable,
+      signatures: [],
     };
   },
   mounted() {
     ToolEvents.$emit("init", this);
     Canvas.toolbarRef = this;
+    this.getSigns().then((signs) => {
+      this.$data.signatures = signs;
+    });
   },
   methods: {
     select(tool) {
@@ -134,6 +153,18 @@ export default {
     },
     openImageModal() {
       this.$refs.imageMenu.show();
+    },
+    getSigns() {
+      return new Promise((resolve, reject) => {
+        Database.getAllTemplates()
+          .then((templates) => {
+            resolve(templates.filter((e) => e.type === "Sign"));
+          })
+          .catch((err) => reject(err));
+      });
+    },
+    signModalAccepted() {
+      this.$refs.signModal.signModalAccepted();
     },
   },
   created() {

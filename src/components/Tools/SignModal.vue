@@ -10,9 +10,13 @@
         @mouseover="signature.hover = true"
         @mouseleave="signature.hover = false"
       >
-        <canvas ref="signCanvas" class="w-100 h-100"></canvas>
+        <canvas :ref="'canvas_' + signature.id" class="w-100 h-100"></canvas>
         <div
-          v-if="signature.hover && !signature.canvas.isDrawingMode"
+          v-if="
+            signature.hover &&
+            signature.canvas &&
+            !signature.canvas.isDrawingMode
+          "
           class="
             d-flex
             justify-content-center
@@ -23,13 +27,23 @@
           "
           style="background: rgb(0, 0, 0, 0.5)"
         >
-          <div class="d-flex">
-            <button class="btn btn-primary" @click="edit(signature.id)">
-              <span class="material-icons">edit</span>
-            </button>
-            <button class="btn btn-danger" @click="remove(signature.id)">
-              <span class="material-icons"> delete </span>
-            </button>
+          <div class="d-flex flex-column">
+            <div class="btn-group">
+              <button class="btn btn-primary" @click="edit(signature.id)">
+                <span class="material-icons">edit</span>
+              </button>
+              <button class="btn btn-danger" @click="remove(signature.id)">
+                <span class="material-icons"> delete </span>
+              </button>
+            </div>
+          </div>
+          <div class="position-absolute w-100" style="bottom: 0">
+            <input
+              type="text"
+              class="w-100 form-control"
+              placeholder="Meno podpisu"
+              v-model="signature.name"
+            />
           </div>
         </div>
       </div>
@@ -47,28 +61,61 @@
 <script lang="ts">
 import Vue from "vue";
 import { fabric } from "fabric";
+
+//eslint-disable-next-line no-unused-vars
+import { ITemplate } from "../Templates";
+import { Database } from "@/Db";
 export default Vue.extend({
+  props: ["signs"],
   data() {
     return {
       signatures: [],
+      canvases: [],
+      deleted: [],
     };
   },
   mounted() {
-    for (var i = 0; i < (this.$refs.signCanvas as any[]).length; i++) {
-      const cnv = (this.$refs.signCanvas as any[])[i];
-      const fabricCanvas = new fabric.Canvas(cnv, { selection: false });
-      fabricCanvas.isDrawingMode = false;
-    }
+    this.signs().then((signs: ITemplate[]) => {
+      console.log(signs);
+      this.$data.signatures = signs.map((sign, i) => {
+        return {
+          hover: false,
+          canvas: undefined,
+          element: undefined,
+          id: sign.id,
+          name: sign.name || `Podpis ${i + 1}`,
+        };
+      });
+      this.$nextTick();
+      setTimeout(() => {
+        if (signs.length > 0) {
+          for (const sign of signs) {
+            const cnv = (
+              this.$refs["canvas_" + sign.id] as any[]
+            )[0] as HTMLCanvasElement;
+            const fabricCanvas = new fabric.Canvas(cnv, { selection: false });
+            fabricCanvas.loadFromJSON(sign.data, () => {
+              fabricCanvas.isDrawingMode = false;
+            });
+            const signature = this.$data.signatures.find(
+              (e: any) => e.id == sign.id
+            );
+            signature.canvas = fabricCanvas;
+            signature.element = cnv;
+          }
+        }
+        console.log(this.$data.signatures);
+      }, 20);
+    });
   },
   methods: {
     addSignature() {
       const id = this.$data.signatures.push({
-        id: this.$data.signatures.length,
+        id: Math.random().toString(36).substr(2, 9),
         hover: false,
       });
       setTimeout(() => {
         const cnv = (this.$refs.signCanvas as any[])[id - 1];
-        console.log(cnv);
         const fabricCanvas = new fabric.Canvas(cnv, { selection: false });
         fabricCanvas.isDrawingMode = false;
         fabricCanvas.on("object:added", (e) => {
@@ -97,9 +144,23 @@ export default Vue.extend({
       }
     },
     remove(id: number) {
-      this.$data.signatures.splice(id, 1);
-      this.$data.signatures.forEach((e: any, index: number) => {
-        e.id = index;
+      const index = this.$data.signatures.findIndex((e: any) => e.id == id);
+      this.$data.signatures.splice(index, 1);
+      this.$data.deleted.push(id);
+    },
+    signModalAccepted() {
+      this.$data.signatures.forEach((e: any) => {
+        const data = {
+          id: e.id || Math.random().toString(36).substr(2, 9),
+          type: "Sign",
+          data: e.canvas.toJSON(),
+          name: e.name,
+        };
+        console.log(data);
+        Database.updateTemplate(data as ITemplate);
+      });
+      this.$data.deleted.forEach((e: string) => {
+        Database.removetemplate(e);
       });
     },
   },

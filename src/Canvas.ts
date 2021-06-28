@@ -1,6 +1,6 @@
 
 import { PDFdocument } from "./components/PDFdocument";
-import { eventHub as ToolEvents, Tool } from "./components/Tools/Tool";
+import { eventHub as ToolEvents, Tool, tools } from "./components/Tools/Tool";
 import { fabric } from "fabric";
 import { PathAnnotation } from "./components/Annotation";
 
@@ -11,12 +11,13 @@ export class Canvas extends fabric.Canvas {
     creating: fabric.Object | null = null;
     pageIndex = 0;
     drawnShapes: fabric.Path[] = [];
-    selectedTool: Tool | undefined = undefined;
+    static selectedTool: Tool | undefined = undefined;
     constructor(el: any, private pdf: PDFdocument, private page: number) {
         super(el);
         this.selection = false;
-        ToolEvents.$on('tool:select', (tool: Tool) => this.selectedTool = tool);
+        ToolEvents.$on('tool:select', (tool: Tool) => Canvas.selectedTool = tool);
     }
+
 
     setScale(viewportSize: DOMRect) {
         if (this.pdf.modifyRef) {
@@ -29,7 +30,6 @@ export class Canvas extends fabric.Canvas {
     initEvents() {
         this.on('mouse:move', (e) => {
             if (this.creating != null) {
-                console.log(this.creating);
                 var position = this.getPointer(e.e);
                 if (this.creating.type == 'line') {
                     (this.creating as fabric.Line).y2 = this.dragStart.y - position.y;
@@ -50,20 +50,22 @@ export class Canvas extends fabric.Canvas {
                     return;
                 }
             }
-            if (this.selectedTool && this.selectedTool.name != 'select' && this.getActiveObjects().length == 0 && this.selectedTool.defaultOptions != null) {
-                var options = this.selectedTool.defaultOptions as fabric.IObjectOptions;
-                const width = this.selectedTool.defaultOptions.width || 0;
-                const height = this.selectedTool.defaultOptions.height || 0;
+            if (Canvas.selectedTool && Canvas.selectedTool.name != 'Select' && this.getActiveObjects().length == 0 && Canvas.selectedTool.defaultOptions) {
+                console.log(Canvas.selectedTool.name);
+                var options = Canvas.selectedTool.defaultOptions as fabric.IObjectOptions;
+                const width = Canvas.selectedTool.defaultOptions.width || 0;
+                const height = Canvas.selectedTool.defaultOptions.height || 0;
                 options.top = e.absolutePointer?.y - height / 2;
                 options.left = e.absolutePointer?.x - width / 2;
-                this.selectedTool.defaultOptions = options;
+                Canvas.selectedTool.defaultOptions = options;
                 var pointerPos = this.getPointer(e.e);
                 this.dragStart = new fabric.Point(pointerPos.x, pointerPos.y);
-                this.creating = this.selectedTool.click?.(this.pdf, this.page, pointerPos);
-                if (this.selectedTool.name == 'Arrow') {
-                    (this.selectedTool.defaultOptions as fabric.ILineOptions).x1 = pointerPos.x;
-                    (this.selectedTool.defaultOptions as fabric.ILineOptions).y1 = pointerPos.y;
+                this.creating = Canvas.selectedTool.click?.(this.pdf, this.page, pointerPos);
+                if (Canvas.selectedTool.name == 'Arrow') {
+                    (Canvas.selectedTool.defaultOptions as fabric.ILineOptions).x1 = pointerPos.x;
+                    (Canvas.selectedTool.defaultOptions as fabric.ILineOptions).y1 = pointerPos.y;
                 }
+                ToolEvents.$emit('tool:select', tools[7]);
             }
 
         });
@@ -74,10 +76,8 @@ export class Canvas extends fabric.Canvas {
 
         });
         this.on('selection:cleared', (e) => {
-
-            console.log(this.selectedTool);
-            if (this.selectedTool && this.selectedTool.name == 'Select') {
-                this.selectedTool.defaultOptions = {};
+            if (Canvas.selectedTool && Canvas.selectedTool.name == 'Select') {
+                Canvas.selectedTool.defaultOptions = {};
                 Canvas.toolbarRef.$data.selectedTool.defaultOptions = {};
                 Canvas.toolbarRef.$data.selectedOptions = {
                     hasFill: false,
@@ -123,24 +123,25 @@ export class Canvas extends fabric.Canvas {
         }, 100);
     }
     HandleSelectionChanged() {
-        if (this.selectedTool && this.selectedTool.name == 'Select') {
-            console.log(this.getActiveObject());
+        if (this.selection) {
+            const activeObject = this.getActiveObject();
 
-            if (this.getActiveObject().type == 'activeSelection') return;
-            PDFdocument.activeObject = this.getActiveObject();
-            if (this.getActiveObject().type == 'path') {
-                Canvas.toolbarRef.$data.selectedTool.defaultOptions = { stroke: this.getActiveObject().stroke, strokeWidth: this.getActiveObject().strokeWidth };
+            if (activeObject.type == 'activeSelection') return;
+            PDFdocument.activeObject = activeObject;
+            if (activeObject.type == 'path') {
+                Canvas.toolbarRef.$data.selectedTool.defaultOptions = { stroke: activeObject.stroke, strokeWidth: activeObject.strokeWidth };
                 Canvas.toolbarRef.$data.selectedOptions = { hasStrokeWidth: true, hasStroke: true, hasText: false, hasFill: false };
                 return;
             }
-            var activeObjectTool = (this.getActiveObject() as any).tool;
+            var activeObjectTool = (activeObject as any).tool;
             if (activeObjectTool != null) {
                 // TODO: fix hiding props on selection cleared or changed
                 Canvas.toolbarRef.$data.selectedTool.defaultOptions = {
-                    stroke: this.getActiveObject().stroke,
-                    strokeWidth: this.getActiveObject().strokeWidth,
-                    fill: this.getActiveObject().fill,
-                    fontFamily: (this.getActiveObject() as fabric.Textbox).fontFamily,
+                    stroke: activeObject.stroke,
+                    strokeWidth: activeObject.strokeWidth,
+                    fill: activeObject.fill,
+                    fontFamily: (activeObject as fabric.Textbox).fontFamily,
+                    fontSize: (activeObject as fabric.Textbox).fontSize
                 };
                 Canvas.toolbarRef.$data.selectedOptions = activeObjectTool.options;
             }
