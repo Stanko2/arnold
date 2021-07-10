@@ -31,6 +31,39 @@ export abstract class Annotation {
     }
 
     protected abstract serialize(): any;
+
+    convertSvgData(svg: string): string {
+        const commands: string[] = [];
+        const data = svg.split(' ');
+        let index = 0;
+        while (index < data.length) {
+            switch (data[index]) {
+                case 'M':
+                    commands.push(data[index]);
+                    commands.push(`${this.floorString(data[index + 1])},${this.floorString(data[index + 2])}`);
+                    index += 3;
+                    break;
+                case 'Q':
+                    commands.push(data[index]);
+                    commands.push(`${this.floorString(data[index + 1])},${this.floorString(data[index + 2])}`);
+                    index += 3;
+                    commands.push(`${this.floorString(data[index])},${this.floorString(data[index + 1])}`);
+                    index += 2;
+                    break;
+                case 'L':
+                    commands.push(data[index]);
+                    commands.push(`${this.floorString(data[index + 1])},${this.floorString(data[index + 2])}`);
+                    index += 3;
+                    break;
+            }
+        }
+        return commands.join(" ");
+    }
+
+    floorString(str: string): number {
+        return Math.floor(parseInt(str));
+    }
+
 }
 
 export class PathAnnotation extends Annotation {
@@ -80,37 +113,6 @@ export class PathAnnotation extends Annotation {
         }
     }
 
-    convertSvgData(svg: string): string {
-        const commands: string[] = [];
-        const data = svg.split(' ');
-        let index = 0;
-        while (index < data.length) {
-            switch (data[index]) {
-                case 'M':
-                    commands.push(data[index]);
-                    commands.push(`${this.floorString(data[index + 1])},${this.floorString(data[index + 2])}`);
-                    index += 3;
-                    break;
-                case 'Q':
-                    commands.push(data[index]);
-                    commands.push(`${this.floorString(data[index + 1])},${this.floorString(data[index + 2])}`);
-                    index += 3;
-                    commands.push(`${this.floorString(data[index])},${this.floorString(data[index + 1])}`);
-                    index += 2;
-                    break;
-                case 'L':
-                    commands.push(data[index]);
-                    commands.push(`${this.floorString(data[index + 1])},${this.floorString(data[index + 2])}`);
-                    index += 3;
-                    break;
-            }
-        }
-        return commands.join(" ");
-    }
-
-    floorString(str: string): number {
-        return Math.floor(parseInt(str));
-    }
 
 }
 
@@ -118,7 +120,31 @@ export class SignAnnotation extends Annotation {
     public bake(page: PDFPage): void {
     }
     protected serialize() {
-        return this.object.toJSON();
+        const grp = this.object as fabric.Group;
+        console.log('saving sign');
+
+        return {
+            stroke: grp._objects[0].stroke,
+            strokeWidth: grp._objects[0].strokeWidth,
+            fill: grp._objects[0].fill,
+            borderColor: grp._objects[0].borderColor,
+            backgroundColor: grp._objects[0].backgroundColor,
+            strokeDashArray: grp._objects[0].strokeDashArray,
+            strokeLineCap: grp._objects[0].strokeLineCap,
+            strokeDashOffset: grp._objects[0].strokeDashOffset,
+            strokeLineJoin: grp._objects[0].strokeLineJoin,
+            top: grp.top,
+            left: grp.left,
+            scaleX: grp.scaleX,
+            scaleY: grp.scaleY,
+            paths: grp.getObjects().map(e => {
+                return {
+                    path: this.convertSvgData(e.toClipPathSVG().split('d=')[1].split('"')[1]),
+                    top: e.top,
+                    left: e.left
+                }
+            })
+        };
     }
 
     constructor(page: number, object: fabric.Group | any, canvas: Canvas) {
@@ -127,10 +153,21 @@ export class SignAnnotation extends Annotation {
         }
         else {
             const paths: fabric.Path[] = [];
+            const options = Object.assign({}, object);
+            delete options.paths;
+            const position = new fabric.Point(object.left, object.top);
+            delete object.top, object.left;
             for (const path of object.paths) {
-                paths.push(new fabric.Path(path.path, path));
+                options.left = path.left;
+                options.top = path.top;
+                paths.push(new fabric.Path(path.path, options));
             }
-            super(page, new fabric.Group(paths), canvas, 'Sign');
+
+            super(page, new fabric.Group(paths, object, false), canvas, 'Sign');
+            this.object.set({
+                left: position.x,
+                top: position.y
+            })
         }
     }
 }

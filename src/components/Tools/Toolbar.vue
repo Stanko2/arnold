@@ -42,7 +42,7 @@
     <div class="form-inline" v-if="selectedOptions.hasStrokeWidth">
       <p class="d-flex align-items-center">Stroke Width</p>
       <input
-        class="form-control"
+        class=""
         min="1"
         style="width: 100px"
         type="range"
@@ -165,6 +165,9 @@ export default {
     },
     signModalAccepted() {
       this.$refs.signModal.signModalAccepted();
+      this.getSigns().then((signs) => {
+        this.$data.signatures = signs;
+      });
     },
   },
   created() {
@@ -172,23 +175,19 @@ export default {
       "selectedTool.defaultOptions",
       () => {
         if (this.$data.selectedTool.name == "Select") {
-          this.$data.selectedTool.defaultOptions.width =
-            PDFdocument.activeObject?.width;
-          this.$data.selectedTool.defaultOptions.height =
-            PDFdocument.activeObject?.height;
-          this.$data.selectedTool.defaultOptions.top =
-            PDFdocument.activeObject?.top;
-          this.$data.selectedTool.defaultOptions.left =
-            PDFdocument.activeObject?.left;
+          delete this.$data.selectedTool.width;
+          delete this.$data.selectedTool.height;
+          delete this.$data.selectedTool.top;
+          delete this.$data.selectedTool.left;
           if (PDFdocument.activeObject != null) {
             if (PDFdocument.activeObject.type == "group") {
               PDFdocument.activeObject.getObjects().forEach((obj) => {
                 obj.set({
                   ...this.$data.selectedTool.defaultOptions,
-                  top: -PDFdocument.activeObject.height / 2,
-                  left: -PDFdocument.activeObject.width / 2,
-                  width: obj.width,
-                  height: obj.height,
+                  // top: -PDFdocument.activeObject.height / 2,
+                  // left: -PDFdocument.activeObject.width / 2,
+                  // width: obj.width,
+                  // height: obj.height,
                 });
                 console.log(obj);
               });

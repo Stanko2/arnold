@@ -110,21 +110,25 @@ export default Vue.extend({
   },
   methods: {
     addSignature() {
-      const id = this.$data.signatures.push({
-        id: Math.random().toString(36).substr(2, 9),
+      const id = Math.random().toString(36).substr(2, 9);
+      this.$data.signatures.push({
+        id: id,
         hover: false,
       });
+      this.$forceUpdate();
       setTimeout(() => {
-        const cnv = (this.$refs.signCanvas as any[])[id - 1];
-        const fabricCanvas = new fabric.Canvas(cnv, { selection: false });
+        const cnv = this.$refs["canvas_" + id] as HTMLCanvasElement;
+
+        console.log(cnv);
+        const fabricCanvas = new fabric.Canvas(cnv);
         fabricCanvas.isDrawingMode = false;
         fabricCanvas.on("object:added", (e) => {
           if (!e.target) return;
           e.target.selectable = false;
           e.target.evented = false;
         });
-        this.$data.signatures[id - 1].canvas = fabricCanvas;
-        this.$data.signatures[id - 1].element = cnv;
+        this.$data.signatures[this.signatures.length - 1].canvas = fabricCanvas;
+        this.$data.signatures[this.signatures.length - 1].element = cnv;
       }, 20);
     },
     edit(id: number) {

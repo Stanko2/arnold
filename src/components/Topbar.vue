@@ -1,6 +1,6 @@
 <template>
   <div class="d-flex justify-content-between w-100">
-    <div style="width: 90%" class="d-flex align-items-center">
+    <div style="width: 75%" class="d-flex align-items-center">
       <b-progress max="100" show-value class="top-progress">
         <b-progress-bar value="50" variant="success"></b-progress-bar>
         <b-progress-bar value="25" variant="info"></b-progress-bar>
@@ -10,6 +10,8 @@
     </div>
     <div>
       <button class="btn btn-success" @click="save">Save</button>
+      <button class="btn btn-success" @click="downloadAll">Download all</button>
+      <button class="btn btn-success" @click="download">Download</button>
     </div>
   </div>
 </template>
@@ -26,6 +28,12 @@ export default Vue.extend({
       },
       select(dir: number) {
         element.$emit("select", dir);
+      },
+      download() {
+        element.$emit("download");
+      },
+      downloadAll() {
+        element.$emit("downloadAll");
       },
     };
   },

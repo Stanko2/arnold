@@ -1,7 +1,12 @@
 <template>
   <div id="app">
     <nav class="navbar sticky-top navbar-light bg-primary" style="padding: 0">
-      <topbar @save="save" @select="selectDir" class="pdf"></topbar>
+      <topbar
+        @save="save"
+        @select="selectDir"
+        class="pdf"
+        @downloadAll="downloadAll"
+      ></topbar>
     </nav>
     <div class="d-flex main">
       <div class="right-bar bg-secondary position-relative">
@@ -134,6 +139,9 @@ export default Vue.extend({
       setTimeout(() => {
         if (editing) editing.updatePreview();
       }, 500);
+    },
+    downloadAll() {
+      DocEventHub.$emit("downloadZip");
     },
   },
 });

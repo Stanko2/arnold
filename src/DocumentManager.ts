@@ -3,11 +3,13 @@ import JSZip, { JSZipObject } from "jszip";
 import { eventHub as ToolEvents } from "./components/Tools/Tool";
 import { Database } from "./Db";
 import Vue from "vue";
+import FileSaver from "file-saver";
 
 export const eventHub = new Vue();
 
 eventHub.$on('setDocument', setPdf);
 eventHub.$on('parseDocuments', readZip);
+eventHub.$on('downloadZip', createZip);
 
 export let Documents: Document[] = []
 let pdf: null | PDFdocument = null;
@@ -48,6 +50,7 @@ export async function readZip(file: File) {
             riesitel: splittedName[2] + ' ' + splittedName[3],
             id: parseInt(splittedName[splittedName.length - 1].substring(0, 4)),
             changes: [],
+            originalName: entry.name,
         });
         Database.addDocument(metaDatas[metaDatas.length - 1]);
     });
@@ -65,6 +68,19 @@ export async function loadFromDatabase() {
     return metaDatas;
 }
 
+async function createZip() {
+    const documents = await loadFromDatabase();
+    const zip = new JSZip();
+    const pts: Record<string, number> = {};
+    for (const doc of documents) {
+        zip.file(doc.originalName, doc.pdfData);
+        pts[doc.id] = doc.body || 0;
+    }
+    zip.file('/points.json', JSON.stringify(pts));
+    const data = await zip.generateAsync({ type: "blob" });
+    const file = new File([data], 'Opravene.zip');
+    FileSaver.saveAs(file);
+}
 
 
 export interface Document {
@@ -72,7 +88,9 @@ export interface Document {
     kategoria: string;
     index: number;
     id: number;
+    body?: number;
     pdfData: ArrayBuffer;
     initialPdf: ArrayBuffer;
     changes: any[];
+    originalName: string;
 }

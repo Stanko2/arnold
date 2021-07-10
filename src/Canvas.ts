@@ -117,7 +117,7 @@ export class Canvas extends fabric.Canvas {
             if (obj instanceof fabric.Path && this.isDrawingMode) {
                 this.pdf.addAnnotation(new PathAnnotation(this.page, obj, this));
             }
-            if (obj instanceof fabric.Group) {
+            if (obj instanceof fabric.Group && !this.getObjects().some(e => e.type == 'group' && e.name == obj?.name && e != obj)) {
                 this.pdf.addAnnotation(new SignAnnotation(this.page, obj, this));
             }
         })
@@ -145,7 +145,6 @@ export class Canvas extends fabric.Canvas {
             }
             var activeObjectTool = (activeObject as any).tool;
             if (activeObjectTool != null) {
-                // TODO: fix hiding props on selection cleared or changed
                 Canvas.toolbarRef.$data.selectedTool.defaultOptions = {
                     stroke: activeObject.stroke,
                     strokeWidth: activeObject.strokeWidth,
