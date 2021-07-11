@@ -49,6 +49,7 @@
         </div>
       </div>
     </div>
+    <bodovanie />
     <div v-shortkey.once="['ctrl', 'arrowup']" @shortkey="selectDir(-1)"></div>
     <div v-shortkey.once="['ctrl', 'arrowdown']" @shortkey="selectDir(1)"></div>
   </div>
@@ -70,6 +71,7 @@ import {
 } from "../DocumentManager";
 // eslint-disable-next-line no-unused-vars
 import { PDFdocument } from "@/components/PDFdocument";
+import Bodovanie from "@/components/Bodovanie.vue";
 
 export default Vue.extend({
   components: {
@@ -77,6 +79,7 @@ export default Vue.extend({
     Topbar,
     Toolbar,
     DocumentPreview,
+    Bodovanie,
   },
   data() {
     Documents.sort((a: Document, b: Document) => a.index - b.index);
@@ -85,6 +88,7 @@ export default Vue.extend({
       Documents: Documents,
       selectedIndex: 0,
       documentsShown: Documents.map(() => true),
+      ukazBodovanie: false,
     };
   },
   mounted() {

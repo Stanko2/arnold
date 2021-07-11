@@ -74,7 +74,7 @@ async function createZip() {
     const pts: Record<string, number> = {};
     for (const doc of documents) {
         zip.file(doc.originalName, doc.pdfData);
-        pts[doc.id] = doc.body || 0;
+        pts[doc.id] = doc.hodnotenie?.body || 0;
     }
     zip.file('/points.json', JSON.stringify(pts));
     const data = await zip.generateAsync({ type: "blob" });
@@ -88,7 +88,11 @@ export interface Document {
     kategoria: string;
     index: number;
     id: number;
-    body?: number;
+    hodnotenie?: {
+        body: number;
+        splnene: boolean[];
+        final: boolean;
+    }
     pdfData: ArrayBuffer;
     initialPdf: ArrayBuffer;
     changes: any[];
