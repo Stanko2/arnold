@@ -10,7 +10,7 @@
         @mouseover="signature.hover = true"
         @mouseleave="signature.hover = false"
       >
-        <canvas :ref="'canvas_' + signature.id" class="w-100 h-100"></canvas>
+        <canvas :id="'canvas_' + signature.id" class="w-100 h-100"></canvas>
         <div
           v-if="
             signature.hover &&
@@ -86,13 +86,12 @@ export default Vue.extend({
           name: sign.name || `Podpis ${i + 1}`,
         };
       });
-      this.$nextTick();
-      setTimeout(() => {
+      this.$nextTick().then(() => {
         if (signs.length > 0) {
           for (const sign of signs) {
-            const cnv = (
-              this.$refs["canvas_" + sign.id] as any[]
-            )[0] as HTMLCanvasElement;
+            const cnv = document.getElementById(
+              "canvas_" + sign.id
+            ) as HTMLCanvasElement;
             const fabricCanvas = new fabric.Canvas(cnv, { selection: false });
             fabricCanvas.loadFromJSON(sign.data, () => {
               fabricCanvas.isDrawingMode = false;
@@ -105,7 +104,7 @@ export default Vue.extend({
           }
         }
         console.log(this.$data.signatures);
-      }, 20);
+      });
     });
   },
   methods: {
@@ -115,12 +114,14 @@ export default Vue.extend({
         id: id,
         hover: false,
       });
-      this.$forceUpdate();
-      setTimeout(() => {
-        const cnv = this.$refs["canvas_" + id] as HTMLCanvasElement;
+      this.$nextTick().then(() => {
+        const cnv = document.getElementById(
+          "canvas_" + id
+        ) as HTMLCanvasElement;
 
         console.log(cnv);
-        const fabricCanvas = new fabric.Canvas(cnv);
+
+        const fabricCanvas = new fabric.Canvas(cnv, { selection: false });
         fabricCanvas.isDrawingMode = false;
         fabricCanvas.on("object:added", (e) => {
           if (!e.target) return;
@@ -129,7 +130,7 @@ export default Vue.extend({
         });
         this.$data.signatures[this.signatures.length - 1].canvas = fabricCanvas;
         this.$data.signatures[this.signatures.length - 1].element = cnv;
-      }, 20);
+      });
     },
     edit(id: number) {
       const cnv = this.$data.signatures.find((e: any) => e.id == id);
@@ -138,6 +139,7 @@ export default Vue.extend({
       this.$data.signatures.forEach((e: any) => {
         e.canvas.isDrawingMode = false;
       });
+      cnv.hover = false;
       cnv.canvas.isDrawingMode = true;
     },
     deselectAll() {

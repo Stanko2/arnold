@@ -174,22 +174,14 @@ export default {
     this.$watch(
       "selectedTool.defaultOptions",
       () => {
-        if (this.$data.selectedTool.name == "Select") {
-          delete this.$data.selectedTool.width;
-          delete this.$data.selectedTool.height;
-          delete this.$data.selectedTool.top;
-          delete this.$data.selectedTool.left;
+        if (
+          this.$data.selectedTool.name == "Select" &&
+          this.$data.selectedTool.defaultOptions
+        ) {
           if (PDFdocument.activeObject != null) {
             if (PDFdocument.activeObject.type == "group") {
               PDFdocument.activeObject.getObjects().forEach((obj) => {
-                obj.set({
-                  ...this.$data.selectedTool.defaultOptions,
-                  // top: -PDFdocument.activeObject.height / 2,
-                  // left: -PDFdocument.activeObject.width / 2,
-                  // width: obj.width,
-                  // height: obj.height,
-                });
-                console.log(obj);
+                obj.set(this.$data.selectedTool.defaultOptions);
               });
             } else {
               PDFdocument.activeObject.set(

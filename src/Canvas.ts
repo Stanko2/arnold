@@ -112,16 +112,16 @@ export class Canvas extends fabric.Canvas {
 
 
 
-        this.on('object:added', (e) => {
-            var obj = e.target;
-            if (obj instanceof fabric.Path && this.isDrawingMode) {
-                this.pdf.addAnnotation(new PathAnnotation(this.page, obj, this));
-            }
-            if (obj instanceof fabric.Group && !this.getObjects().some(e => e.type == 'group' && e.name == obj?.name && e != obj)) {
-                this.pdf.addAnnotation(new SignAnnotation(this.page, obj, this));
-            }
-        })
         setTimeout(() => {
+            this.on('object:added', (e) => {
+                var obj = e.target;
+                if (obj instanceof fabric.Path && this.isDrawingMode) {
+                    this.pdf.addAnnotation(new PathAnnotation(this.page, obj, this));
+                }
+                if (obj instanceof fabric.Group && !this.getObjects().some(e => e.type == 'group' && e.name == obj?.name && e != obj)) {
+                    this.pdf.addAnnotation(new SignAnnotation(this.page, obj, this));
+                }
+            })
             this.discardActiveObject();
         }, 100);
     }

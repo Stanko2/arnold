@@ -80,20 +80,21 @@ export default Vue.extend({
   mounted() {
     window.addEventListener("resize", () => {
       setTimeout(() => {
-        var size = (this.$refs.pdf as Element).getBoundingClientRect();
+        try {
+          const size = (this.$refs.pdf as Element).getBoundingClientRect();
+          const pages = this.$refs.page as HTMLElement[];
+          for (let i = 0; i < pages.length; i++) {
+            const page = pages[i].getBoundingClientRect();
 
-        for (let i = 0; i < (this.$refs.page as Element[]).length; i++) {
-          const page = (this.$refs.page as HTMLElement[])[
-            i
-          ].getBoundingClientRect();
+            // page.style.transform = `scale(${size.width / page.getBoundingClientRect().width})`;
 
-          // page.style.transform = `scale(${size.width / page.getBoundingClientRect().width})`;
-          // console.log(page.style.transform);
-
-          var canvas: Canvas = getViewedDocument()?.pageCanvases[i] as Canvas;
-          canvas.setWidth(size.width);
-          canvas.setHeight(page.height);
-          canvas.setScale(size);
+            var canvas: Canvas = getViewedDocument()?.pageCanvases[i] as Canvas;
+            canvas.setWidth(size.width);
+            canvas.setHeight(page.height);
+            canvas.setScale(size);
+          }
+        } catch (e) {
+          return;
         }
       }, 100);
     });
@@ -148,7 +149,6 @@ export default Vue.extend({
       for (const cnv of doc.pageCanvases) {
         cnv.deleteSelected();
       }
-      console.log("delete");
     },
     moveToFront() {
       // TODO: move active object to front & its annotation to the beginning
@@ -166,7 +166,6 @@ export default Vue.extend({
       const doc = getViewedDocument();
       const data = doc?.annotations;
       if (data == null) return;
-      console.log("back");
 
       for (const obj of this.getActiveObjects()) {
         let index = data.findIndex((e) => e.object.name === obj.name);
@@ -174,9 +173,7 @@ export default Vue.extend({
         data.unshift(data.splice(index, 1)[0]);
       }
     },
-    documentLoaded() {
-      console.log("loaded");
-    },
+    documentLoaded() {},
     openCtxMenu(e: Event) {
       const doc = getViewedDocument();
       if (doc?.pageCanvases.some((f) => f.canOpenCtxMenu(e))) {
@@ -231,7 +228,7 @@ export default Vue.extend({
   width: 100%;
   height: 100%;
   background: white;
-  z-index: 9999;
+  z-index: 100;
   display: flex;
   justify-content: center;
   align-items: center;

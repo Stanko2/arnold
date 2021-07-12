@@ -118,6 +118,29 @@ export class PathAnnotation extends Annotation {
 
 export class SignAnnotation extends Annotation {
     public bake(page: PDFPage): void {
+        const grp = this.object as fabric.Group;
+        const color = Color(this.object.stroke).object();
+        if (!this.object.left || !this.object.top) {
+            throw new Error(`Invalid object location`);
+        }
+        grp.getObjects().forEach(p => {
+            if (!p.left || !p.top || !this.object.left || !this.object.top) {
+                throw new Error(`Invalid path location`);
+            }
+            const path = this.convertSvgData(p.toClipPathSVG().split('d=')[1].split('"')[1]);
+            const position = new fabric.Point(p.left, p.top)
+                .add(new fabric.Point(this.object.left, this.object.top))
+                .add(new fabric.Point((this.object.width || 0) / 2, (this.object.height || 0) / 2));
+            page.drawSvgPath(path, {
+                borderWidth: (this.object.strokeWidth || 10) * (this.object.scaleX || 1),
+                x: position.x,
+                y: page.getHeight() - position.y,
+                scale: this.object.scaleX,
+                borderLineCap: LineCapStyle.Round,
+                borderDashPhase: 1,
+                borderColor: rgb(color.r / 255, color.g / 255, color.b / 255)
+            });
+        })
     }
     protected serialize() {
         const grp = this.object as fabric.Group;
@@ -155,6 +178,7 @@ export class SignAnnotation extends Annotation {
             const paths: fabric.Path[] = [];
             const options = Object.assign({}, object);
             delete options.paths;
+            options.scaleX = 1, options.scaleY = 1;
             const position = new fabric.Point(object.left, object.top);
             delete object.top, object.left;
             for (const path of object.paths) {
@@ -194,8 +218,6 @@ export class TextAnnotation extends Annotation {
         }
     }
     bake(page: PDFPage) {
-        console.log('writing text');
-
         const { width, height } = page.getSize();
         if (this.object == null || this.object.top == null || this.object.left == null || this.textbox.fontSize == null) return;
         var x = this.object.left || 0;
@@ -222,7 +244,8 @@ export class TextAnnotation extends Annotation {
             fontSize: this.textbox.fontSize,
             fill: this.textbox.fill,
             width: this.object.width,
-            height: this.object.height
+            height: this.object.height,
+            hasControls: this.object.hasControls,
         };
     }
 }
@@ -238,9 +261,6 @@ export class RectAnnotation extends Annotation {
         var fill: Color = Color(this.object.fill);
         var stroke: Color = Color(this.object.stroke);
         const { width, height } = page.getSize();
-        console.log(`drawing rectangle at ${this.object.left}, ${this.object.top}`);
-        console.log(`width: ${width} height ${height}`);
-
         page.drawRectangle({
             borderColor: rgb(stroke.red() / 255, stroke.green() / 255, stroke.blue() / 255),
             color: rgb(fill.blue() / 255, fill.green() / 255, fill.blue() / 255),
@@ -323,8 +343,6 @@ export class LineAnnotation extends Annotation {
     delete() {
         this.canvas.remove(this.start);
         this.canvas.remove(this.end);
-        console.log('deleting line');
-
         super.delete();
     }
     bake(page: PDFPage) {

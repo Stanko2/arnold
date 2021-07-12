@@ -25,7 +25,7 @@
                 class="form-control"
                 id="final"
                 v-model="final"
-                @change="ulozHodnotenie"
+                @change="zmenaFinal"
               />
               <label for="final">Finalne hodnotenie</label>
             </div>
@@ -49,22 +49,46 @@
             </div>
           </div>
           <b-button v-b-modal.bodovanie>Upravit Bodovanie</b-button>
-          <b-modal title="Bodovanie" id="bodovanie" @ok="updateBodovania">
-            <ul class="list-group">
+          <b-modal
+            title="Bodovanie"
+            id="bodovanie"
+            @ok="updateBodovania"
+            size="lg"
+          >
+            <ul class="list-group m-2">
               <li
                 class="list-group-item"
                 v-for="bod in bodovania"
                 :key="bod.id"
               >
-                <input
-                  type="number"
-                  class="kriteria-body"
-                  v-model.number="bod.body"
-                />B - za
-                <input type="text" v-model="bod.za" class="w-75" />
+                <div
+                  class="
+                    d-flex
+                    flex-row
+                    justify-content-between
+                    align-items-center
+                  "
+                >
+                  <div class="w-100">
+                    <input
+                      type="number"
+                      class="kriteria-body form-control d-inline"
+                      v-model.number="bod.body"
+                    />B - za
+                    <input
+                      type="text"
+                      v-model="bod.za"
+                      style="width: 80%"
+                      class="form-control d-inline"
+                    />
+                  </div>
+                  <button class="btn btn-danger" @click="zrusKriterium(bod.id)">
+                    <span class="material-icons"> delete </span>
+                  </button>
+                </div>
               </li>
             </ul>
-            <button @click="pridajBodovanie" class="btn btn-primary">
+            <button @click="pridajBodovanie" class="btn btn-primary btn-block">
               Pridat dalsie kriterium
             </button>
           </b-modal>
@@ -79,6 +103,9 @@ import { Database } from "@/Db";
 // eslint-disable-next-line no-unused-vars
 import { Document, eventHub as DocEventHub } from "@/DocumentManager";
 import Vue from "vue";
+import { TextAnnotation } from "./Annotation";
+// eslint-disable-next-line no-unused-vars
+import { PDFdocument } from "./PDFdocument";
 export default Vue.extend({
   mounted() {
     const bodovania = localStorage.getItem("bodovanie");
@@ -87,7 +114,8 @@ export default Vue.extend({
       this.$data.splnene = this.$data.bodovania.map(() => false);
       this.$data.final = false;
     }
-    DocEventHub.$on("documentChanged", (pdf: any, doc: Document) => {
+    DocEventHub.$on("documentChanged", (pdf: PDFdocument, doc: Document) => {
+      this.$data.pdf = pdf;
       this.zistiHodnotenie(doc);
     });
   },
@@ -98,6 +126,7 @@ export default Vue.extend({
       bodovania: [],
       body: undefined,
       final: undefined,
+      annotName: undefined,
     };
   },
   methods: {
@@ -127,6 +156,7 @@ export default Vue.extend({
         body: this.$data.body,
         splnene: this.$data.splnene,
         final: this.$data.final,
+        annotName: this.$data.annotName,
       };
       Database.updateDocument(this.$data.doc.id, this.$data.doc);
     },
@@ -141,6 +171,31 @@ export default Vue.extend({
       this.$data.splnene = doc.hodnotenie.splnene;
       this.$data.body = doc.hodnotenie.body;
       this.$data.final = doc.hodnotenie.final;
+    },
+    zmenaFinal() {
+      const pdf: PDFdocument = this.$data.pdf;
+      if (this.$data.final) {
+        const bodyAnnot = new TextAnnotation(
+          0,
+          {
+            text: `${this.$data.body}B`,
+            top: 90,
+            left: 300,
+            hasControls: false,
+          },
+          pdf.pageCanvases[0]
+        );
+        pdf.pageCanvases[0].discardActiveObject();
+        pdf.addAnnotation(bodyAnnot);
+        this.$data.annotName = bodyAnnot.object.name;
+        this.$emit("save");
+      } else if (this.$data.annotName) {
+        pdf.deleteAnnotation(this.$data.annotName);
+      }
+    },
+    zrusKriterium(id: number) {
+      const index = this.$data.bodovania.findIndex((e: any) => e.id == id);
+      this.$data.bodovania.splice(index, 1);
     },
   },
 });
@@ -175,7 +230,7 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 .kriteria-body {
   text-align: right;
-  width: 40px;
+  width: 50px;
   display: inline;
 }
 .bodovanie-enter-to,

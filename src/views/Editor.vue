@@ -5,7 +5,7 @@
         @save="save"
         @select="selectDir"
         class="pdf"
-        @downloadAll="downloadAll"
+        @download="downloadCurrent"
       ></topbar>
     </nav>
     <div class="d-flex main">
@@ -49,7 +49,7 @@
         </div>
       </div>
     </div>
-    <bodovanie />
+    <bodovanie @save="save" />
     <div v-shortkey.once="['ctrl', 'arrowup']" @shortkey="selectDir(-1)"></div>
     <div v-shortkey.once="['ctrl', 'arrowdown']" @shortkey="selectDir(1)"></div>
   </div>
@@ -144,8 +144,9 @@ export default Vue.extend({
         if (editing) editing.updatePreview();
       }, 500);
     },
-    downloadAll() {
-      DocEventHub.$emit("downloadZip");
+    downloadAll() {},
+    downloadCurrent() {
+      DocEventHub.$emit("download", this.$data.pdf.id);
     },
   },
 });

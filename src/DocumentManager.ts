@@ -10,6 +10,12 @@ export const eventHub = new Vue();
 eventHub.$on('setDocument', setPdf);
 eventHub.$on('parseDocuments', readZip);
 eventHub.$on('downloadZip', createZip);
+eventHub.$on('download', download)
+
+async function download(id: number) {
+    const curr = await Database.getDocument(id);
+    FileSaver.saveAs(new Blob([curr.pdfData]), curr.originalName);
+}
 
 export let Documents: Document[] = []
 let pdf: null | PDFdocument = null;
@@ -71,15 +77,22 @@ export async function loadFromDatabase() {
 async function createZip() {
     const documents = await loadFromDatabase();
     const zip = new JSZip();
-    const pts: Record<string, number> = {};
+    const pts: Record<string, Hodnotenie> = {};
     for (const doc of documents) {
         zip.file(doc.originalName, doc.pdfData);
-        pts[doc.id] = doc.hodnotenie?.body || 0;
+        if (doc.hodnotenie) {
+            doc.hodnotenie.komentare = doc.changes.filter(c => c.type === 'Text').map(c => c.data.text);
+            pts[doc.id] = doc.hodnotenie;
+            delete pts[doc.id]?.annotName;
+        }
     }
-    zip.file('/points.json', JSON.stringify(pts));
-    const data = await zip.generateAsync({ type: "blob" });
+    zip.file('/points.json', JSON.stringify(pts, null, '\t'));
+    const data = await zip.generateAsync({ type: "blob" }, (progress) => {
+        eventHub.$emit('zip-progress', progress.percent, progress.currentFile);
+    });
     const file = new File([data], 'Opravene.zip');
     FileSaver.saveAs(file);
+    eventHub.$emit('downloaded');
 }
 
 
@@ -88,13 +101,17 @@ export interface Document {
     kategoria: string;
     index: number;
     id: number;
-    hodnotenie?: {
-        body: number;
-        splnene: boolean[];
-        final: boolean;
-    }
+    hodnotenie?: Hodnotenie
     pdfData: ArrayBuffer;
     initialPdf: ArrayBuffer;
     changes: any[];
     originalName: string;
+}
+
+interface Hodnotenie {
+    body: number;
+    splnene: boolean[];
+    final: boolean;
+    annotName?: string;
+    komentare?: string[];
 }

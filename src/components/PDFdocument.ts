@@ -144,6 +144,10 @@ export class PDFdocument {
     }
 
     addAnnotation(annotation: Annotation) {
+        if (this.annotations.some(e => e.object.name == annotation.object.name)) {
+            console.trace('trying to add duplicate annotation');
+            return;
+        }
         this.annotations.push(annotation);
     }
 
