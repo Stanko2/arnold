@@ -1,8 +1,9 @@
 import { Canvas } from '@/Canvas';
 import { fabric } from 'fabric';
 import Color from 'color';
-import { LineCapStyle, PDFFont, PDFPage, rgb } from 'pdf-lib';
+import { LineCapStyle, PDFFont, PDFPage, PDFPageDrawTextOptions, rgb } from 'pdf-lib';
 import { getViewedDocument } from '@/DocumentManager';
+import { EmbedFont } from './Fonts';
 
 export abstract class Annotation {
     constructor(public page: number, public object: fabric.Object, public canvas: Canvas, private type: string, create: boolean = true) {
@@ -217,7 +218,10 @@ export class TextAnnotation extends Annotation {
             mt: false,
         }
     }
-    bake(page: PDFPage) {
+    async bake(page: PDFPage) {
+        const font = (this.object as fabric.Textbox).fontFamily || 'Helvetica';
+        const doc = getViewedDocument();
+        await EmbedFont(doc, font);
         const { width, height } = page.getSize();
         if (this.object == null || this.object.top == null || this.object.left == null || this.textbox.fontSize == null) return;
         var x = this.object.left || 0;
@@ -225,11 +229,11 @@ export class TextAnnotation extends Annotation {
         var fontSize: number = this.textbox.fontSize || 14;
         var color = Color(this.object.fill).object();
         console.log(this.textbox.textLines);
-        var options = {
+        var options = <PDFPageDrawTextOptions>{
             x: x,
             y: y,
             size: fontSize,
-            font: TextAnnotation.font,
+            font: doc?.embeddedResources[font],
             color: rgb(color.r / 255, color.g / 255, color.b / 255),
             lineHeight: this.textbox._fontSizeMult * fontSize,
         }

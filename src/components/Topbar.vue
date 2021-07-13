@@ -2,10 +2,10 @@
   <div class="d-flex justify-content-between w-100">
     <div style="width: 75%" class="d-flex align-items-center">
       <b-progress max="100" show-value class="top-progress">
-        <b-progress-bar value="50" variant="success"></b-progress-bar>
-        <b-progress-bar value="25" variant="info"></b-progress-bar>
-        <b-progress-bar value="10" variant="danger"></b-progress-bar>
-        <b-progress-bar value="10" variant="warning"></b-progress-bar>
+        <b-progress-bar value="10" variant="warning">komentar </b-progress-bar>
+        <b-progress-bar value="50" variant="success">Pozrete</b-progress-bar>
+        <b-progress-bar value="25" variant="info">hotovo</b-progress-bar>
+        <b-progress-bar value="10" variant="danger">ohodnotene</b-progress-bar>
       </b-progress>
     </div>
     <div>

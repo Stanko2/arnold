@@ -1,7 +1,9 @@
 import { StandardFonts } from 'pdf-lib';
-const FontFaceObserver = require('fontfaceobserver');
+import { PDFdocument } from './PDFdocument';
+declare let FontFace: any;
 
-export const FontsAvailable = {
+
+export const FontsAvailable: Record<string, any> = {
     'Helvetica': {
         pdf: StandardFonts.Helvetica,
         viewport: 'Helvetica',
@@ -14,19 +16,40 @@ export const FontsAvailable = {
         pdf: StandardFonts.Courier,
         viewport: 'Courier New',
     },
-    'Comic Sans': {
-        pdf: '',
-        viewport: 'Comic Sans'
-    },
-    'roboto': {
-        pdf: '',
+    'Roboto': {
+        url: 'https://fonts.googleapis.com/css2?family=Roboto',
+        pdf: 'http://fonts.gstatic.com/s/roboto/v27/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf',
         viewport: 'Roboto'
     }
 }
 
-// export function loadFonts() {
-//     Object.entries(FontsAvailable).forEach(e => {
-//         const font = new FontFaceObserver((e as any).viewport);
-//         font.load().then(() => console.log(e + ' loaded'));
-//     });
-// }
+export async function loadFonts() {
+    Object.keys(FontsAvailable).forEach(e => {
+        if (!FontsAvailable[e].urls) return;
+        const url = FontsAvailable[e].url;
+        const font = new FontFace(FontsAvailable[e].viewport, `url(${url})`);
+        font.load().then((res: any) => {
+            (document as any).fonts.add(res);
+        }).catch((err: any) => console.log(err));
+    })
+}
+
+export async function EmbedFont(pdf: PDFdocument | null, font: string) {
+    if (!pdf || !pdf.modifyRef) {
+        console.log('Document not yet initialized');
+        return;
+    }
+    if (!(font in FontsAvailable)) {
+        console.log('Trying to embed unavailable font');
+        return;
+    }
+    if (!FontsAvailable[font].urls || font in pdf.embeddedResources) {
+        console.log(`font ${font} is already embedded`);
+        return;
+    }
+    const fontbytes = await fetch(FontsAvailable[font].pdf).then(res => {
+        console.log(res);
+        return res.arrayBuffer()
+    })
+    pdf.embeddedResources[font] = await pdf.modifyRef.embedFont(fontbytes);
+}

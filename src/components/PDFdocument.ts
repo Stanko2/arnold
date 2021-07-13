@@ -5,6 +5,8 @@ import { fabric } from "fabric";
 import { BlendMode, LineCapStyle, LineJoinStyle, PDFDocument, PDFFont, PDFPage, StandardFonts } from "pdf-lib";
 import { Annotation, LineAnnotation, PathAnnotation, RectAnnotation, SignAnnotation, TextAnnotation } from "./Annotation";
 import { Tool } from "./Tools/Tool";
+import fontkit from '@pdf-lib/fontkit';
+
 var pdf = require('vue-pdf');
 
 export class PDFdocument {
@@ -23,6 +25,7 @@ export class PDFdocument {
         return this.pages.length;
     }
     pdfbytes: ArrayBuffer | undefined;
+    embeddedResources: Record<string, any> = {};
     constructor(url: string | ArrayBuffer, public id: number) {
         this.init(url).then(pdf => {
             this.pdfbytes = pdf;
@@ -47,6 +50,7 @@ export class PDFdocument {
             return;
         }
         this.modifyRef = await PDFDocument.load(this.pdfbytes);
+        this.modifyRef.registerFontkit(fontkit)
         this.font = await this.modifyRef.embedFont(StandardFonts.Helvetica);
         TextAnnotation.font = this.font;
         this.pages = this.modifyRef.getPages();
@@ -68,15 +72,16 @@ export class PDFdocument {
         }, 500);
     }
 
-    write(annotation: Annotation) {
+    async write(annotation: Annotation) {
         const page = this.pages[annotation.page];
-        annotation.bake(page);
+        await annotation.bake(page);
     }
 
     async save() {
         await this.InitModifyRef();
+
         for (const annotation of this.annotations) {
-            this.write(annotation);
+            await this.write(annotation);
         }
         // for (let i = 0; i < this.pageCanvases.length; i++) {
         //     const canvas = this.pageCanvases[i];

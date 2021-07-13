@@ -45,7 +45,9 @@
         <div class="viewportWrapper" v-if="pdf != null">
           <!-- Keep alive viac menej funguje, az na to, ze z nejakych dovodov necashuje posledny navstiveny a ked failne nacitavanie sa to breakne - zacashuje sa broken dokument 
           treba cashnut az ked sa dokument uplne nacita -->
-          <Viewport :pdf="pdf" :key="selectedIndex"></Viewport>
+          <keep-alive include="pdf">
+            <Viewport :pdf="pdf" :key="selectedIndex"></Viewport>
+          </keep-alive>
         </div>
       </div>
     </div>
@@ -72,6 +74,7 @@ import {
 // eslint-disable-next-line no-unused-vars
 import { PDFdocument } from "@/components/PDFdocument";
 import Bodovanie from "@/components/Bodovanie.vue";
+import { loadFonts } from "@/components/Fonts";
 
 export default Vue.extend({
   components: {
@@ -97,6 +100,7 @@ export default Vue.extend({
         DocEventHub.$emit("setDocument", 0);
       }, 50);
     }
+    loadFonts();
     DocEventHub.$on(
       "documentChanged",
       (pdf: PDFdocument, metadata: Document) => {
