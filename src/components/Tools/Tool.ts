@@ -82,8 +82,6 @@ export const tools: Tool[] = [
         onDeselect: () => {
             getViewedDocument()?.pageCanvases.forEach((e) => {
                 e.isDrawingMode = false;
-                console.log(e);
-
             });
         },
         options: {

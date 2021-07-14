@@ -19,7 +19,7 @@ async function download(id: number) {
 
 export let Documents: Document[] = []
 let pdf: null | PDFdocument = null;
-let selectedDocumentIndex = 0;
+let selectedDocumentIndex = -1;
 async function setPdf(index: number) {
     if (index < 0 || index >= Documents.length) return;
     if (index == selectedDocumentIndex) return;

@@ -53,7 +53,6 @@ export default Vue.extend({
   },
   methods: {
     updatePreview() {
-      console.log("updating preview");
       Database.getDocument(this.documentID).then((doc) => {
         this.$data.pdf = pdf.createLoadingTask(new Uint8Array(doc.pdfData));
       });

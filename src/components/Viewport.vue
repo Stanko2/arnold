@@ -7,12 +7,7 @@
       </div>
     </div>
 
-    <div
-      class="viewport"
-      v-shortkey.once="['delete']"
-      @shortkey="deleteSelected"
-      @contextmenu="openCtxMenu"
-    >
+    <div class="viewport" @contextmenu="openCtxMenu">
       <context-menu
         id="context-menu"
         ref="ctxMenu"

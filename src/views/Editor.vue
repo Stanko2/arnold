@@ -10,20 +10,7 @@
     </nav>
     <div class="d-flex main">
       <div class="right-bar bg-secondary position-relative">
-        <div class="input-group position-sticky">
-          <input
-            type="text"
-            class="form-control"
-            placeholder="Search Documents ..."
-            ref="searchInput"
-            @input="search"
-          />
-          <div class="input-group-append">
-            <button class="btn btn-success" @click="search">
-              <span class="material-icons">search</span>
-            </button>
-          </div>
-        </div>
+        <search-bar @search="search" />
         <ul class="list-group">
           <document-preview
             ref="documentList"
@@ -46,7 +33,7 @@
           <!-- Keep alive viac menej funguje, az na to, ze z nejakych dovodov necashuje posledny navstiveny a ked failne nacitavanie sa to breakne - zacashuje sa broken dokument 
           treba cashnut az ked sa dokument uplne nacita -->
           <keep-alive include="pdf">
-            <Viewport :pdf="pdf" :key="selectedIndex"></Viewport>
+            <Viewport :pdf="pdf" :key="selectedIndex" ref="viewport"></Viewport>
           </keep-alive>
         </div>
       </div>
@@ -54,6 +41,8 @@
     <bodovanie @save="save" />
     <div v-shortkey.once="['ctrl', 'arrowup']" @shortkey="selectDir(-1)"></div>
     <div v-shortkey.once="['ctrl', 'arrowdown']" @shortkey="selectDir(1)"></div>
+    <div v-shortkey.once="['ctrl', 's']" @shortkey="save"></div>
+    <div v-shortkey.once="['del']" @shortkey="deleteSelected"></div>
   </div>
 </template>
 
@@ -62,6 +51,7 @@ import { Vue } from "vue-property-decorator";
 import Viewport from "../components/Viewport.vue";
 import Topbar from "../components/Topbar.vue";
 import Toolbar from "../components/Tools/Toolbar.vue";
+import SearchBar from "../components/SearchBar.vue";
 import DocumentPreview from "../components/DocumentPreview.vue";
 import {
   getViewedDocument,
@@ -70,6 +60,7 @@ import {
   // eslint-disable-next-line no-unused-vars
   Document,
   Documents,
+  loadFromDatabase,
 } from "../DocumentManager";
 // eslint-disable-next-line no-unused-vars
 import { PDFdocument } from "@/components/PDFdocument";
@@ -83,37 +74,45 @@ export default Vue.extend({
     Toolbar,
     DocumentPreview,
     Bodovanie,
+    SearchBar,
+  },
+  mounted() {
+    if (Documents.length == 0) {
+      loadFromDatabase().then(() => {
+        this.$data.Documents = Documents;
+        this.$data.documentsShown = Documents.map(() => true);
+        this.$nextTick(() => init(this));
+      });
+    } else this.$nextTick(() => init(this));
+
+    function init(el: Vue) {
+      DocEventHub.$on(
+        "documentChanged",
+        (doc: PDFdocument, metadata: Document) => {
+          el.$data.selectedIndex = metadata.index;
+          el.$data.pdf = doc;
+          if (el.$refs.documentList) {
+            (el as any).UpdateCurrentPreview();
+          }
+        }
+      );
+      if (getViewedDocument() == null) {
+        setTimeout(() => {
+          DocEventHub.$emit("setDocument", 0);
+        }, 50);
+      }
+      loadFonts();
+    }
   },
   data() {
     Documents.sort((a: Document, b: Document) => a.index - b.index);
     return {
-      pdf: getViewedDocument(),
+      pdf: undefined,
       Documents: Documents,
       selectedIndex: 0,
       documentsShown: Documents.map(() => true),
       ukazBodovanie: false,
     };
-  },
-  mounted() {
-    if (getViewedDocument() == null) {
-      setTimeout(() => {
-        DocEventHub.$emit("setDocument", 0);
-      }, 50);
-    }
-    loadFonts();
-    DocEventHub.$on(
-      "documentChanged",
-      (pdf: PDFdocument, metadata: Document) => {
-        this.$data.selectedIndex = metadata.index;
-        this.$data.pdf = pdf;
-        if (this.$refs.documentList) {
-          (this as any).UpdateCurrentPreview();
-          // (this.$refs.documentList as any[]).forEach((doc, i) => {
-          //   doc.isSelected = this.$data.selectedIndex == i;
-          // });
-        }
-      }
-    );
   },
   methods: {
     save() {
@@ -121,14 +120,13 @@ export default Vue.extend({
       this.UpdateCurrentPreview();
     },
     selectDir(dir: number) {
-      DocEventHub.$emit("setDocument", this.$data.selectedIndex + dir);
+      const curr = Documents.findIndex((e) => e.id == this.$data.pdf.id);
+      DocEventHub.$emit("setDocument", curr + dir);
     },
     selectIndex(index: number) {
       DocEventHub.$emit("setDocument", index);
     },
-    search() {
-      const query = (this.$refs.searchInput as any).value;
-      console.log(query);
+    search(query: string) {
       this.$data.Documents.forEach((e: Document, index: number) => {
         if (e.riesitel.match(query) != null) {
           this.$data.documentsShown[index] = true;
@@ -140,7 +138,7 @@ export default Vue.extend({
     },
     UpdateCurrentPreview() {
       const documents = this.$refs.documentList as Vue[];
-      if (!documents.some((e: Vue) => e.$data.document.id != null)) return;
+      if (documents.some((e: Vue) => e.$data.document == null)) return;
       const editing = documents.find(
         (e) => e.$data.document.id == this.$data.pdf.id
       ) as any;
@@ -151,6 +149,10 @@ export default Vue.extend({
     downloadAll() {},
     downloadCurrent() {
       DocEventHub.$emit("download", this.$data.pdf.id);
+    },
+    deleteSelected() {
+      const viewport = this.$refs.viewport as any;
+      viewport.deleteSelected();
     },
   },
 });
