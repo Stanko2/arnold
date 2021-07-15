@@ -98,8 +98,14 @@
       <button id="zoomOutButton" class="btn btn-outline-primary">
         <span class="material-icons">remove</span>
       </button>
+      <b-button id="refreshBtn" variant="outline-primary" @click="refresh">
+        <span class="material-icons">refresh</span>
+      </b-button>
       <b-tooltip target="zoomOutButton" triggers="hover"> Oddialit </b-tooltip>
       <b-tooltip target="zoomInButton" triggers="hover"> Priblizit </b-tooltip>
+      <b-tooltip target="refreshBtn" triggers="hover">
+        Znova nacitat dokument
+      </b-tooltip>
     </div>
   </div>
 </template>
@@ -168,6 +174,10 @@ export default {
       this.getSigns().then((signs) => {
         this.$data.signatures = signs;
       });
+    },
+    refresh() {
+      console.log("refresh");
+      this.$emit("refresh");
     },
   },
   created() {

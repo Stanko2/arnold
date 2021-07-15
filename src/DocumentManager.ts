@@ -1,6 +1,5 @@
 import { PDFdocument } from "./components/PDFdocument";
 import JSZip, { JSZipObject } from "jszip";
-import { eventHub as ToolEvents } from "./components/Tools/Tool";
 import { Database } from "./Db";
 import Vue from "vue";
 import FileSaver from "file-saver";
@@ -26,6 +25,7 @@ async function setPdf(index: number) {
 
     selectedDocumentIndex = index;
     var data = Documents[index];
+    data.otvorene = true;
     if (pdf?.pageCanvases) {
         pdf.pageCanvases.forEach((e) => e.dispose());
     }
@@ -57,6 +57,7 @@ export async function readZip(file: File) {
             id: parseInt(splittedName[splittedName.length - 1].substring(0, 4)),
             changes: [],
             originalName: entry.name,
+            otvorene: false,
         });
         Database.addDocument(metaDatas[metaDatas.length - 1]);
     });
@@ -106,6 +107,7 @@ export interface Document {
     initialPdf: ArrayBuffer;
     changes: any[];
     originalName: string;
+    otvorene: boolean;
 }
 
 interface Hodnotenie {

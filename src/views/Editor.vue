@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <nav class="navbar sticky-top navbar-light bg-primary" style="padding: 0">
+    <nav class="navbar navbar-light bg-primary" style="padding: 0">
       <topbar
         @save="save"
         @select="selectDir"
@@ -28,11 +28,11 @@
         </ul>
       </div>
       <div style="width: 100%">
-        <toolbar :pdf="pdf"></toolbar>
+        <toolbar :pdf="pdf" @refresh="refresh"></toolbar>
         <div class="viewportWrapper" v-if="pdf != null">
           <!-- Keep alive viac menej funguje, az na to, ze z nejakych dovodov necashuje posledny navstiveny a ked failne nacitavanie sa to breakne - zacashuje sa broken dokument 
           treba cashnut az ked sa dokument uplne nacita -->
-          <keep-alive include="pdf">
+          <keep-alive>
             <Viewport :pdf="pdf" :key="selectedIndex" ref="viewport"></Viewport>
           </keep-alive>
         </div>
@@ -153,6 +153,10 @@ export default Vue.extend({
     deleteSelected() {
       const viewport = this.$refs.viewport as any;
       viewport.deleteSelected();
+    },
+    refresh() {
+      const viewport = this.$refs.viewport as any;
+      viewport.refresh();
     },
   },
 });

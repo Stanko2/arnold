@@ -155,6 +155,11 @@ class DB {
             }
         });
     }
+
+    async clearAllDocuments() {
+        const req = this.db?.transaction('riesenia', 'readwrite').objectStore('riesenia');
+
+    }
 }
 
 export const Database: DB = new DB();

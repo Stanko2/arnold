@@ -26,16 +26,14 @@
       </context-menu>
       <div class="pdf" ref="pdf">
         <div v-for="i in pageCount" :key="i" class="page">
-          <keep-alive>
-            <pdf
-              :key="i.toString() + id.toString()"
-              :src="src"
-              :page="i"
-              class="card page-data"
-              @error="err"
-              @loaded="documentLoaded"
-            ></pdf>
-          </keep-alive>
+          <pdf
+            :key="i.toString() + id.toString()"
+            :src="src"
+            :page="i"
+            class="card page-data"
+            @error="err"
+            @loaded="documentLoaded"
+          ></pdf>
           <div class="pageAnnot">
             <canvas ref="page"></canvas>
           </div>
@@ -52,6 +50,7 @@ import { PDFdocument } from "./PDFdocument";
 import { getViewedDocument } from "@/DocumentManager";
 import { eventHub } from "./Tools/Tool";
 import Vue from "vue";
+import { Database } from "@/Db";
 const contextMenu = require("vue-context-menu");
 
 var pdfDocument = null;
@@ -72,16 +71,25 @@ export default Vue.extend({
       loaded: false,
     };
   },
+  activated() {
+    const doc = getViewedDocument();
+    if (doc) {
+      this.createCanvases(doc);
+    }
+  },
+  deactivated() {
+    const doc = getViewedDocument();
+    doc?.pageCanvases.forEach((e) => e.dispose());
+  },
   mounted() {
     window.addEventListener("resize", () => {
+      this.refresh();
       setTimeout(() => {
         try {
           const size = (this.$refs.pdf as Element).getBoundingClientRect();
           const pages = this.$refs.page as HTMLElement[];
           for (let i = 0; i < pages.length; i++) {
             const page = pages[i].getBoundingClientRect();
-
-            // page.style.transform = `scale(${size.width / page.getBoundingClientRect().width})`;
 
             var canvas: Canvas = getViewedDocument()?.pageCanvases[i] as Canvas;
             canvas.setWidth(size.width);
@@ -98,45 +106,46 @@ export default Vue.extend({
       if (task) this.src = task;
       this.src.promise.then((pdf: any) => {
         this.pageCount = pdf.numPages;
-        var pageCanvases: Canvas[] = [];
-        // setTimeout musi byt, lebo z nejakych dovodov sa to pdfko resizne na co canvas nevie reagovat
-        // nepodarilo sa mi vyriesit lepsie
-        setTimeout(() => {
-          var dimensions: DOMRect | undefined = (
-            this.$refs.page as Element[]
-          )[0]?.parentElement?.parentElement?.getBoundingClientRect();
-          var doc = getViewedDocument();
-          if (!doc) return;
-          if (doc?.pageCanvases.length > 0) return;
-
-          for (var i = 0; i < (this.$refs.page as Element[]).length; i++) {
-            const page = (this.$refs.page as Element[])[i];
-            const canvas = new Canvas(page, document, i);
-            if (dimensions != null) {
-              canvas.setHeight(dimensions?.height);
-              canvas.setWidth(dimensions?.width);
-              canvas.setScale(dimensions);
-            }
-
-            canvas.pageIndex = i;
-            pageCanvases.push(canvas);
-          }
-          if (doc != null) {
-            doc.pageCanvases = pageCanvases;
-            doc.initCanvases();
-          }
-
-          this.$data.loaded = true;
-          eventHub.$emit("initCurrent");
-        }, 50);
+        this.createCanvases(document);
       });
     };
     PDFdocument.viewport = this;
   },
   methods: {
-    // TODO: context menu functions
     err(err: any) {
       console.log(err);
+    },
+    createCanvases(document: PDFdocument) {
+      const pageCanvases: Canvas[] = [];
+      // setTimeout musi byt, lebo z nejakych dovodov sa to pdfko resizne na co canvas nevie reagovat
+      // nepodarilo sa mi vyriesit lepsie
+      setTimeout(() => {
+        console.log(this.$refs.page);
+
+        var dimensions: DOMRect | undefined = (
+          this.$refs.page as Element[]
+        )[0]?.parentElement?.parentElement?.getBoundingClientRect();
+        if (document.pageCanvases.length > 0) return;
+
+        const pages = this.$refs.page as Element[];
+        for (var i = 0; i < pages.length; i++) {
+          const page = pages[i];
+          const canvas = new Canvas(page, document, i);
+          if (dimensions != null) {
+            canvas.setHeight(dimensions?.height);
+            canvas.setWidth(dimensions?.width);
+            canvas.setScale(dimensions);
+          }
+
+          canvas.pageIndex = i;
+          pageCanvases.push(canvas);
+        }
+
+        document.pageCanvases = pageCanvases;
+        document.initCanvases();
+        this.$data.loaded = true;
+        eventHub.$emit("initCurrent");
+      }, 50);
     },
     deleteSelected() {
       const doc = getViewedDocument();
@@ -168,7 +177,11 @@ export default Vue.extend({
         data.unshift(data.splice(index, 1)[0]);
       }
     },
-    documentLoaded() {},
+    documentLoaded() {
+      console.log("loaded");
+
+      this.$data.loaded = true;
+    },
     openCtxMenu(e: Event) {
       const doc = getViewedDocument();
       if (doc?.pageCanvases.some((f) => f.canOpenCtxMenu(e))) {
@@ -183,6 +196,12 @@ export default Vue.extend({
         e.getActiveObjects().forEach((f) => active.push(f));
       });
       return active;
+    },
+    async refresh() {
+      const viewedDoc = getViewedDocument();
+      if (!viewedDoc) return;
+      const doc = await Database.getDocument(viewedDoc.id);
+      viewedDoc.init(doc.pdfData);
     },
   },
 });
