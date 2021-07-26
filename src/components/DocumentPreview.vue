@@ -14,10 +14,21 @@
           style="display: inline-block; width: 100%"
         ></pdf>
       </div>
-      <p class="ml-4">
-        {{ document.index }}. {{ document.riesitel }}
-        <span class="badge badge-secondary">{{ document.kategoria }}</span>
-      </p>
+      <div class="d-flex flex-column align-items-center">
+        <p class="ml-4">{{ document.index }}. {{ document.riesitel }}</p>
+        <p>
+          <span class="badge badge-secondary m-1">{{
+            document.kategoria
+          }}</span>
+          <b-badge
+            v-for="tag in document.tags"
+            :key="tag"
+            :style="{ background: getTagColor(tag) }"
+            class="m-1"
+            >{{ tag }}</b-badge
+          >
+        </p>
+      </div>
     </div>
     <div v-else>
       <b-spinner variant="primary" label="loading..."></b-spinner>
@@ -34,12 +45,11 @@ export default Vue.extend({
   components: {
     pdf,
   },
-  props: ["documentID", "isSelected"],
+  props: ["documentID", "isSelected", "tags"],
   data() {
     return {
       document: null,
       pdf: null,
-      // TODO: selected not working
       selected: this.isSelected,
     };
   },
@@ -54,8 +64,15 @@ export default Vue.extend({
   methods: {
     updatePreview() {
       Database.getDocument(this.documentID).then((doc) => {
+        this.$data.document.tags = doc.tags;
         this.$data.pdf = pdf.createLoadingTask(new Uint8Array(doc.pdfData));
       });
+    },
+    getTagColor(tag: string) {
+      const a = this.tags.find((e: any) => e.meno == tag);
+      console.log(this.tags);
+
+      return a.color;
     },
   },
 });

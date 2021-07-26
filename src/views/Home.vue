@@ -2,17 +2,16 @@
   <div class="container">
     <img alt="Vue logo" src="../assets/logo.png" />
     <p>Vitaj v opravovacej appke</p>
-    <label for="mainInput" class="inputWrapper">
-      <p>{{ fileName }}</p>
-      <input
-        ref="fileInput"
-        type="file"
-        name="PDF"
-        id="mainInput"
-        placeholder="Vloz zip, v ktorom su vsetky riesenia"
-        @change="fileAdded"
-      />
-    </label>
+    <label for="mainInput" class="inputWrapper"> </label>
+    <p>{{ fileName }}</p>
+    <b-form-file
+      v-model="fileInput"
+      accept=".zip"
+      id="mainInput"
+      size="lg"
+      placeholder="Vloz zip, v ktorom su vsetky riesenia"
+      @input="fileAdded"
+    />
 
     <router-link
       :disabled="!hasFile"
@@ -36,6 +35,7 @@ export default Vue.extend({
     return {
       fileName: "Vloz Zip s PDFkami na opravovanie",
       hasFile: false,
+      fileInput: null,
     };
   },
   mounted() {
@@ -56,10 +56,12 @@ export default Vue.extend({
   },
   methods: {
     fileAdded: function () {
-      var file = (this.$refs.fileInput as HTMLInputElement).files?.item(0);
-      if (file != null) eventHub.$emit("parseDocuments", file);
-      this.$data.fileName = file?.name;
-      this.$data.hasFile = true;
+      var file = this.fileInput;
+      if (file != null) {
+        eventHub.$emit("parseDocuments", file);
+        this.$data.fileName = file["name"];
+        this.$data.hasFile = true;
+      }
     },
   },
 });
@@ -77,7 +79,7 @@ img {
 input[type="file"] {
   display: none;
 }
-.inputWrapper {
+/* .inputWrapper {
   width: 100%;
   height: 30vh;
   background: rgba(128, 128, 128, 0.336);
@@ -88,5 +90,5 @@ input[type="file"] {
 }
 .inputWrapper p {
   color: rgb(83, 81, 81);
-}
+} */
 </style>

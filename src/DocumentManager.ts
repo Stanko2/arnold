@@ -56,6 +56,7 @@ export async function readZip(file: File) {
             riesitel: splittedName[2] + ' ' + splittedName[3],
             id: parseInt(splittedName[splittedName.length - 1].substring(0, 4)),
             changes: [],
+            tags: [],
             originalName: entry.name,
             otvorene: false,
         });
@@ -106,6 +107,7 @@ export interface Document {
     pdfData: ArrayBuffer;
     initialPdf: ArrayBuffer;
     changes: any[];
+    tags: any[];
     originalName: string;
     otvorene: boolean;
 }

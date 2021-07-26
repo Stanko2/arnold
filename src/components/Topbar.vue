@@ -63,7 +63,6 @@ export default Vue.extend({
       this.$data.file = file;
     });
     this.updateStats();
-    setInterval(this.updateStats.bind(this), 1000);
   },
   data() {
     return {
@@ -96,14 +95,28 @@ export default Vue.extend({
       this.$data.file = "";
     },
     updateStats() {
+      console.log("stats updating");
+
       this.$data.stats = {
         celkovo: Documents.length,
         otvorene: this.count(Documents, (e: Document) => e.otvorene),
         komentar: this.count(Documents, (e: Document) => {
-          return e.changes.some((f) => f.type === "Text");
+          return e.changes.some(
+            (f) => f.type === "Text" && !f.data.text.match(/[0-9]*(\.[0-9])?B/)
+          );
         }),
-        obodovane: 0,
-        hotovo: 0,
+        obodovane: this.count(Documents, (e: Document) => {
+          return e.hodnotenie?.final || false;
+        }),
+        hotovo: this.count(Documents, (e: Document) => {
+          return (
+            (e.hodnotenie?.final || false) &&
+            e.changes.some(
+              (f) =>
+                f.type === "Text" && !f.data.text.match(/[0-9]*(\.[0-9])?B/)
+            )
+          );
+        }),
       };
     },
     count(arr: any[], fn: (e: any) => boolean): number {

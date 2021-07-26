@@ -1,13 +1,13 @@
 <template>
   <div class="bodovanie">
-    <transition name="bodovanie">
-      <div class="position-relative">
-        <h4 class="btn btn-primary" @click="ukazBodovanie = !ukazBodovanie">
-          Bodovanie
-          <span class="material-icons d-inline position-absolute">{{
-            ukazBodovanie ? "expand_more" : "expand_less"
-          }}</span>
-        </h4>
+    <div class="position-relative">
+      <h4 class="btn btn-primary" @click="ukazBodovanie = !ukazBodovanie">
+        Bodovanie
+        <span class="material-icons d-inline position-absolute">{{
+          ukazBodovanie ? "expand_more" : "expand_less"
+        }}</span>
+      </h4>
+      <transition name="slide">
         <div v-if="ukazBodovanie" class="bodovanie_okno bg-primary">
           <div class="d-flex flex-row">
             <label class="align-items-center" for="mainInput">Body:</label>
@@ -25,6 +25,7 @@
                 class="form-control"
                 id="final"
                 v-model="final"
+                :disabled="$data.body == undefined"
                 @change="zmenaFinal"
               />
               <label for="final">Finalne hodnotenie</label>
@@ -44,7 +45,8 @@
                 @change="prepocitajBody"
               />
               <label class="form-check-label" :for="bod.id">
-                {{ bod.za }} - ({{ bod.body }})
+                {{ bod.za }}
+                <b-badge pill variant="warning">{{ bod.body }}</b-badge>
               </label>
             </div>
           </div>
@@ -93,8 +95,8 @@
             </button>
           </b-modal>
         </div>
-      </div>
-    </transition>
+      </transition>
+    </div>
   </div>
 </template>
 
@@ -103,7 +105,8 @@ import { Database } from "@/Db";
 // eslint-disable-next-line no-unused-vars
 import { Document, eventHub as DocEventHub } from "@/DocumentManager";
 import Vue from "vue";
-import { TextAnnotation } from "./Annotation";
+// eslint-disable-next-line no-unused-vars
+import { Annotation, TextAnnotation } from "./Annotation";
 // eslint-disable-next-line no-unused-vars
 import { PDFdocument } from "./PDFdocument";
 export default Vue.extend({
@@ -115,8 +118,10 @@ export default Vue.extend({
       this.$data.final = false;
     }
     DocEventHub.$on("documentChanged", (pdf: PDFdocument, doc: Document) => {
-      this.$data.pdf = pdf;
-      this.zistiHodnotenie(doc);
+      setTimeout(() => {
+        this.$data.pdf = pdf;
+        this.zistiHodnotenie(doc);
+      }, 50);
     });
   },
   data() {
@@ -170,7 +175,14 @@ export default Vue.extend({
       }
       this.$data.splnene = doc.hodnotenie.splnene;
       this.$data.body = doc.hodnotenie.body;
-      this.$data.final = doc.hodnotenie.final;
+      this.$data.annotName = doc.hodnotenie.annotName;
+      this.$data.final = false;
+      for (const annot of doc.changes) {
+        if (annot.data.name == this.$data.annotName) {
+          this.$data.final = true;
+          break;
+        }
+      }
     },
     zmenaFinal() {
       const pdf: PDFdocument = this.$data.pdf;
@@ -182,6 +194,7 @@ export default Vue.extend({
             top: 90,
             left: 300,
             hasControls: false,
+            editable: false,
           },
           pdf.pageCanvases[0]
         );
@@ -192,6 +205,7 @@ export default Vue.extend({
       } else if (this.$data.annotName) {
         pdf.deleteAnnotation(this.$data.annotName);
       }
+      this.ulozHodnotenie();
     },
     zrusKriterium(id: number) {
       const index = this.$data.bodovania.findIndex((e: any) => e.id == id);
@@ -233,12 +247,14 @@ input[type="number"]::-webkit-inner-spin-button {
   width: 50px;
   display: inline;
 }
-.bodovanie-enter-to,
-.bodovanie-leave {
-  transform: translateX(0);
+/* .slide-leave-active,
+.slide-enter-active {
+  transition: 1s;
 }
-.bodovanie-enter,
-.bodovanie-leave-to {
-  transform: translateX(-300px);
+.slide-enter {
+  transform: translate(100%, 0);
 }
+.slide-leave-to {
+  transform: translate(100%, 0);
+} */
 </style>

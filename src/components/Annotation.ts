@@ -121,31 +121,37 @@ export class SignAnnotation extends Annotation {
     public bake(page: PDFPage): void {
         const grp = this.object as fabric.Group;
         const color = Color(this.object.stroke).object();
-        if (!this.object.left || !this.object.top) {
+        if (!grp.left || !grp.top || !grp.height || !grp.width) {
             throw new Error(`Invalid object location`);
         }
-        grp.getObjects().forEach(p => {
-            if (!p.left || !p.top || !this.object.left || !this.object.top) {
-                throw new Error(`Invalid path location`);
-            }
-            const path = this.convertSvgData(p.toClipPathSVG().split('d=')[1].split('"')[1]);
-            const position = new fabric.Point(p.left, p.top)
-                .add(new fabric.Point(this.object.left, this.object.top))
-                .add(new fabric.Point((this.object.width || 0) / 2, (this.object.height || 0) / 2));
+        const parser = new DOMParser();
+        const a = parser.parseFromString(grp.toSVG(), "image/svg+xml");
+        const translationMatrix = a.firstElementChild?.getAttribute('transform')?.match(/-?[0-9]+(\.[0-9]*)?/gm)?.map(e => parseFloat(e));
+        console.log(a);
+        if (translationMatrix == null) return;
+
+        a.querySelectorAll('path').forEach(p => {
+            const parentTransform = p.parentElement?.getAttribute('transform')?.match(/-?[0-9]+(\.[0-9]*)?/gm)?.map(e => parseFloat(e));
+            const objTranslation = p.getAttribute('transform')?.match(/-?[0-9]+(\.[0-9]*)?/gm)?.map(e => parseFloat(e));
+            if (objTranslation == null || parentTransform == null) return;
+            const objMatrix: number[] = [1, 0, 1, 0, objTranslation[0], objTranslation[1]]
+            const finalMatrix = fabric.util.multiplyTransformMatrices(fabric.util.multiplyTransformMatrices(translationMatrix, parentTransform), objMatrix);
+            const position = fabric.util.transformPoint(new fabric.Point(0, 0), finalMatrix, false);
+            const path = p.getAttribute('d');
+            if (!path) return;
             page.drawSvgPath(path, {
-                borderWidth: (this.object.strokeWidth || 10) * (this.object.scaleX || 1),
+                borderWidth: (grp.strokeWidth || 10),
                 x: position.x,
                 y: page.getHeight() - position.y,
-                scale: this.object.scaleX,
+                scale: finalMatrix[0],
                 borderLineCap: LineCapStyle.Round,
                 borderDashPhase: 1,
-                borderColor: rgb(color.r / 255, color.g / 255, color.b / 255)
+                borderColor: rgb(color.r / 255, color.g / 255, color.b / 255),
             });
-        })
+        });
     }
     protected serialize() {
         const grp = this.object as fabric.Group;
-        console.log('saving sign');
 
         return {
             stroke: grp._objects[0].stroke,
@@ -191,7 +197,9 @@ export class SignAnnotation extends Annotation {
             super(page, new fabric.Group(paths, object, false), canvas, 'Sign');
             this.object.set({
                 left: position.x,
-                top: position.y
+                top: position.y,
+                originX: 'left',
+                originY: 'top'
             })
         }
     }
@@ -228,7 +236,6 @@ export class TextAnnotation extends Annotation {
         var y = height - (this.object.top + this.textbox.fontSize);
         var fontSize: number = this.textbox.fontSize || 14;
         var color = Color(this.object.fill).object();
-        console.log(this.textbox.textLines);
         var options = <PDFPageDrawTextOptions>{
             x: x,
             y: y,
@@ -250,6 +257,7 @@ export class TextAnnotation extends Annotation {
             width: this.object.width,
             height: this.object.height,
             hasControls: this.object.hasControls,
+            editable: this.textbox.editable,
         };
     }
 }

@@ -1,4 +1,4 @@
-import Vue from "*.vue";
+import Vue from "vue";
 import { Canvas } from "@/Canvas";
 import { Database } from "@/Db";
 import { fabric } from "fabric";

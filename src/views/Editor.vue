@@ -6,12 +6,13 @@
         @select="selectDir"
         class="pdf"
         @download="downloadCurrent"
+        ref="topbar"
       ></topbar>
     </nav>
     <div class="d-flex main">
       <div class="right-bar bg-secondary position-relative">
         <search-bar @search="search" />
-        <ul class="list-group">
+        <ul class="list-group document-list">
           <document-preview
             ref="documentList"
             class="list-group-item"
@@ -20,6 +21,7 @@
             :key="document.id"
             :documentID="document.id"
             isSelected="true"
+            :tags="tags"
             @click.native="selectIndex(document.index - 1)"
           ></document-preview>
           <li v-if="!documentsShown.some((e) => e)">
@@ -30,8 +32,6 @@
       <div style="width: 100%">
         <toolbar :pdf="pdf" @refresh="refresh"></toolbar>
         <div class="viewportWrapper" v-if="pdf != null">
-          <!-- Keep alive viac menej funguje, az na to, ze z nejakych dovodov necashuje posledny navstiveny a ked failne nacitavanie sa to breakne - zacashuje sa broken dokument 
-          treba cashnut az ked sa dokument uplne nacita -->
           <keep-alive>
             <Viewport :pdf="pdf" :key="selectedIndex" ref="viewport"></Viewport>
           </keep-alive>
@@ -39,6 +39,7 @@
       </div>
     </div>
     <bodovanie @save="save" />
+    <tagy @tagUpdate="updateTags" />
     <div v-shortkey.once="['ctrl', 'arrowup']" @shortkey="selectDir(-1)"></div>
     <div v-shortkey.once="['ctrl', 'arrowdown']" @shortkey="selectDir(1)"></div>
     <div v-shortkey.once="['ctrl', 's']" @shortkey="save"></div>
@@ -66,6 +67,7 @@ import {
 import { PDFdocument } from "@/components/PDFdocument";
 import Bodovanie from "@/components/Bodovanie.vue";
 import { loadFonts } from "@/components/Fonts";
+import Tagy from "@/components/Tagy.vue";
 
 export default Vue.extend({
   components: {
@@ -75,6 +77,7 @@ export default Vue.extend({
     DocumentPreview,
     Bodovanie,
     SearchBar,
+    Tagy,
   },
   mounted() {
     if (Documents.length == 0) {
@@ -82,6 +85,7 @@ export default Vue.extend({
         this.$data.Documents = Documents;
         this.$data.documentsShown = Documents.map(() => true);
         this.$nextTick(() => init(this));
+        (this.$refs.topbar as any).updateStats();
       });
     } else this.$nextTick(() => init(this));
 
@@ -106,22 +110,29 @@ export default Vue.extend({
   },
   data() {
     Documents.sort((a: Document, b: Document) => a.index - b.index);
+    const tags = JSON.parse(localStorage.getItem("tags") || "[]");
     return {
       pdf: undefined,
       Documents: Documents,
       selectedIndex: 0,
       documentsShown: Documents.map(() => true),
       ukazBodovanie: false,
+      tags: tags,
     };
   },
   methods: {
     save() {
       this.$data.pdf.save();
       this.UpdateCurrentPreview();
+      (this.$refs.topbar as any).updateStats();
     },
     selectDir(dir: number) {
       const curr = Documents.findIndex((e) => e.id == this.$data.pdf.id);
-      DocEventHub.$emit("setDocument", curr + dir);
+      let i = curr + dir;
+      while (this.$data.documentsShown[i] === false) {
+        i += dir;
+      }
+      DocEventHub.$emit("setDocument", i);
     },
     selectIndex(index: number) {
       DocEventHub.$emit("setDocument", index);
@@ -158,6 +169,9 @@ export default Vue.extend({
       const viewport = this.$refs.viewport as any;
       viewport.refresh();
     },
+    updateTags() {
+      this.tags = JSON.parse(localStorage.getItem("tags") || "[]");
+    },
   },
 });
 </script>
@@ -179,13 +193,22 @@ export default Vue.extend({
 }
 .right-bar {
   width: 25vw;
-  overflow-x: hidden;
-  overflow-y: scroll;
+  overflow: hidden;
+}
+.right-bar ul {
+  overflow: auto;
+  /* height: auto; */
+  /* max-height: 100% !important; */
+  top: 0;
+  bottom: 0;
 }
 .pdf-tab {
   width: 100%;
 }
 .viewportWrapper {
   height: 93.5%;
+}
+.document-list {
+  height: 100% !important;
 }
 </style>
