@@ -11,7 +11,7 @@
     </nav>
     <div class="d-flex main">
       <div class="right-bar bg-secondary position-relative">
-        <search-bar @search="search" />
+        <search-bar ref="searchBar" @search="search" />
         <ul class="list-group document-list">
           <document-preview
             ref="documentList"
@@ -56,7 +56,6 @@ import SearchBar from "../components/SearchBar.vue";
 import DocumentPreview from "../components/DocumentPreview.vue";
 import {
   getViewedDocument,
-  // metaDatas,
   eventHub as DocEventHub,
   // eslint-disable-next-line no-unused-vars
   Document,
@@ -86,6 +85,7 @@ export default Vue.extend({
         this.$data.documentsShown = Documents.map(() => true);
         this.$nextTick(() => init(this));
         (this.$refs.topbar as any).updateStats();
+        (this.$refs.searchBar as any).getTags();
       });
     } else this.$nextTick(() => init(this));
 
@@ -137,10 +137,15 @@ export default Vue.extend({
     selectIndex(index: number) {
       DocEventHub.$emit("setDocument", index);
     },
-    search(query: string) {
+    search(query: string, tags: string[]) {
       this.$data.Documents.forEach((e: Document, index: number) => {
         if (e.riesitel.match(query) != null) {
-          this.$data.documentsShown[index] = true;
+          if (tags.length > 0) {
+            // neviem ako to presne spravit - ak je viac tagov, tak musia sediet vsetky, alebo staci ak sedi aspon jeden?
+            e.tags.push(e.kategoria);
+            this.documentsShown[index] = e.tags.every((f) => tags.includes(f));
+            e.tags.splice(e.tags.length - 1, 1);
+          } else this.$data.documentsShown[index] = true;
         } else {
           this.$data.documentsShown[index] = false;
         }
