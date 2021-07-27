@@ -5,6 +5,7 @@ import App from './router/RouterMain.vue'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import router from './router'
+import './registerServiceWorker'
 
 const shortkey = require('vue-shortkey');
 const ctxMenu = require('vue-context-menu');
@@ -17,5 +18,5 @@ Vue.use(shortkey, { prevent: ['input', 'textarea'] })
 
 new Vue({
   router,
-  render: h=>h(App),
+  render: h => h(App),
 }).$mount('#app')
