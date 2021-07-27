@@ -3,6 +3,7 @@ import JSZip, { JSZipObject } from "jszip";
 import { Database } from "./Db";
 import Vue from "vue";
 import FileSaver from "file-saver";
+import { DocumentParser, PMatParser } from "./DocumentParser";
 
 export const eventHub = new Vue();
 
@@ -15,7 +16,7 @@ async function download(id: number) {
     const curr = await Database.getDocument(id);
     FileSaver.saveAs(new Blob([curr.pdfData]), curr.originalName);
 }
-
+export let activeParser: DocumentParser;
 export let Documents: Document[] = []
 let pdf: null | PDFdocument = null;
 let selectedDocumentIndex = -1;
@@ -43,18 +44,21 @@ export async function readZip(file: File) {
     const zipReader = new JSZip();
     const zipFile = await zipReader.loadAsync(buffer);
     let index = 0;
-    zipFile.forEach(async (path, entry) => {
+    let parser: PMatParser | undefined = undefined;
+    zipFile.forEach(async (_path, entry) => {
+        if (parser == undefined) {
+            parser = new PMatParser(entry.name.split('/')[0]);
+            activeParser = parser;
+        }
         if (!entry.name.endsWith('.pdf')) return;
         const data = await entry.async('arraybuffer');
         index++;
-        const splittedName = entry.name.split('/')[1].split('-');
+        const metaData = parser.parse(entry.name);
         metaDatas.push({
+            ...metaData,
             pdfData: data,
             initialPdf: data,
             index: index,
-            kategoria: splittedName[1],
-            riesitel: splittedName[2] + ' ' + splittedName[3],
-            id: parseInt(splittedName[splittedName.length - 1].substring(0, 4)),
             changes: [],
             tags: [],
             originalName: entry.name,
@@ -73,6 +77,7 @@ export async function loadFromDatabase() {
     })
     metaDatas.sort((a: Document, b: Document) => a.index - b.index);
     Documents = metaDatas;
+    activeParser = new PMatParser('');
     return metaDatas;
 }
 

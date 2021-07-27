@@ -34,20 +34,22 @@
             @change="addtag"
             v-model="currTag"
             placeholder="Zadaj kategorie ... "
+            :state="tagValid"
+            @update="checkValidity(currTag)"
           >
           </b-form-input>
         </b-input-group>
         <b-badge
           pill
           v-for="tag in searchTags"
-          :key="tag"
-          style="background: green"
+          :key="tag.meno"
+          :style="{ background: tag.color }"
           class="m-1"
         >
           <span
             class="d-flex flex-row justify-content-between align-items-center"
-            >{{ tag }}
-            <b-btn-close class="ml-2" @click="removeTag(tag)"></b-btn-close
+            >{{ tag.meno }}
+            <b-btn-close class="ml-2" @click="removeTag(tag.meno)"></b-btn-close
           ></span>
         </b-badge>
       </div>
@@ -56,30 +58,66 @@
 </template>
 
 <script lang="ts">
+import { activeParser } from "@/DocumentManager";
 import Vue from "vue";
 export default Vue.extend({
-  mounted() {},
+  mounted() {
+    this.getTags();
+  },
   data() {
     return {
       searchStr: "",
-      searchTags: ["test"],
+      availableTags: [],
+      searchTags: [],
       currTag: "",
       expanded: false,
+      tagValid: null,
     };
   },
   methods: {
     search() {
-      this.$emit("search", this.searchStr);
+      this.$emit(
+        "search",
+        this.searchStr,
+        this.searchTags.map((e: any) => e.meno)
+      );
     },
     addtag() {
-      this.searchTags.push(this.currTag);
-      this.currTag = "";
+      if (this.tagValid) {
+        this.$data.searchTags.push(
+          this.$data.availableTags.find((e: any) => e.meno == this.currTag)
+        );
+        this.currTag = "";
+        this.tagValid = null;
+      }
     },
     removeTag(tag: string) {
       this.searchTags.splice(
-        this.searchTags.findIndex((e) => e == tag),
+        this.searchTags.findIndex((e: any) => e.meno == tag),
         1
       );
+    },
+    getTags() {
+      if (activeParser == undefined) return;
+      const tags = JSON.parse(localStorage.getItem("tags") || "[]");
+      for (const kategoria of activeParser.kategorie.map((e: string) => {
+        return { meno: e, color: "#3D556E" };
+      })) {
+        tags.push(kategoria);
+      }
+      this.$data.availableTags = tags;
+    },
+    checkValidity(tag: string) {
+      if (
+        this.$data.availableTags.every((e: any) => e.meno.match(tag) == null) ||
+        this.$data.searchTags.findIndex((e: any) => e.meno == tag) != -1
+      )
+        this.$data.tagValid = false;
+      else if (
+        this.$data.availableTags.findIndex((e: any) => e.meno == tag) != -1
+      )
+        this.$data.tagValid = true;
+      else this.$data.tagValid = null;
     },
   },
 });
