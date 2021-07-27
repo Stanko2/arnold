@@ -118,7 +118,6 @@ export class PDFdocument {
         for (const canvas of this.pageCanvases) {
             canvas.initEvents();
         }
-        // TODO: add path to changes and load it
         Database.getDocument(this.id).then((doc) => {
             for (let i = 0; i < doc.changes.length; i++) {
                 const data = doc.changes[i];

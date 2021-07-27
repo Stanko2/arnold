@@ -101,12 +101,11 @@ export default Vue.extend({
         }
       }, 100);
     });
-    PDFdocument.initDocument = (task: any, document: PDFdocument) => {
+    PDFdocument.initDocument = (task: any) => {
       this.$data.loaded = false;
       if (task) this.src = task;
       this.src.promise.then((pdf: any) => {
         this.pageCount = pdf.numPages;
-        this.createCanvases(document);
       });
     };
     PDFdocument.viewport = this;
@@ -120,8 +119,6 @@ export default Vue.extend({
       // setTimeout musi byt, lebo z nejakych dovodov sa to pdfko resizne na co canvas nevie reagovat
       // nepodarilo sa mi vyriesit lepsie
       setTimeout(() => {
-        console.log(this.$refs.page);
-
         var dimensions: DOMRect | undefined = (
           this.$refs.page as Element[]
         )[0]?.parentElement?.parentElement?.getBoundingClientRect();
@@ -178,9 +175,9 @@ export default Vue.extend({
       }
     },
     documentLoaded() {
-      console.log("loaded");
-
       this.$data.loaded = true;
+      const document = getViewedDocument();
+      if (document) this.createCanvases(document);
     },
     openCtxMenu(e: Event) {
       const doc = getViewedDocument();

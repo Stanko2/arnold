@@ -5,6 +5,14 @@ import { fabric } from "fabric";
 import { PathAnnotation, SignAnnotation } from "./components/Annotation";
 
 export class Canvas extends fabric.Canvas {
+    Clear(): void {
+        try {
+            super.dispose();
+        }
+        catch (e) {
+            return;
+        }
+    }
     static toolbarRef: any;
 
     dragStart: fabric.Point = new fabric.Point(0, 0);

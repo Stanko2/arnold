@@ -57,16 +57,31 @@ class DB {
         });
     }
 
-    async updateDocument(id: number, doc: Document): Promise<void> {
+    async updateDocument(id: number, doc: Document, updatePDFchanges: boolean = true): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            var req = this.db?.transaction('riesenia', 'readwrite').objectStore('riesenia');
+            const req = this.db?.transaction('riesenia', 'readwrite').objectStore('riesenia');
             if (req?.get(id) == null) {
                 reject('modifying nonexistent document');
             }
-            var result = req?.put(doc);
-            if (result) {
-                result.onsuccess = () => resolve();
-                result.onerror = (e) => reject(e);
+            if (!updatePDFchanges) {
+                this.getDocument(id).then(curr => {
+                    doc.changes = curr.changes;
+                    doc.pdfData = curr.pdfData;
+                    doc.initialPdf = curr.initialPdf;
+                    const req = this.db?.transaction('riesenia', 'readwrite').objectStore('riesenia');
+                    const result = req?.put(doc);
+                    if (result) {
+                        result.onsuccess = () => resolve();
+                        result.onerror = (e) => reject(e);
+                    }
+                });
+            }
+            else {
+                const result = req?.put(doc);
+                if (result) {
+                    result.onsuccess = () => resolve();
+                    result.onerror = (e) => reject(e);
+                }
             }
         });
     }

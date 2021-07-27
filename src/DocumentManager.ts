@@ -28,7 +28,7 @@ async function setPdf(index: number) {
     var data = Documents[index];
     data.otvorene = true;
     if (pdf?.pageCanvases) {
-        pdf.pageCanvases.forEach((e) => e.dispose());
+        pdf.pageCanvases.forEach((e) => e.Clear());
     }
     pdf = new PDFdocument(data.initialPdf, data.id);
 

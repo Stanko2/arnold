@@ -12,7 +12,7 @@
     <div class="d-flex main">
       <div class="right-bar bg-secondary position-relative">
         <search-bar ref="searchBar" @search="search" />
-        <ul class="list-group document-list">
+        <ul ref="previews" class="list-group document-list">
           <document-preview
             ref="documentList"
             class="list-group-item"
@@ -20,7 +20,6 @@
             v-show="documentsShown[i]"
             :key="document.id"
             :documentID="document.id"
-            isSelected="true"
             :tags="tags"
             @click.native="selectIndex(document.index - 1)"
           ></document-preview>
@@ -39,7 +38,7 @@
       </div>
     </div>
     <bodovanie @save="save" />
-    <tagy @tagUpdate="updateTags" />
+    <tagy @tagUpdate="updateTags" @documentTag="updateDocumentTags" />
     <div v-shortkey.once="['ctrl', 'arrowup']" @shortkey="selectDir(-1)"></div>
     <div v-shortkey.once="['ctrl', 'arrowdown']" @shortkey="selectDir(1)"></div>
     <div v-shortkey.once="['ctrl', 's']" @shortkey="save"></div>
@@ -132,25 +131,49 @@ export default Vue.extend({
       while (this.$data.documentsShown[i] === false) {
         i += dir;
       }
+      if (i < 0 || i >= Documents.length) return;
+      this.updateSelected(i, true);
       DocEventHub.$emit("setDocument", i);
     },
+    updateSelected(newIndex: number, scrolling: boolean) {
+      const previews = this.$refs.documentList as Vue[];
+      let height = 0;
+      for (let i = 0; i < previews.length; i++) {
+        const a = previews[i];
+        if (i < newIndex) {
+          height += a.$el.getBoundingClientRect().height;
+        }
+        a.$data.selected = i == newIndex;
+      }
+      if (scrolling)
+        (this.$refs.previews as Element).scrollTo({
+          top: height,
+          left: 0,
+          behavior: "smooth",
+        });
+    },
     selectIndex(index: number) {
+      this.updateSelected(index, false);
       DocEventHub.$emit("setDocument", index);
     },
     search(query: string, tags: string[]) {
       this.$data.Documents.forEach((e: Document, index: number) => {
         if (e.riesitel.match(query) != null) {
           if (tags.length > 0) {
-            // neviem ako to presne spravit - ak je viac tagov, tak musia sediet vsetky, alebo staci ak sedi aspon jeden?
-            e.tags.push(e.kategoria);
-            this.documentsShown[index] = e.tags.every((f) => tags.includes(f));
-            e.tags.splice(e.tags.length - 1, 1);
+            this.documentsShown[index] = this.IsDocumentValid(tags, [
+              ...e.tags,
+              e.kategoria,
+            ]);
           } else this.$data.documentsShown[index] = true;
         } else {
           this.$data.documentsShown[index] = false;
         }
       });
       this.$forceUpdate();
+    },
+    IsDocumentValid(searchTags: string[], documentTags: string[]): boolean {
+      // neviem ako to presne spravit - ak je viac tagov, tak musia sediet vsetky, alebo staci ak sedi aspon jeden?
+      return searchTags.some((e) => documentTags.includes(e));
     },
     UpdateCurrentPreview() {
       const documents = this.$refs.documentList as Vue[];
@@ -176,6 +199,13 @@ export default Vue.extend({
     },
     updateTags() {
       this.tags = JSON.parse(localStorage.getItem("tags") || "[]");
+    },
+    updateDocumentTags() {
+      const curr = Documents.find((e) => e.id == this.$data.pdf.id);
+      const preview = (this.$refs.documentList as Vue[])[
+        (curr?.index || 0) - 1
+      ];
+      preview.$data.document.tags = curr?.tags || [];
     },
   },
 });

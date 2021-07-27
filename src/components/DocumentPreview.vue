@@ -1,5 +1,10 @@
 <template>
-  <li class="list-group-item">
+  <li
+    :class="{
+      'list-group-item-action': !selected,
+      active: selected,
+    }"
+  >
     <div v-if="document != null" class="row">
       <div class="col-5">
         <div class="card">
@@ -20,7 +25,7 @@
         <div class="text-left">
           <p>{{ document.index }}. {{ document.riesitel }}</p>
           <p>
-            <span class="badge badge-secondary m-1">{{
+            <span class="badge badge-secondary mr-1">{{
               document.kategoria
             }}</span>
             <b-badge
@@ -49,20 +54,20 @@ export default Vue.extend({
   components: {
     pdf,
   },
-  props: ["documentID", "isSelected", "tags"],
+  props: ["documentID", "tags"],
   data() {
     return {
       document: null,
       pdf: null,
-      selected: this.isSelected,
+      selected: false,
     };
   },
   mounted() {
     Database.getDocument(this.documentID).then((doc) => {
       this.$data.document = doc;
       setTimeout(() => {
-        // this.$data.pdf = pdf.createLoadingTask(new Uint8Array(doc.pdfData));
-      }, 5000);
+        this.$data.pdf = pdf.createLoadingTask(new Uint8Array(doc.pdfData));
+      }, 500 * doc.index);
     });
   },
   methods: {
@@ -74,8 +79,6 @@ export default Vue.extend({
     },
     getTagColor(tag: string) {
       const a = this.tags.find((e: any) => e.meno == tag);
-      console.log(this.tags);
-
       return a.color;
     },
   },

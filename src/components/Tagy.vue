@@ -40,6 +40,10 @@
         title="Upravit kategorie"
         @ok="updateTagov"
       >
+        <b-alert variant="warning" show
+          >Po premenovani kategorie sa kategoria strati vo vsetkych priradenych
+          dokumentoch</b-alert
+        >
         <b-list-group>
           <b-list-group-item
             pill
@@ -94,7 +98,7 @@ export default Vue.extend({
           document.tags.splice(i, 1);
         } else i++;
       }
-      Database.updateDocument(document.id, document);
+      Database.updateDocument(document.id, document, false);
     });
   },
   data() {
@@ -138,6 +142,7 @@ export default Vue.extend({
       }
       this.$data.doc.tags.sort();
       Database.updateDocument(this.$data.doc.id, this.$data.doc);
+      this.$emit("documentTag");
     },
   },
 });
@@ -167,7 +172,7 @@ input[type="number"]::-webkit-inner-spin-button {
   padding-right: 28px;
 }
 .tags .tagy_okno {
-  width: 300px;
+  width: 200px;
   padding: 15px;
 }
 .tag-edit {
