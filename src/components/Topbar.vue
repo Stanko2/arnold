@@ -1,25 +1,5 @@
 <template>
   <div class="d-flex justify-content-between w-100">
-    <div
-      class="d-flex align-items-center justify-content-around stats-panel w-75"
-    >
-      <div class="stats">
-        <h4>{{ stats.otvorene }} / {{ stats.celkovo }}</h4>
-        <p>Pozretych</p>
-      </div>
-      <div class="stats">
-        <h4>{{ stats.komentar }} / {{ stats.celkovo }}</h4>
-        <p>Okomentovanych</p>
-      </div>
-      <div class="stats">
-        <h4>{{ stats.obodovane }} / {{ stats.celkovo }}</h4>
-        <p>Obodovanych</p>
-      </div>
-      <div class="stats">
-        <h4>{{ stats.hotovo }} / {{ stats.celkovo }}</h4>
-        <p>Hotovo</p>
-      </div>
-    </div>
     <div>
       <b-button variant="danger" v-b-modal.sessionDestroy
         >Uzavriet opravovanie</b-button
@@ -75,6 +55,10 @@
           :file-name-formatter="formatNames"
         />
       </b-modal>
+      <b-button variant="success" v-b-modal.stats>Statistiky</b-button>
+      <b-modal id="stats" title="Statistiky" centered size="xl" ok-only
+        ><stats ref="stat"></stats
+      ></b-modal>
     </div>
     <div class="bottom-progress-bar" v-if="downloading">
       <b-progress max="100" show-progress animated class="h-100 w-100">
@@ -97,8 +81,10 @@ import {
   eventHub as DocEventHub,
 } from "@/DocumentManager";
 import { Database } from "@/Db";
+import Stats from "./Stats.vue";
 
 export default Vue.extend({
+  components: { Stats },
   mounted() {
     DocEventHub.$on("downloaded", () => (this.$data.downloading = false));
     DocEventHub.$on("zip-progress", (progress: number, file: string) => {
@@ -112,13 +98,6 @@ export default Vue.extend({
       downloading: false,
       progress: 0,
       file: "",
-      stats: {
-        celkovo: 0,
-        otvorene: 0,
-        komentar: 0,
-        obodovane: 0,
-        hotovo: 0,
-      },
       noveRiesenia: [],
     };
   },
@@ -138,39 +117,8 @@ export default Vue.extend({
       this.$data.progress = 0;
       this.$data.file = "";
     },
-    updateStats() {
-      console.log("stats updating");
+    updateStats() {},
 
-      this.$data.stats = {
-        celkovo: Documents.length,
-        otvorene: this.count(Documents, (e: Document) => e.otvorene),
-        komentar: this.count(Documents, (e: Document) => {
-          return e.changes.some(
-            (f) => f.type === "Text" && !f.data.text.match(/[0-9]*(\.[0-9])?B/)
-          );
-        }),
-        obodovane: this.count(Documents, (e: Document) => {
-          return e.hodnotenie?.final || false;
-        }),
-        hotovo: this.count(Documents, (e: Document) => {
-          return (
-            (e.hodnotenie?.final || false) &&
-            e.changes.some(
-              (f) =>
-                f.type === "Text" && !f.data.text.match(/[0-9]*(\.[0-9])?B/)
-            )
-          );
-        }),
-      };
-    },
-    count(arr: any[], fn: (e: any) => boolean): number {
-      let out = 0;
-      for (let i = 0; i < arr.length; i++) {
-        const el = arr[i];
-        if (fn(el)) out++;
-      }
-      return out;
-    },
     destroySession() {
       console.log("Destroy");
       Database.clearAllDocuments().then(() => {
@@ -219,28 +167,5 @@ export default Vue.extend({
   transform-origin: bottom;
   height: 3vw;
   background: red;
-}
-.stats {
-  user-select: none;
-  display: inline;
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  transition: all 300ms;
-  width: 25%;
-  align-items: center;
-}
-.stats h4 {
-  transition: all 300ms;
-  display: inline;
-}
-.stats p {
-  transition: all 300ms;
-  display: inline;
-  margin-left: 1rem;
-}
-.stats-panel:hover .stats h4 {
-  font-size: 3rem;
-}
-.stats-panel:hover .stats p {
-  display: block;
 }
 </style>
