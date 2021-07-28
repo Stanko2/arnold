@@ -8,6 +8,7 @@ export interface DocumentMetadata {
     riesitel: string;
     kategoria: string;
     id: number;
+    originalName: string;
 }
 
 export class PMatParser implements DocumentParser {
@@ -28,11 +29,18 @@ export class PMatParser implements DocumentParser {
     }
     kategorie: string[];
     parse(name: string): DocumentMetadata {
-        const fileName = name.split('/')[1].split('-');
+        let fileName: string[]
+        try {
+            fileName = name.split('/')[1].split('-');
+        }
+        catch (err) {
+            fileName = name.split('-')
+        }
         return {
             id: parseInt(fileName[fileName.length - 1].substring(0, 4)),
             kategoria: this.kategorieMapper[fileName[1]],
-            riesitel: fileName.slice(2, fileName.length - 1).join(' ')
+            riesitel: fileName.slice(2, fileName.length - 1).map(e => e[0].toUpperCase() + e.slice(1)).join(' '),
+            originalName: name
         }
     }
 

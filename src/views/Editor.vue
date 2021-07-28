@@ -13,16 +13,20 @@
       <div class="right-bar bg-secondary position-relative">
         <search-bar ref="searchBar" @search="search" />
         <ul ref="previews" class="list-group document-list">
-          <document-preview
-            ref="documentList"
-            class="list-group-item"
+          <transition
             v-for="(document, i) in Documents"
-            v-show="documentsShown[i]"
             :key="document.id"
-            :documentID="document.id"
-            :tags="tags"
-            @click.native="selectIndex(document.index - 1)"
-          ></document-preview>
+            name="document-list"
+          >
+            <document-preview
+              v-show="documentsShown[i]"
+              ref="documentList"
+              class="list-group-item"
+              :documentID="document.id"
+              :tags="tags"
+              @click.native="selectIndex(document.index - 1)"
+            ></document-preview>
+          </transition>
           <li v-if="!documentsShown.some((e) => e)">
             <p class="text-danger">No matching documents</p>
           </li>
@@ -92,7 +96,7 @@ export default Vue.extend({
       DocEventHub.$on(
         "documentChanged",
         (doc: PDFdocument, metadata: Document) => {
-          el.$data.selectedIndex = metadata.index;
+          el.$data.selectedIndex = metadata.index - 1;
           el.$data.pdf = doc;
           if (el.$refs.documentList) {
             (el as any).UpdateCurrentPreview();
@@ -185,7 +189,6 @@ export default Vue.extend({
         if (editing) editing.updatePreview();
       }, 500);
     },
-    downloadAll() {},
     downloadCurrent() {
       DocEventHub.$emit("download", this.$data.pdf.id);
     },
@@ -194,8 +197,10 @@ export default Vue.extend({
       viewport.deleteSelected();
     },
     refresh() {
-      const viewport = this.$refs.viewport as any;
-      viewport.refresh();
+      (this.$refs.viewport as Vue).$forceUpdate();
+      this.$nextTick().then(() => {
+        DocEventHub.$emit("setDocument", this.selectedIndex);
+      });
     },
     updateTags() {
       this.tags = JSON.parse(localStorage.getItem("tags") || "[]");
@@ -245,5 +250,18 @@ export default Vue.extend({
 }
 .document-list {
   height: 100% !important;
+}
+
+.document-list-leave-active,
+.document-list-enter-active {
+  transition: 250ms ease-in-out;
+}
+.document-list-enter {
+  transform: translate(0, -100%) scale(0.2);
+  opacity: 0;
+}
+.document-list-leave-to {
+  transform: translate(100%, 0) scale(0.5);
+  opacity: 0;
 }
 </style>

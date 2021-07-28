@@ -10,7 +10,7 @@ export const eventHub = new Vue();
 eventHub.$on('setDocument', setPdf);
 eventHub.$on('parseDocuments', readZip);
 eventHub.$on('downloadZip', createZip);
-eventHub.$on('download', download)
+eventHub.$on('download', download);
 
 async function download(id: number) {
     const curr = await Database.getDocument(id);
@@ -22,7 +22,7 @@ let pdf: null | PDFdocument = null;
 let selectedDocumentIndex = -1;
 async function setPdf(index: number) {
     if (index < 0 || index >= Documents.length) return;
-    if (index == selectedDocumentIndex) return;
+    // if (index == selectedDocumentIndex) return;
 
     selectedDocumentIndex = index;
     var data = Documents[index];
@@ -44,29 +44,35 @@ export async function readZip(file: File) {
     const zipReader = new JSZip();
     const zipFile = await zipReader.loadAsync(buffer);
     let index = 0;
-    let parser: PMatParser | undefined = undefined;
+    let parser: DocumentParser | undefined = undefined;
+    const promises: Promise<void>[] = [];
     zipFile.forEach(async (_path, entry) => {
         if (parser == undefined) {
+            localStorage.setItem('uloha', entry.name.split('/')[0])
             parser = new PMatParser(entry.name.split('/')[0]);
             activeParser = parser;
         }
         if (!entry.name.endsWith('.pdf')) return;
         const data = await entry.async('arraybuffer');
         index++;
-        const metaData = parser.parse(entry.name);
-        metaDatas.push({
-            ...metaData,
-            pdfData: data,
-            initialPdf: data,
-            index: index,
-            changes: [],
-            tags: [],
-            originalName: entry.name,
-            otvorene: false,
-        });
-        Database.addDocument(metaDatas[metaDatas.length - 1]);
+        promises.push(AddDocument(entry.name, data, index, metaDatas, parser));
     });
+    await Promise.all(promises);
     Documents = metaDatas;
+}
+
+export async function AddDocument(fileName: string, data: ArrayBuffer, index: number = Documents.length, metaDatas: Document[] = Documents, parser: DocumentParser = activeParser) {
+    const metaData = parser.parse(fileName);
+    metaDatas.push({
+        ...metaData,
+        pdfData: data,
+        initialPdf: data,
+        index: index,
+        changes: [],
+        tags: [],
+        otvorene: false,
+    });
+    await Database.addDocument(metaDatas[metaDatas.length - 1]);
 }
 
 export async function loadFromDatabase() {
@@ -77,7 +83,7 @@ export async function loadFromDatabase() {
     })
     metaDatas.sort((a: Document, b: Document) => a.index - b.index);
     Documents = metaDatas;
-    activeParser = new PMatParser('');
+    activeParser = new PMatParser(localStorage.getItem('uloha') || '');
     return metaDatas;
 }
 

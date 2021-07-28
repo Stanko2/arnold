@@ -37,9 +37,16 @@ class DB {
         })
     }
 
-    addDocument(doc: Document) {
-        var riesenia = this.db?.transaction('riesenia', 'readwrite').objectStore('riesenia');
-        riesenia?.add(doc);
+    async addDocument(doc: Document): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const riesenia = this.db?.transaction('riesenia', 'readwrite').objectStore('riesenia');
+            const res = riesenia?.add(doc);
+            if (res) {
+                res.onerror = (e) => reject(e);
+                res.onsuccess = () => resolve();
+            }
+            else reject();
+        })
     }
     async getDocument(id: number): Promise<Document> {
         var req = this.db?.transaction('riesenia', 'readonly').objectStore('riesenia');
@@ -172,8 +179,14 @@ class DB {
     }
 
     async clearAllDocuments() {
-        const req = this.db?.transaction('riesenia', 'readwrite').objectStore('riesenia');
-
+        return new Promise<void>((resolve, reject) => {
+            const req = this.db?.transaction('riesenia', 'readwrite').objectStore('riesenia');
+            const res = req?.clear();
+            if (res) {
+                res.onerror = (e) => reject(e);
+                res.onsuccess = () => resolve();
+            }
+        })
     }
 }
 

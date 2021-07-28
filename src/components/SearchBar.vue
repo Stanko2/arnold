@@ -39,19 +39,24 @@
           >
           </b-form-input>
         </b-input-group>
-        <b-badge
-          pill
-          v-for="tag in searchTags"
-          :key="tag.meno"
-          :style="{ background: tag.color }"
-          class="m-1"
-        >
-          <span
-            class="d-flex flex-row justify-content-between align-items-center"
-            >{{ tag.meno }}
-            <b-btn-close class="ml-2" @click="removeTag(tag.meno)"></b-btn-close
-          ></span>
-        </b-badge>
+        <transition-group name="tags">
+          <b-badge
+            pill
+            v-for="tag in searchTags"
+            :key="tag.meno"
+            :style="{ background: tag.color }"
+            class="m-1"
+          >
+            <span
+              class="d-flex flex-row justify-content-between align-items-center"
+              >{{ tag.meno }}
+              <b-btn-close
+                class="ml-2"
+                @click="removeTag(tag.meno)"
+              ></b-btn-close
+            ></span>
+          </b-badge>
+        </transition-group>
       </div>
     </transition>
   </div>
@@ -133,5 +138,22 @@ export default Vue.extend({
 }
 .slide-leave-to {
   transform: translate(0, -100%);
+}
+.tags-leave-active {
+  animation: bounce-in 500ms reverse;
+}
+.tags-enter-active {
+  animation: bounce-in 500ms;
+}
+@keyframes bounce-in {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 </style>

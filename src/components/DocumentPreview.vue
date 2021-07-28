@@ -28,13 +28,15 @@
             <span class="badge badge-secondary mr-1">{{
               document.kategoria
             }}</span>
-            <b-badge
-              v-for="tag in document.tags"
-              :key="tag"
-              :style="{ background: getTagColor(tag) }"
-              class="m-1"
-              >{{ tag }}</b-badge
-            >
+            <transition-group name="tags">
+              <b-badge
+                v-for="tag in document.tags"
+                :key="tag"
+                :style="{ background: getTagColor(tag) }"
+                class="m-1"
+                >{{ tag }}</b-badge
+              >
+            </transition-group>
           </p>
         </div>
       </div>
@@ -84,3 +86,23 @@ export default Vue.extend({
   },
 });
 </script>
+
+<style scoped>
+.tags-leave-active {
+  animation: bounce-in 500ms reverse;
+}
+.tags-enter-active {
+  animation: bounce-in 500ms;
+}
+@keyframes bounce-in {
+  0% {
+    transform: scale(0);
+  }
+  50% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+</style>
