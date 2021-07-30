@@ -5,7 +5,7 @@ import { fabric } from "fabric";
 import { BlendMode, LineCapStyle, LineJoinStyle, PDFDocument, PDFFont, PDFPage, StandardFonts } from "pdf-lib";
 import { Annotation, LineAnnotation, PathAnnotation, RectAnnotation, SignAnnotation, TextAnnotation } from "./Annotation";
 import { Tool } from "./Tools/Tool";
-import fontkit from '@pdf-lib/fontkit';
+import fontKit from '@pdf-lib/fontkit';
 
 var pdf = require('vue-pdf');
 
@@ -50,10 +50,15 @@ export class PDFdocument {
             return;
         }
         this.modifyRef = await PDFDocument.load(this.pdfbytes);
-        this.modifyRef.registerFontkit(fontkit)
+        this.modifyRef.registerFontkit(fontKit)
         this.font = await this.modifyRef.embedFont(StandardFonts.Helvetica);
         TextAnnotation.font = this.font;
         this.pages = this.modifyRef.getPages();
+        this.embeddedResources = {
+            'Courier New': await this.modifyRef.embedFont(StandardFonts.Courier),
+            'Times New Roman': await this.modifyRef.embedFont(StandardFonts.TimesRoman),
+            'Helvetica': await this.modifyRef.embedFont(StandardFonts.Helvetica),
+        }
     }
 
     private LoadPdfToViewport(pdfbytes: ArrayBuffer) {

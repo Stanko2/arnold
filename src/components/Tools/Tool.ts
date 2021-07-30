@@ -42,7 +42,8 @@ export const tools: Tool[] = [
             var annot = new TextAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
             selectTool(tools[7]);
-            selectedTool.defaultOptions = tools.find(e => e.name == 'Text')?.defaultOptions || {};
+            if (vue)
+                vue.$data.selectedTool.defaultOptions = tools.find(e => e.name == 'Text')?.defaultOptions || {};
             return annot.object;
         },
         icon: 'A',
@@ -116,8 +117,6 @@ export const tools: Tool[] = [
         },
         click: (pdf: PDFdocument, page: number, position: { x: number, y: number }) => {
             var options = (selectedTool.defaultOptions as fabric.ILineOptions);
-            options.x1 = position.x;
-            options.y1 = position.y;
             var annot = new LineAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
             // selectTool(tools[7]);
@@ -234,6 +233,12 @@ function selectTool(tool: Tool) {
     if (tool.onSelect) {
         tool.onSelect();
     }
+    getViewedDocument()?.pageCanvases.forEach(e => {
+        e.setSelectable(tool.name === 'Select')
+        e.discardActiveObject();
+        console.log('discardActiveObject');
+        e.requestRenderAll();
+    });
     if (vue != null) {
         vue.$data.selectedTool = selectedTool;
         vue.$data.selectedOptions = selectedTool.options;

@@ -16,21 +16,29 @@ export const FontsAvailable: Record<string, any> = {
         pdf: StandardFonts.Courier,
         viewport: 'Courier New',
     },
-    'Roboto': {
-        url: 'https://fonts.googleapis.com/css2?family=Roboto',
-        pdf: 'http://fonts.gstatic.com/s/roboto/v27/KFOmCnqEu92Fr1Me5WZLCzYlKw.ttf',
-        viewport: 'Roboto'
-    }
+    // 'Roboto': {
+    //     url: 'https://fonts.googleapis.com/css2?family=Roboto',
+    //     pdf: '/fonts/Roboto.ttf',
+    //     viewport: 'Roboto'
+    // },
+    // 'Bebas neue': {
+    //     url: 'https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap',
+    //     pdf: '/fonts/Bebas-neue.ttf',
+    //     viewport: 'Bebas neue'
+    // }
 }
 
 export async function loadFonts() {
     Object.keys(FontsAvailable).forEach(e => {
-        if (!FontsAvailable[e].urls) return;
-        const url = FontsAvailable[e].url;
-        const font = new FontFace(FontsAvailable[e].viewport, `url(${url})`);
-        font.load().then((res: any) => {
-            (document as any).fonts.add(res);
-        }).catch((err: any) => console.log(err));
+        if (!FontsAvailable[e].url) return;
+        fetch(FontsAvailable[e].url).then(res => res.text().then(str => {
+            for (const url of str.matchAll(/https:\/\/fonts.gstatic.com\/s\/.*\.woff2/gm)) {
+                const font = new FontFace(FontsAvailable[e].viewport, `url(${url})`);
+                font.load().then((res: any) => {
+                    (document as any).fonts.add(res);
+                }).catch((err: any) => console.log(err));
+            }
+        }));
     })
 }
 
@@ -43,7 +51,7 @@ export async function EmbedFont(pdf: PDFdocument | null, font: string) {
         console.log('Trying to embed unavailable font');
         return;
     }
-    if (!FontsAvailable[font].urls || font in pdf.embeddedResources) {
+    if (!FontsAvailable[font].pdf || Object.keys(pdf.embeddedResources).includes(font)) {
         console.log(`font ${font} is already embedded`);
         return;
     }

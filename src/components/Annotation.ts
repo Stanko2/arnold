@@ -191,7 +191,9 @@ export class SignAnnotation extends Annotation {
             for (const path of object.paths) {
                 options.left = path.left;
                 options.top = path.top;
-                paths.push(new fabric.Path(path.path, options));
+                const p = new fabric.Path(path.path, options)
+                paths.push(p);
+                // canvas.add(p);
             }
 
             super(page, new fabric.Group(paths, object, false), canvas, 'Sign');
@@ -298,54 +300,71 @@ export class RectAnnotation extends Annotation {
 
 export class LineAnnotation extends Annotation {
     static toolOptions: any;
-    start: fabric.Circle;
-    end: fabric.Circle;
+    // start: fabric.Circle;
+    // end: fabric.Circle;
     get line(): fabric.Line {
         return this.object as fabric.Line;
     }
     constructor(page: number, options: fabric.ILineOptions, canvas: Canvas) {
-        options.hasControls = false;
+        options.hasControls = true;
         options.hasBorders = false;
-        super(page, new fabric.Line([options.x1 || 0, options.y1 || 0, options.x2 || options.x1 || 0, options.y2 || options.y1 || 0], options), canvas, 'Line');
+        options.strokeLineCap = 'round';
+        if (!options.x1 || !options.x2 || !options.y1 || !options.y2) throw new Error('Invalid location')
+
+        super(page, new fabric.Line([options.x1, options.y1, options.x2, options.y2], options), canvas, 'Line');
+        (this.object as fabric.Line).set({ x1: options.x1, y1: options.y1, x2: options.x2, y2: options.y2 });
         (this.object as any).tool = LineAnnotation.toolOptions;
+        this.object._controlsVisibility = {
+            bl: false,
+            br: true,
+            mb: false,
+            ml: false,
+            mr: false,
+            mt: false,
+            mtr: false,
+            tl: true,
+            tr: false,
+        }
+        this.object.controls.tl = new fabric.Control({
+            visible: true,
+            actionHandler: (e, transform, x, y) => {
+                const line = transform.target as fabric.Line;
+                line.set({
+                    x1: x, y1: y,
+                })
 
-
-        this.start = new fabric.Circle({
-            top: (options.y1 || 0) - 10,
-            left: (options.x1 || 0) - 10,
-            radius: 10,
-            fill: '#ff0000',
-            hasControls: false,
-            hasBorders: false
-        });
-        this.end = new fabric.Circle({
-            top: (options.y2 || options.y1 || 0) - 10,
-            left: (options.x2 || options.x1 || 0) - 10,
-            radius: 10,
-            fill: '#ff0000',
-            hasControls: false,
-            hasBorders: false
-        });
-        this.canvas.bringToFront(this.end);
-        this.canvas.bringToFront(this.start);
-        this.object.lockMovementX = true;
-        this.object.lockMovementY = true;
-        this.start.on('moving', (e) => {
-            (this.object as fabric.Line).set({
-                x1: this.start.left as number + (this.start.radius as number),
-                y1: this.start.top as number + (this.start.radius as number),
-            })
-        });
-        this.end.on('moving', (e) => {
-            (this.object as fabric.Line).set({
-                x2: this.end.left as number + (this.end.radius as number),
-                y2: this.end.top as number + (this.end.radius as number),
-            })
+                if (!line.x1 || !line.x2 || !line.y1 || !line.y2) return true;
+                line.controls.tl.y = Math.min(line.y1, line.y2) == line.y2 ? 0.5 : -0.5;
+                line.controls.tl.x = Math.min(line.x1, line.x2) == line.x2 ? 0.5 : -0.5;
+                line.controls.br.y = Math.min(line.y1, line.y2) == line.y1 ? 0.5 : -0.5;
+                line.controls.br.x = Math.min(line.x1, line.x2) == line.x1 ? 0.5 : -0.5;
+                return true;
+            },
+            actionName: 'firstMove',
+            cursorStyle: 'pointer',
+            x: -0.5,
+            y: -0.5
         })
-        canvas.add(this.start);
-        canvas.add(this.end);
-        canvas.bringToFront(this.end);
-        canvas.setActiveObject(this.end);
+        this.object.controls.br = new fabric.Control({
+            visible: true,
+            actionHandler: (e, transform, x, y) => {
+                const line = transform.target as fabric.Line;
+                line.set({
+                    x2: x, y2: y,
+                })
+                if (!line.x1 || !line.x2 || !line.y1 || !line.y2) return true;
+                line.controls.br.y = Math.min(line.y1, line.y2) == line.y1 ? 0.5 : -0.5;
+                line.controls.br.x = Math.min(line.x1, line.x2) == line.x1 ? 0.5 : -0.5;
+                line.controls.tl.y = Math.min(line.y1, line.y2) == line.y2 ? 0.5 : -0.5;
+                line.controls.tl.x = Math.min(line.x1, line.x2) == line.x2 ? 0.5 : -0.5;
+                return true;
+            },
+            actionName: 'secondMove',
+            cursorStyle: 'pointer',
+            x: 0.5,
+            y: 0.5,
+
+        })
         this.options = options;
         canvas.setActiveObject(this.object);
     }
@@ -353,8 +372,6 @@ export class LineAnnotation extends Annotation {
     }
     options: any;
     delete() {
-        this.canvas.remove(this.start);
-        this.canvas.remove(this.end);
         super.delete();
     }
     bake(page: PDFPage) {
@@ -372,6 +389,7 @@ export class LineAnnotation extends Annotation {
             },
             color: rgb(stroke.red() / 255, stroke.green() / 255, stroke.blue() / 255),
             thickness: this.object.strokeWidth,
+            lineCap: LineCapStyle.Round
         });
     }
 

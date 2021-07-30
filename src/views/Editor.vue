@@ -86,30 +86,31 @@ export default Vue.extend({
       loadFromDatabase().then(() => {
         this.$data.Documents = Documents;
         this.$data.documentsShown = Documents.map(() => true);
-        this.$nextTick(() => init(this));
+        this.$nextTick(() => init());
         (this.$refs.topbar as any).updateStats();
         (this.$refs.searchBar as any).getTags();
       });
-    } else this.$nextTick(() => init(this));
+    } else this.$nextTick(() => init());
 
-    function init(el: Vue) {
+    const init = () => {
       DocEventHub.$on(
         "documentChanged",
         (doc: PDFdocument, metadata: Document) => {
-          el.$data.selectedIndex = metadata.index - 1;
-          el.$data.pdf = doc;
-          if (el.$refs.documentList) {
-            (el as any).UpdateCurrentPreview();
+          this.$data.selectedIndex = metadata.index - 1;
+          this.$data.pdf = doc;
+          if (this.$refs.documentList) {
+            this.UpdateCurrentPreview();
           }
         }
       );
       if (getViewedDocument() == null) {
+        this.updateSelected(0, false);
         setTimeout(() => {
           DocEventHub.$emit("setDocument", 0);
         }, 50);
       }
       loadFonts();
-    }
+    };
   },
   data() {
     Documents.sort((a: Document, b: Document) => a.index - b.index);

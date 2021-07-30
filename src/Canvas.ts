@@ -36,20 +36,6 @@ export class Canvas extends fabric.Canvas {
     }
 
     initEvents() {
-        this.on('mouse:move', (e) => {
-            if (this.creating != null) {
-                var position = this.getPointer(e.e);
-                if (this.creating.type == 'line') {
-                    (this.creating as fabric.Line).y2 = this.dragStart.y - position.y;
-                    (this.creating as fabric.Line).x2 = this.dragStart.x - position.x;
-                    return;
-                }
-                this.creating.set({
-                    'height': Math.abs(this.dragStart.y - (position.y || 0)),
-                    'width': Math.abs(this.dragStart.x - (position.x || 0)),
-                })
-            }
-        });
         this.on('mouse:down', (e) => {
             if (e.absolutePointer == null) return;
             if (this.isDrawingMode) return;
@@ -68,15 +54,30 @@ export class Canvas extends fabric.Canvas {
                 Canvas.selectedTool.defaultOptions = options;
                 var pointerPos = this.getPointer(e.e);
                 this.dragStart = new fabric.Point(pointerPos.x, pointerPos.y);
-                this.creating = Canvas.selectedTool.click?.(this.pdf, this.page, pointerPos);
                 if (Canvas.selectedTool.name == 'Arrow') {
                     (Canvas.selectedTool.defaultOptions as fabric.ILineOptions).x1 = pointerPos.x;
                     (Canvas.selectedTool.defaultOptions as fabric.ILineOptions).y1 = pointerPos.y;
                 }
-                ToolEvents.$emit('tool:select', tools[7]);
+                else {
+                    this.creating = Canvas.selectedTool.click?.(this.pdf, this.page, pointerPos);
+                    this.setActiveObject(this.creating);
+                    this.requestRenderAll();
+                    ToolEvents.$emit('tool:select', tools[7]);
+                }
             }
 
         });
+        this.on('mouse:up', (e) => {
+            if (this.isDrawingMode) return;
+            const pointerPos = e.absolutePointer || new fabric.Point(0, 0);
+            if (Canvas.selectedTool && Canvas.selectedTool.name == 'Arrow') {
+                (Canvas.selectedTool.defaultOptions as fabric.ILineOptions).x2 = pointerPos.x;
+                (Canvas.selectedTool.defaultOptions as fabric.ILineOptions).y2 = pointerPos.y;
+                this.creating = Canvas.selectedTool.click?.(this.pdf, this.page, pointerPos);
+                this.setActiveObject(this.creating);
+                this.requestRenderAll();
+            }
+        })
         this.on('object:scaling', (e) => {
             if (e.target?.type == 'textbox' || e.target?.type == 'activeSelection' || e.target?.type == 'path') {
                 e.target?.setOptions({ scaleX: 1, scaleY: 1 });
@@ -105,15 +106,10 @@ export class Canvas extends fabric.Canvas {
                 obj.set({
                     'height': h,
                     'width': w,
-                    'scaleX': 1,
-                    'scaleY': 1
+                    // 'scaleX': 1,
+                    //     'scaleY': 1
                 });
             }
-        });
-
-        this.on('mouse:up', (e) => {
-            this.creating = null;
-            this.dragStart = new fabric.Point(0, 0);
         });
         this.on('selection:updated', this.HandleSelectionChanged);
         this.on('selection:created', this.HandleSelectionChanged);
@@ -177,6 +173,14 @@ export class Canvas extends fabric.Canvas {
             if (obj.name)
                 this.pdf.deleteAnnotation(obj.name);
         }
+    }
+
+    setSelectable(selection: boolean) {
+        this.selection = selection;
+        this.getObjects().forEach(obj => {
+            obj.selectable = selection;
+        });
+        this.requestRenderAll();
     }
 
     canOpenCtxMenu(e: Event): boolean {
