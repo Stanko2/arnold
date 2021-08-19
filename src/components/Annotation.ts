@@ -300,8 +300,7 @@ export class RectAnnotation extends Annotation {
 
 export class LineAnnotation extends Annotation {
     static toolOptions: any;
-    // start: fabric.Circle;
-    // end: fabric.Circle;
+    tip: fabric.Triangle;
     get line(): fabric.Line {
         return this.object as fabric.Line;
     }
@@ -309,6 +308,11 @@ export class LineAnnotation extends Annotation {
         options.hasControls = true;
         options.hasBorders = false;
         options.strokeLineCap = 'round';
+        options.lockMovementX = true;
+        options.lockMovementY = true;
+        options.cornerSize = 20;
+        options.cornerStyle = "circle";
+        options.cornerColor = 'blue'
         if (!options.x1 || !options.x2 || !options.y1 || !options.y2) throw new Error('Invalid location')
 
         super(page, new fabric.Line([options.x1, options.y1, options.x2, options.y2], options), canvas, 'Line');
@@ -325,38 +329,102 @@ export class LineAnnotation extends Annotation {
             tl: true,
             tr: false,
         }
-        this.object.controls.tl = new fabric.Control({
+        this.tip = new fabric.Triangle({
+            hasControls: false,
+            lockMovementY: true,
+            lockMovementX: true,
+            selectable: false,
+            width: 2 * (options.strokeWidth || 1),
+            height: 2 * (options.strokeWidth || 1),
+            strokeWidth: 0,
+            fill: options.stroke,
+            // centeredRotation: true,
+            angle: Math.atan2(options.y1 - options.y2, options.x1 - options.x2) * (180 / Math.PI) + 30,
+            left: options.x2,
+            top: options.y2,
+        });
+        (this.object as fabric.Line).controls.tl = new fabric.Control({
             visible: true,
             actionHandler: (e, transform, x, y) => {
                 const line = transform.target as fabric.Line;
+                if (!line.x1 || !line.x2 || !line.y1 || !line.y2 || !line.strokeWidth) return false;
+                if (!this.tip.width || !this.tip.height) return false;
+                this.tip.set({
+                    angle: Math.atan2(line.y1 - line.y2, line.x1 - line.x2) * (180 / Math.PI) + 30,
+                    left: line.x2,
+                    top: line.y2,
+                });
+                const angle = Math.atan2(line.y1 - line.y2, line.x1 - line.x2) * (180 / Math.PI) + 30;
+                const pos = fabric.util.rotatePoint(
+                    new fabric.Point(line.x2, line.y2),
+                    new fabric.Point(line.x2 + this.tip.width / 2, line.y2 + this.tip.height / 3 * 2),
+                    fabric.util.degreesToRadians(angle)
+                );
+                this.tip.set({
+                    left: pos.x,
+                    top: pos.y,
+                    angle: angle,
+                });
+                const multipliers = {
+                    tly: Math.min(line.y1, line.y2) == line.y2 ? 1 : -1,
+                    tlx: Math.min(line.x1, line.x2) == line.x2 ? 1 : -1,
+                    bry: Math.min(line.y1, line.y2) == line.y1 ? 1 : -1,
+                    brx: Math.min(line.x1, line.x2) == line.x1 ? 1 : -1,
+                }
                 line.set({
                     x1: x, y1: y,
                 })
-
-                if (!line.x1 || !line.x2 || !line.y1 || !line.y2) return true;
-                line.controls.tl.y = Math.min(line.y1, line.y2) == line.y2 ? 0.5 : -0.5;
-                line.controls.tl.x = Math.min(line.x1, line.x2) == line.x2 ? 0.5 : -0.5;
-                line.controls.br.y = Math.min(line.y1, line.y2) == line.y1 ? 0.5 : -0.5;
-                line.controls.br.x = Math.min(line.x1, line.x2) == line.x1 ? 0.5 : -0.5;
+                line.controls.tl.y = 0.5 * multipliers.tly
+                line.controls.tl.x = 0.5 * multipliers.tlx
+                line.controls.br.y = 0.5 * multipliers.bry
+                line.controls.br.x = 0.5 * multipliers.brx
+                line.controls.br.offsetX = -line.strokeWidth * multipliers.brx;
+                line.controls.br.offsetY = -line.strokeWidth * multipliers.bry;
+                line.controls.tl.offsetX = -line.strokeWidth * multipliers.tlx;
+                line.controls.tl.offsetY = -line.strokeWidth * multipliers.tly;
                 return true;
             },
             actionName: 'firstMove',
             cursorStyle: 'pointer',
             x: -0.5,
             y: -0.5
-        })
-        this.object.controls.br = new fabric.Control({
+        });
+        (this.object as fabric.Line).controls.br = new fabric.Control({
             visible: true,
             actionHandler: (e, transform, x, y) => {
+
                 const line = transform.target as fabric.Line;
+
+                if (!line.x1 || !line.x2 || !line.y1 || !line.y2 || !line.strokeWidth) return false;
+                if (!this.tip.width || !this.tip.height) return false;
+                const angle = Math.atan2(line.y1 - line.y2, line.x1 - line.x2) * (180 / Math.PI) + 30;
+                const pos = fabric.util.rotatePoint(
+                    new fabric.Point(x, y),
+                    new fabric.Point(x + this.tip.width / 2, y + this.tip.height / 3 * 2),
+                    fabric.util.degreesToRadians(angle)
+                );
+                const multipliers = {
+                    tlx: Math.min(line.y1, line.y2) == line.y2 ? 1 : -1,
+                    tly: Math.min(line.x1, line.x2) == line.x2 ? 1 : -1,
+                    brx: Math.min(line.y1, line.y2) == line.y1 ? 1 : -1,
+                    bry: Math.min(line.x1, line.x2) == line.x1 ? 1 : -1,
+                }
+                this.tip.set({
+                    left: pos.x + multipliers.brx * this.tip.width / 2,
+                    top: pos.y + multipliers.bry * this.tip.height / 2,
+                    angle: angle,
+                });
                 line.set({
                     x2: x, y2: y,
                 })
-                if (!line.x1 || !line.x2 || !line.y1 || !line.y2) return true;
-                line.controls.br.y = Math.min(line.y1, line.y2) == line.y1 ? 0.5 : -0.5;
-                line.controls.br.x = Math.min(line.x1, line.x2) == line.x1 ? 0.5 : -0.5;
-                line.controls.tl.y = Math.min(line.y1, line.y2) == line.y2 ? 0.5 : -0.5;
-                line.controls.tl.x = Math.min(line.x1, line.x2) == line.x2 ? 0.5 : -0.5;
+                line.controls.tl.y = 0.5 * multipliers.tly
+                line.controls.tl.x = 0.5 * multipliers.tlx
+                line.controls.br.y = 0.5 * multipliers.bry
+                line.controls.br.x = 0.5 * multipliers.brx
+                line.controls.br.offsetX = -line.strokeWidth * multipliers.brx;
+                line.controls.br.offsetY = -line.strokeWidth * multipliers.bry;
+                line.controls.tl.offsetX = -line.strokeWidth * multipliers.tlx;
+                line.controls.tl.offsetY = -line.strokeWidth * multipliers.tly;
                 return true;
             },
             actionName: 'secondMove',
@@ -366,18 +434,20 @@ export class LineAnnotation extends Annotation {
 
         })
         this.options = options;
+        canvas.add(this.tip);
         canvas.setActiveObject(this.object);
-    }
-    updatePoints() {
     }
     options: any;
     delete() {
+        this.canvas.remove(this.tip);
         super.delete();
     }
     bake(page: PDFPage) {
         var stroke: Color = Color(this.object.stroke);
         const { width, height } = page.getSize();
         var line = this.object as fabric.Line;
+        console.log(this.tip.toSVG());
+
         page.drawLine({
             start: {
                 x: line.x1 || 0,
