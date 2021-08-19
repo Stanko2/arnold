@@ -26,7 +26,7 @@ async function setPdf(index: number) {
 
     selectedDocumentIndex = index;
     var data = Documents[index];
-    data.otvorene = true;
+    data.opened = true;
     if (pdf?.pageCanvases) {
         pdf.pageCanvases.forEach((e) => e.Clear());
     }
@@ -70,7 +70,7 @@ export async function AddDocument(fileName: string, data: ArrayBuffer, index: nu
         index: index,
         changes: [],
         tags: [],
-        otvorene: false,
+        opened: false,
     });
     await Database.addDocument(metaDatas[metaDatas.length - 1]);
 }
@@ -90,12 +90,12 @@ export async function loadFromDatabase() {
 async function createZip() {
     const documents = await loadFromDatabase();
     const zip = new JSZip();
-    const pts: Record<string, Hodnotenie> = {};
+    const pts: Record<string, IScoring> = {};
     for (const doc of documents) {
         zip.file(doc.originalName, doc.pdfData);
-        if (doc.hodnotenie) {
-            doc.hodnotenie.komentare = doc.changes.filter(c => c.type === 'Text').map(c => c.data.text);
-            pts[doc.id] = doc.hodnotenie;
+        if (doc.scoring) {
+            doc.scoring.comments = doc.changes.filter(c => c.type === 'Text').map(c => c.data.text);
+            pts[doc.id] = doc.scoring;
             delete pts[doc.id]?.annotName;
         }
     }
@@ -114,19 +114,19 @@ export interface Document {
     kategoria: string;
     index: number;
     id: number;
-    hodnotenie?: Hodnotenie
+    scoring?: IScoring;
     pdfData: ArrayBuffer;
     initialPdf: ArrayBuffer;
     changes: any[];
     tags: any[];
     originalName: string;
-    otvorene: boolean;
+    opened: boolean;
 }
 
-interface Hodnotenie {
-    body: number;
-    splnene: boolean[];
+interface IScoring {
+    points: number;
+    acceptedCriteria: boolean[];
     final: boolean;
     annotName?: string;
-    komentare?: string[];
+    comments?: string[];
 }

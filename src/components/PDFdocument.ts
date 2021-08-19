@@ -7,7 +7,7 @@ import { Annotation, LineAnnotation, PathAnnotation, RectAnnotation, SignAnnotat
 import { Tool } from "./Tools/Tool";
 import fontKit from '@pdf-lib/fontkit';
 
-var pdf = require('vue-pdf');
+var pdf = require('pdfvuer');
 
 export class PDFdocument {
 
@@ -62,17 +62,17 @@ export class PDFdocument {
     }
 
     private LoadPdfToViewport(pdfbytes: ArrayBuffer) {
-        this.viewref = pdf.default.createLoadingTask(new Uint8Array(pdfbytes));
+        this.viewref = pdf.createLoadingTask({ data: new Uint8Array(pdfbytes) });
         var progressUpdated = false;
         this.viewref.onProgress = (progress: number) => {
             progressUpdated = true;
         };
         setTimeout(() => {
-            if (!progressUpdated) {
-                this.LoadPdfToViewport(pdfbytes);
-                console.error('retry');
-                return;
-            }
+            // if (!progressUpdated) {
+            //     this.LoadPdfToViewport(pdfbytes);
+            //     console.error('retry');
+            //     return;
+            // }
             PDFdocument.initDocument.call(PDFdocument.viewport, this.viewref, this);
         }, 500);
     }

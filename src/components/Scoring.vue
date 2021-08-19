@@ -1,22 +1,22 @@
 <template>
   <div class="bodovanie">
     <div class="position-relative">
-      <h4 class="btn btn-primary" @click="ukazBodovanie = !ukazBodovanie">
+      <h4 class="btn btn-primary" @click="showScoringPanel = !showScoringPanel">
         Bodovanie
         <span class="material-icons d-inline position-absolute">{{
-          ukazBodovanie ? "expand_more" : "expand_less"
+          showScoringPanel ? "expand_more" : "expand_less"
         }}</span>
       </h4>
       <transition name="slide">
-        <div v-if="ukazBodovanie" class="bodovanie_okno bg-primary">
+        <div v-if="showScoringPanel" class="bodovanie_okno bg-primary">
           <div class="d-flex flex-row">
             <label class="align-items-center" for="mainInput">Body:</label>
             <input
               type="number"
               class="form-control w-25"
               placeholder="Body ..."
-              v-model.number="$data.body"
-              @change="ulozHodnotenie"
+              v-model.number="$data.points"
+              @change="saveScoring"
               id="mainInput"
             />
             <div class="d-flex flex-row mr-2">
@@ -25,8 +25,8 @@
                 class="form-control"
                 id="final"
                 v-model="final"
-                :disabled="$data.body == undefined"
-                @change="zmenaFinal"
+                :disabled="$data.points == undefined"
+                @change="finalScoringChange"
               />
               <label for="final">Finalne hodnotenie</label>
             </div>
@@ -34,19 +34,19 @@
           <div>
             <div
               class="form-check w-100 d-flex justify-content-between"
-              v-for="(bod, i) in bodovania"
-              :key="bod.id"
+              v-for="(criteria, i) in pointCriterias"
+              :key="criteria.id"
             >
               <input
                 class="form-check-input"
                 type="checkbox"
-                :id="bod.id"
-                v-model="splnene[i]"
-                @change="prepocitajBody"
+                :id="criteria.id"
+                v-model="acceptedCriteria[i]"
+                @change="calculatePoints"
               />
-              <label class="form-check-label" :for="bod.id">
-                {{ bod.za }}
-                <b-badge pill variant="warning">{{ bod.body }}</b-badge>
+              <label class="form-check-label" :for="criteria.id">
+                {{ criteria.from }}
+                <b-badge pill variant="warning">{{ criteria.points }}</b-badge>
               </label>
             </div>
           </div>
@@ -54,14 +54,14 @@
           <b-modal
             title="Bodovanie"
             id="bodovanie"
-            @ok="updateBodovania"
+            @ok="updatepointCriterias"
             size="lg"
           >
             <ul class="list-group m-2">
               <li
                 class="list-group-item"
-                v-for="bod in bodovania"
-                :key="bod.id"
+                v-for="criteria in pointCriterias"
+                :key="criteria.id"
               >
                 <div
                   class="
@@ -75,16 +75,19 @@
                     <input
                       type="number"
                       class="kriteria-body form-control d-inline"
-                      v-model.number="bod.body"
+                      v-model.number="criteria.points"
                     />B - za
                     <input
                       type="text"
-                      v-model="bod.za"
+                      v-model="criteria.from"
                       style="width: 80%"
                       class="form-control d-inline"
                     />
                   </div>
-                  <button class="btn btn-danger" @click="zrusKriterium(bod.id)">
+                  <button
+                    class="btn btn-danger"
+                    @click="deleteCriteria(criteria.id)"
+                  >
                     <span class="material-icons"> delete </span>
                   </button>
                 </div>
@@ -111,71 +114,74 @@ import { Annotation, TextAnnotation } from "./Annotation";
 import { PDFdocument } from "./PDFdocument";
 export default Vue.extend({
   mounted() {
-    const bodovania = localStorage.getItem("bodovanie");
-    if (bodovania) {
-      this.$data.bodovania = JSON.parse(bodovania);
-      this.$data.splnene = this.$data.bodovania.map(() => false);
+    const pointCriterias = localStorage.getItem("bodovanie");
+    if (pointCriterias) {
+      this.$data.pointCriterias = JSON.parse(pointCriterias);
+      this.$data.acceptedCriteria = this.$data.pointCriterias.map(() => false);
       this.$data.final = false;
     }
     DocEventHub.$on("documentChanged", (pdf: PDFdocument, doc: Document) => {
       setTimeout(() => {
         this.$data.pdf = pdf;
-        this.zistiHodnotenie(doc);
+        this.getScoring(doc);
       }, 50);
     });
   },
   data() {
     return {
-      ukazBodovanie: false,
-      splnene: [],
-      bodovania: [],
-      body: undefined,
+      showScoringPanel: false,
+      acceptedCriteria: [],
+      pointCriterias: [],
+      points: undefined,
       final: undefined,
       annotName: undefined,
     };
   },
   methods: {
-    updateBodovania() {
-      localStorage.setItem("bodovanie", JSON.stringify(this.$data.bodovania));
+    updatepointCriterias() {
+      localStorage.setItem(
+        "bodovanie",
+        JSON.stringify(this.$data.pointCriterias)
+      );
     },
     pridajBodovanie() {
-      this.$data.bodovania.push({
+      this.$data.pointCriterias.push({
         id: Math.random().toString(36).substr(2, 9),
-        body: 0,
-        za: "",
+        points: 0,
+        from: "",
       });
     },
-    prepocitajBody() {
-      let body = 0;
-      for (let i = 0; i < this.$data.bodovania.length; i++) {
-        const a = this.$data.bodovania[i];
-        if (this.$data.splnene[i]) {
-          body += a.body;
+    calculatePoints() {
+      let points = 0;
+      for (let i = 0; i < this.$data.pointCriterias.length; i++) {
+        const a = this.$data.pointCriterias[i];
+        if (this.$data.acceptedCriteria[i]) {
+          points += a.points;
         }
       }
-      this.$data.body = body;
-      this.ulozHodnotenie();
+      this.$data.points = points;
+      this.saveScoring();
     },
-    ulozHodnotenie() {
-      this.$data.doc.hodnotenie = {
-        body: this.$data.body,
-        splnene: this.$data.splnene,
+    saveScoring() {
+      this.$data.doc.scoring = {
+        points: this.$data.points,
+        acceptedCriteria: this.$data.acceptedCriteria,
         final: this.$data.final,
         annotName: this.$data.annotName,
       };
       Database.updateDocument(this.$data.doc.id, this.$data.doc);
     },
-    zistiHodnotenie(doc: Document) {
+    getScoring(doc: Document) {
       this.$data.doc = doc;
-      if (!doc.hodnotenie) {
-        this.$data.body = undefined;
-        this.$data.splnene = this.bodovania.map(() => false);
+      if (!doc.scoring) {
+        this.$data.points = undefined;
+        this.$data.acceptedCriteria = this.pointCriterias.map(() => false);
         this.$data.final = false;
         return;
       }
-      this.$data.splnene = doc.hodnotenie.splnene;
-      this.$data.body = doc.hodnotenie.body;
-      this.$data.annotName = doc.hodnotenie.annotName;
+      this.$data.acceptedCriteria = doc.scoring.acceptedCriteria;
+      this.$data.points = doc.scoring.points;
+      this.$data.annotName = doc.scoring.annotName;
       this.$data.final = false;
       for (const annot of doc.changes) {
         if (annot.data.name == this.$data.annotName) {
@@ -184,13 +190,13 @@ export default Vue.extend({
         }
       }
     },
-    zmenaFinal() {
+    finalScoringChange() {
       const pdf: PDFdocument = this.$data.pdf;
       if (this.$data.final) {
-        const bodyAnnot = new TextAnnotation(
+        const pointsAnnot = new TextAnnotation(
           0,
           {
-            text: `${this.$data.body}B`,
+            text: `${this.$data.points}B`,
             top: 90,
             left: 300,
             hasControls: false,
@@ -199,17 +205,17 @@ export default Vue.extend({
           pdf.pageCanvases[0]
         );
         pdf.pageCanvases[0].discardActiveObject();
-        pdf.addAnnotation(bodyAnnot);
-        this.$data.annotName = bodyAnnot.object.name;
+        pdf.addAnnotation(pointsAnnot);
+        this.$data.annotName = pointsAnnot.object.name;
         this.$emit("save");
       } else if (this.$data.annotName) {
         pdf.deleteAnnotation(this.$data.annotName);
       }
-      this.ulozHodnotenie();
+      this.saveScoring();
     },
-    zrusKriterium(id: number) {
-      const index = this.$data.bodovania.findIndex((e: any) => e.id == id);
-      this.$data.bodovania.splice(index, 1);
+    deleteCriteria(id: number) {
+      const index = this.$data.pointCriterias.findIndex((e: any) => e.id == id);
+      this.$data.pointCriterias.splice(index, 1);
     },
   },
 });

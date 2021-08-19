@@ -92,20 +92,22 @@
     <hr />
     <div class="right-controls">
       <!-- TODO: zooming canvas & document -->
-      <button id="zoomInButton" class="btn btn-outline-primary">
+      <button
+        id="zoomInButton"
+        class="btn btn-outline-primary"
+        @click="$emit('scale', 0.1)"
+      >
         <span class="material-icons">add</span>
       </button>
-      <button id="zoomOutButton" class="btn btn-outline-primary">
+      <button
+        id="zoomOutButton"
+        class="btn btn-outline-primary"
+        @click="$emit('scale', -0.1)"
+      >
         <span class="material-icons">remove</span>
       </button>
-      <b-button id="refreshBtn" variant="outline-primary" @click="refresh">
-        <span class="material-icons">refresh</span>
-      </b-button>
       <b-tooltip target="zoomOutButton" triggers="hover"> Oddialit </b-tooltip>
       <b-tooltip target="zoomInButton" triggers="hover"> Priblizit </b-tooltip>
-      <b-tooltip target="refreshBtn" triggers="hover">
-        Znova nacitat dokument
-      </b-tooltip>
     </div>
   </div>
 </template>

@@ -76,7 +76,7 @@ export default Vue.extend({
       Database.getAllDocuments().then((Documents) => {
         this.$data.stats = {
           celkovo: Documents.length,
-          otvorene: this.count(Documents, (e: Document) => e.otvorene),
+          otvorene: this.count(Documents, (e: Document) => e.opened),
           komentar: this.count(Documents, (e: Document) => {
             return e.changes.some(
               (f) =>
@@ -84,11 +84,11 @@ export default Vue.extend({
             );
           }),
           obodovane: this.count(Documents, (e: Document) => {
-            return e.hodnotenie?.final || false;
+            return e.scoring?.final || false;
           }),
           hotovo: this.count(Documents, (e: Document) => {
             return (
-              (e.hodnotenie?.final || false) &&
+              (e.scoring?.final || false) &&
               e.changes.some(
                 (f) =>
                   f.type === "Text" && !f.data.text.match(/[0-9]*(\.[0-9])?B/)

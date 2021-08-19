@@ -1,6 +1,6 @@
 <template>
   <div class="viewportSpace">
-    <div class="loadingOverlay" v-if="!loaded">
+    <div class="loadingOverlay">
       <div>
         <b-spinner variant="primary" label="loading..."></b-spinner>
         <p>Loading...</p>
@@ -25,14 +25,15 @@
         </li>
       </context-menu>
       <div class="pdf" ref="pdf">
-        <div v-for="i in pageCount" :key="i" class="page">
+        <div v-for="i in pageCount" :key="i" class="page-wrapper">
           <pdf
             :key="i.toString() + id.toString()"
             :src="src"
             :page="i"
+            :scale.sync="scale"
             class="card page-data"
             @error="err"
-            @loaded="documentLoaded"
+            @loading="documentLoaded"
           ></pdf>
           <div class="pageAnnot">
             <canvas ref="page"></canvas>
@@ -44,7 +45,7 @@
 </template>
 
 <script lang="ts">
-var pdf = require("vue-pdf").default;
+const pdf = require("pdfvuer");
 import { Canvas } from "../Canvas";
 import { PDFdocument } from "./PDFdocument";
 import { getViewedDocument } from "@/DocumentManager";
@@ -58,7 +59,7 @@ var pdfDocument = null;
 export default Vue.extend({
   props: ["pdf"],
   components: {
-    pdf,
+    pdf: pdf.default,
     contextMenu,
   },
   data() {
@@ -69,6 +70,7 @@ export default Vue.extend({
       id: pdfDocument?.id,
       pagesLoaded: 0,
       loaded: false,
+      scale: 1,
     };
   },
   activated() {
@@ -82,29 +84,11 @@ export default Vue.extend({
     doc?.pageCanvases.forEach((e) => e.dispose());
   },
   mounted() {
-    window.addEventListener("resize", () => {
-      this.refresh();
-      setTimeout(() => {
-        try {
-          const size = (this.$refs.pdf as Element).getBoundingClientRect();
-          const pages = this.$refs.page as HTMLElement[];
-          for (let i = 0; i < pages.length; i++) {
-            const page = pages[i].getBoundingClientRect();
-
-            var canvas: Canvas = getViewedDocument()?.pageCanvases[i] as Canvas;
-            canvas.setWidth(size.width);
-            canvas.setHeight(page.height);
-            canvas.setScale(size);
-          }
-        } catch (e) {
-          return;
-        }
-      }, 100);
-    });
+    window.addEventListener("resize", this.resize);
     PDFdocument.initDocument = (task: any) => {
       this.$data.loaded = false;
       if (task) this.src = task;
-      this.src.promise.then((pdf: any) => {
+      this.src.then((pdf: any) => {
         this.pageCount = pdf.numPages;
       });
     };
@@ -119,21 +103,22 @@ export default Vue.extend({
       // setTimeout musi byt, lebo z nejakych dovodov sa to pdfko resizne na co canvas nevie reagovat
       // nepodarilo sa mi vyriesit lepsie
       setTimeout(() => {
-        var dimensions: DOMRect | undefined = (
-          this.$refs.page as Element[]
-        )[0]?.parentElement?.parentElement?.getBoundingClientRect();
         if (document.pageCanvases.length > 0) return;
 
         const pages = this.$refs.page as Element[];
+        const PDFpages = (this.$refs.pdf as Element).children;
         for (var i = 0; i < pages.length; i++) {
           const page = pages[i];
           const canvas = new Canvas(page, document, i);
-          if (dimensions != null) {
-            canvas.setHeight(dimensions?.height);
-            canvas.setWidth(dimensions?.width);
-            canvas.setScale(dimensions);
-          }
-
+          const pagePDF = PDFpages[i].querySelector(".page") as HTMLElement;
+          const dimensions = {
+            width: parseInt(pagePDF.style.width),
+            height: parseInt(pagePDF.style.height),
+          };
+          (PDFpages[i] as HTMLElement).style.width = dimensions.width + "px";
+          canvas.setHeight(dimensions?.height);
+          canvas.setWidth(dimensions?.width);
+          canvas.setScale(dimensions);
           canvas.pageIndex = i;
           pageCanvases.push(canvas);
         }
@@ -174,10 +159,12 @@ export default Vue.extend({
         data.unshift(data.splice(index, 1)[0]);
       }
     },
-    documentLoaded() {
-      this.$data.loaded = true;
-      const document = getViewedDocument();
-      if (document) this.createCanvases(document);
+    documentLoaded(loaded: boolean) {
+      if (!loaded) {
+        this.$data.loaded = loaded;
+        const document = getViewedDocument();
+        if (document) this.createCanvases(document);
+      }
     },
     openCtxMenu(e: Event) {
       const doc = getViewedDocument();
@@ -194,11 +181,44 @@ export default Vue.extend({
       });
       return active;
     },
+    setScale(mult: number) {
+      this.$data.scale += mult;
+      this.resize();
+    },
+    resize() {
+      setTimeout(() => {
+        try {
+          const pdf = this.$refs.pdf as HTMLElement;
+          const pages = pdf.children;
+
+          for (let i = 0; i < pages.length; i++) {
+            const page = pages[i].querySelector(".page") as HTMLElement;
+            console.log(page);
+            const dimensions = {
+              width: parseInt(page.style.width),
+              height: parseInt(page.style.height),
+            };
+            console.log(dimensions);
+            (pages[i] as HTMLElement).style.width = dimensions.width + "px";
+            if (page) {
+              var canvas: Canvas = getViewedDocument()?.pageCanvases[
+                i
+              ] as Canvas;
+              canvas.setWidth(dimensions.width);
+              canvas.setHeight(dimensions.height);
+              canvas.setScale(dimensions);
+            }
+          }
+        } catch (e) {
+          return;
+        }
+      }, 20);
+    },
     async refresh() {
       const viewedDoc = getViewedDocument();
       if (!viewedDoc) return;
       const doc = await Database.getDocument(viewedDoc.id);
-      viewedDoc.init(doc.pdfData);
+      viewedDoc.init(doc.initialPdf);
     },
   },
 });
@@ -212,10 +232,10 @@ export default Vue.extend({
   grid-row: 1;
   grid-column: 1;
 }
-.page {
+.page-wrapper {
   display: grid;
   margin: 10px;
-  transform-origin: top left;
+  transform-origin: center center;
 }
 .page-data {
   grid-row: 1;
@@ -230,7 +250,10 @@ export default Vue.extend({
 }
 .pdf {
   margin: auto;
-  max-width: 70vw;
+  max-width: 75vw;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 .loadingOverlay {
   position: absolute;
@@ -239,7 +262,7 @@ export default Vue.extend({
   width: 100%;
   height: 100%;
   background: white;
-  z-index: 100;
+  z-index: -1;
   display: flex;
   justify-content: center;
   align-items: center;

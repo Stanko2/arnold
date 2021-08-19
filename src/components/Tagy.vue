@@ -11,7 +11,7 @@
         <div v-if="ukazMenu" class="tagy_okno bg-warning">
           <div class="d-flex flex-wrap" v-if="doc">
             <h6
-              v-for="tag in dostupneTagy"
+              v-for="tag in availableTags"
               :key="tag.id"
               class="m-1"
               @click="toggleDocumentTag(tag.meno)"
@@ -47,7 +47,7 @@
         <b-list-group>
           <b-list-group-item
             pill
-            v-for="(tag, i) in dostupneTagy"
+            v-for="(tag, i) in availableTags"
             :key="tag.id"
             class="d-flex flex-row align-items-center justify-content-between"
             :style="{ background: lighten(tag.color) }"
@@ -87,10 +87,10 @@ export default Vue.extend({
     VSwatches,
   },
   mounted() {
-    this.$data.dostupneTagy = JSON.parse(localStorage.getItem("tags") || "[]");
+    this.$data.availableTags = JSON.parse(localStorage.getItem("tags") || "[]");
     DocEventHub.$on("documentChanged", (pdf: any, document: Document) => {
       this.$data.doc = document;
-      const tagy = this.dostupneTagy.map((e: any) => e.meno);
+      const tagy = this.availableTags.map((e: any) => e.meno);
       let i = 0;
       while (i < document.tags.length) {
         const tag = document.tags[i];
@@ -104,16 +104,16 @@ export default Vue.extend({
   data() {
     return {
       ukazMenu: false,
-      dostupneTagy: [],
+      availableTags: [],
       doc: undefined,
     };
   },
   methods: {
     updateTagov() {
-      localStorage.setItem("tags", JSON.stringify(this.$data.dostupneTagy));
+      localStorage.setItem("tags", JSON.stringify(this.$data.availableTags));
     },
     pridajTag() {
-      this.$data.dostupneTagy.push({
+      this.$data.availableTags.push({
         id: Math.random().toString(36).substr(2, 9),
         meno: "",
         color: "blue",
@@ -123,7 +123,7 @@ export default Vue.extend({
       this.$data.doc = doc;
     },
     removeTag(i: number) {
-      this.dostupneTagy.splice(i, 1);
+      this.availableTags.splice(i, 1);
     },
     lighten(color: string) {
       const c = new Color(color);

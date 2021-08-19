@@ -33,7 +33,7 @@
         </ul>
       </div>
       <div style="width: 100%">
-        <toolbar :pdf="pdf" @refresh="refresh"></toolbar>
+        <toolbar :pdf="pdf" @refresh="refresh" @scale="scale"></toolbar>
         <div class="viewportWrapper" v-if="pdf != null">
           <keep-alive>
             <Viewport :pdf="pdf" :key="selectedIndex" ref="viewport"></Viewport>
@@ -41,7 +41,7 @@
         </div>
       </div>
     </div>
-    <bodovanie @save="save" />
+    <scoring @save="save" />
     <tagy @tagUpdate="updateTags" @documentTag="updateDocumentTags" />
     <div v-shortkey.once="['ctrl', 'arrowup']" @shortkey="selectDir(-1)"></div>
     <div v-shortkey.once="['ctrl', 'arrowdown']" @shortkey="selectDir(1)"></div>
@@ -67,7 +67,7 @@ import {
 } from "../DocumentManager";
 // eslint-disable-next-line no-unused-vars
 import { PDFdocument } from "@/components/PDFdocument";
-import Bodovanie from "@/components/Bodovanie.vue";
+import Scoring from "@/components/Scoring.vue";
 import { loadFonts } from "@/components/Fonts";
 import Tagy from "@/components/Tagy.vue";
 
@@ -77,7 +77,7 @@ export default Vue.extend({
     Topbar,
     Toolbar,
     DocumentPreview,
-    Bodovanie,
+    Scoring,
     SearchBar,
     Tagy,
   },
@@ -128,6 +128,9 @@ export default Vue.extend({
     save() {
       this.$data.pdf.save();
       this.UpdateCurrentPreview();
+      (this.$refs.documentList as Vue[])[
+        this.selectedIndex
+      ].$data.documentBusy = true;
       (this.$refs.topbar as any).updateStats();
     },
     selectDir(dir: number) {
@@ -162,8 +165,10 @@ export default Vue.extend({
       DocEventHub.$emit("setDocument", index);
     },
     search(query: string, tags: string[]) {
+      const onlyLettersRegex = /[a-z]+/gi;
+      query = query.match(onlyLettersRegex)?.join("").toLowerCase() || "";
       this.$data.Documents.forEach((e: Document, index: number) => {
-        if (e.riesitel.match(query) != null) {
+        if (e.riesitel.toLowerCase().match(query) != null) {
           if (tags.length > 0) {
             this.documentsShown[index] = this.IsDocumentValid(tags, [
               ...e.tags,
@@ -202,6 +207,9 @@ export default Vue.extend({
       this.$nextTick().then(() => {
         DocEventHub.$emit("setDocument", this.selectedIndex);
       });
+    },
+    scale(multiplier: number) {
+      (this.$refs.viewport as any).setScale(multiplier);
     },
     updateTags() {
       this.tags = JSON.parse(localStorage.getItem("tags") || "[]");

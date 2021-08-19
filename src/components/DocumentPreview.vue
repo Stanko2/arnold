@@ -6,24 +6,30 @@
     }"
   >
     <div v-if="document != null" class="row">
+      <b-overlay :show="documentBusy" no-wrap> </b-overlay>
       <div class="col-5">
         <div class="card">
           <div
-            v-if="pdf == null"
+            v-if="pdf == undefined"
             class="d-flex align-items-center justify-content-center text-danger"
           >
-            Open this document to load preview
+            Nepodarilo sa nacitat preview
           </div>
-          <pdf
-            :src="pdf"
-            :page="1"
-            style="display: inline-block; width: 100%"
-          ></pdf>
+          <div v-else>
+            <pdf
+              :src="pdf"
+              :page="1"
+              style="display: inline-block; width: 100%"
+            ></pdf>
+          </div>
         </div>
       </div>
       <div class="col-7">
         <div class="text-left">
-          <p>{{ document.index }}. {{ document.riesitel }}</p>
+          <p v-if="document.opened">
+            {{ document.index }}. {{ document.riesitel }}
+          </p>
+          <strong v-else>{{ document.index }}. {{ document.riesitel }}</strong>
           <p>
             <span class="badge badge-secondary mr-1">{{
               document.kategoria
@@ -51,32 +57,39 @@
 <script lang="ts">
 import { Database } from "@/Db";
 import Vue from "vue";
-var pdf = require("vue-pdf").default;
+var pdf = require("pdfvuer");
 export default Vue.extend({
   components: {
-    pdf,
+    pdf: pdf.default,
   },
   props: ["documentID", "tags"],
   data() {
     return {
-      document: null,
+      document: undefined,
       pdf: null,
       selected: false,
+      documentBusy: false,
     };
   },
   mounted() {
     Database.getDocument(this.documentID).then((doc) => {
       this.$data.document = doc;
       setTimeout(() => {
-        this.$data.pdf = pdf.createLoadingTask(new Uint8Array(doc.pdfData));
+        this.$data.pdf = pdf.createLoadingTask({
+          data: new Uint8Array(doc.pdfData),
+        });
       }, 500 * doc.index);
     });
   },
   methods: {
     updatePreview() {
       Database.getDocument(this.documentID).then((doc) => {
+        this.$data.documentBusy = false;
         this.$data.document.tags = doc.tags;
-        this.$data.pdf = pdf.createLoadingTask(new Uint8Array(doc.pdfData));
+        this.$data.document.opened = doc.opened;
+        this.$data.pdf = pdf.createLoadingTask({
+          data: new Uint8Array(doc.pdfData),
+        });
       });
     },
     getTagColor(tag: string) {
