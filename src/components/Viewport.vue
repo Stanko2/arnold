@@ -1,6 +1,6 @@
 <template>
   <div class="viewportSpace">
-    <div class="loadingOverlay">
+    <div class="loadingOverlay" v-if="!loaded">
       <div>
         <b-spinner variant="primary" label="loading..."></b-spinner>
         <p>Loading...</p>
@@ -159,9 +159,9 @@ export default Vue.extend({
         data.unshift(data.splice(index, 1)[0]);
       }
     },
-    documentLoaded(loaded: boolean) {
-      if (!loaded) {
-        this.$data.loaded = loaded;
+    documentLoaded(loading: boolean) {
+      this.$data.loaded = !loading;
+      if (!loading) {
         const document = getViewedDocument();
         if (document) this.createCanvases(document);
       }

@@ -84,6 +84,7 @@ export async function loadFromDatabase() {
     metaDatas.sort((a: Document, b: Document) => a.index - b.index);
     Documents = metaDatas;
     activeParser = new PMatParser(localStorage.getItem('uloha') || '');
+    eventHub.$emit('loaded', activeParser, Documents);
     return metaDatas;
 }
 

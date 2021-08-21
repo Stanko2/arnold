@@ -29,7 +29,11 @@
               </b-badge>
             </h6>
           </div>
-          <b-button class="m-2 d-block" variant="secondary" v-b-modal.tag-modal
+          <b-button
+            class="m-2 d-block"
+            variant="secondary"
+            v-b-modal.tag-modal
+            size="sm"
             >Upravit kategorie</b-button
           >
         </div>
@@ -111,6 +115,7 @@ export default Vue.extend({
   methods: {
     updateTagov() {
       localStorage.setItem("tags", JSON.stringify(this.$data.availableTags));
+      this.$emit("tagUpdate", this.$data.availableTags);
     },
     pridajTag() {
       this.$data.availableTags.push({

@@ -78,7 +78,7 @@ export class Canvas extends fabric.Canvas {
             }
         })
         this.on('object:scaling', (e) => {
-            if (e.target?.type == 'textbox' || e.target?.type == 'activeSelection' || e.target?.type == 'path') {
+            if (e.target?.type == 'textbox' || e.target?.type == 'activeSelection') {
                 e.target?.setOptions({ scaleX: 1, scaleY: 1 });
             }
 
@@ -99,14 +99,13 @@ export class Canvas extends fabric.Canvas {
             if (e.target != null && e.target.type != 'group') {
                 var obj: fabric.Object = e.target,
                     w = (obj.width || 0) * (obj.scaleX || 0),
-                    h = (obj.height || 0) * (obj.scaleY || 0),
-                    s = obj.strokeWidth || 0;
+                    h = (obj.height || 0) * (obj.scaleY || 0);
 
                 obj.set({
                     'height': h,
                     'width': w,
-                    // 'scaleX': 1,
-                    //     'scaleY': 1
+                    'scaleX': 1,
+                    'scaleY': 1
                 });
             }
         });

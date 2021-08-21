@@ -17,6 +17,7 @@
           </div>
           <div v-else>
             <pdf
+              :key="pdfKey"
               :src="pdf"
               :page="1"
               style="display: inline-block; width: 100%"
@@ -26,10 +27,22 @@
       </div>
       <div class="col-7">
         <div class="text-left">
-          <p v-if="document.opened">
+          <p v-if="document.opened" class="header-text">
             {{ document.index }}. {{ document.riesitel }}
           </p>
-          <strong v-else>{{ document.index }}. {{ document.riesitel }}</strong>
+          <strong v-else class="header-text"
+            >{{ document.index }}. {{ document.riesitel }}</strong
+          >
+          <div v-if="document.scoring" class="points-text">
+            {{ document.scoring.points }}
+            <span
+              class="material-icons text-success"
+              v-if="document.scoring.final"
+              >check</span
+            >
+            <span class="material-icons text-danger" v-else>close</span>
+          </div>
+          <div v-else class="points-text text-danger">Neohodnotene</div>
           <p>
             <span class="badge badge-secondary mr-1">{{
               document.kategoria
@@ -69,6 +82,7 @@ export default Vue.extend({
       pdf: null,
       selected: false,
       documentBusy: false,
+      pdfKey: false,
     };
   },
   mounted() {
@@ -87,9 +101,15 @@ export default Vue.extend({
         this.$data.documentBusy = false;
         this.$data.document.tags = doc.tags;
         this.$data.document.opened = doc.opened;
-        this.$data.pdf = pdf.createLoadingTask({
-          data: new Uint8Array(doc.pdfData),
-        });
+        this.$data.document.scoring = doc.scoring;
+        setTimeout(() => {
+          console.log("updating pdf preview");
+
+          this.$data.pdf = pdf.createLoadingTask({
+            data: new Uint8Array(doc.pdfData),
+          });
+          this.pdfKey = !this.pdfKey;
+        }, 30);
       });
     },
     getTagColor(tag: string) {
@@ -117,5 +137,11 @@ export default Vue.extend({
   100% {
     transform: scale(1);
   }
+}
+.header-text {
+  font-size: 1.1rem;
+}
+.points-text {
+  font-size: 1.2rem;
 }
 </style>

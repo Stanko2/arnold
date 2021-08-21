@@ -10,26 +10,16 @@
       <transition name="slide">
         <div v-if="showScoringPanel" class="bodovanie_okno bg-primary">
           <div class="d-flex flex-row">
-            <label class="align-items-center" for="mainInput">Body:</label>
+            <h3 class="w-50">Body:</h3>
             <input
               type="number"
-              class="form-control w-25"
-              placeholder="Body ..."
+              class="form-control w-50"
+              placeholder="Zadaj body ..."
               v-model.number="$data.points"
               @change="saveScoring"
               id="mainInput"
             />
-            <div class="d-flex flex-row mr-2">
-              <input
-                type="checkbox"
-                class="form-control"
-                id="final"
-                v-model="final"
-                :disabled="$data.points == undefined"
-                @change="finalScoringChange"
-              />
-              <label for="final">Finalne hodnotenie</label>
-            </div>
+            <div class="d-flex flex-row mr-2"></div>
           </div>
           <div>
             <div
@@ -50,7 +40,21 @@
               </label>
             </div>
           </div>
-          <b-button v-b-modal.bodovanie>Upravit Bodovanie</b-button>
+          <div class="m-2">
+            <b-button
+              variant="success"
+              size="lg"
+              @click="finalScoringChange()"
+              v-if="!final"
+              :disabled="$data.points == undefined"
+              >Zfinalizuj hodnotenie</b-button
+            >
+            <b-button variant="danger" @click="finalScoringChange()" v-else
+              >Zrus hodnotenie</b-button
+            >
+          </div>
+          <br />
+          <b-button v-b-modal.bodovanie size="sm">Upravit Bodovanie</b-button>
           <b-modal
             title="Bodovanie"
             id="bodovanie"
@@ -183,15 +187,18 @@ export default Vue.extend({
       this.$data.points = doc.scoring.points;
       this.$data.annotName = doc.scoring.annotName;
       this.$data.final = false;
+
       for (const annot of doc.changes) {
         if (annot.data.name == this.$data.annotName) {
           this.$data.final = true;
           break;
         }
       }
+      console.assert(this.$data.final == doc.scoring.final);
     },
     finalScoringChange() {
       const pdf: PDFdocument = this.$data.pdf;
+      this.$data.final = !this.$data.final;
       if (this.$data.final) {
         const pointsAnnot = new TextAnnotation(
           0,
@@ -210,6 +217,8 @@ export default Vue.extend({
         this.$emit("save");
       } else if (this.$data.annotName) {
         pdf.deleteAnnotation(this.$data.annotName);
+        this.$data.annotName = undefined;
+        this.$data.final = false;
       }
       this.saveScoring();
     },

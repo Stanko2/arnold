@@ -84,7 +84,7 @@ export default Vue.extend({
             );
           }),
           obodovane: this.count(Documents, (e: Document) => {
-            return e.scoring?.final || false;
+            return e.scoring != null;
           }),
           hotovo: this.count(Documents, (e: Document) => {
             return (
@@ -120,7 +120,11 @@ export default Vue.extend({
 }
 .stats-panel {
   width: 100%;
-  height: 45vh;
+  max-height: 50vh;
+  overflow: auto;
+}
+.stats-panel::-webkit-scrollbar {
+  display: none;
 }
 .stats p {
   display: block;

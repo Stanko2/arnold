@@ -39,12 +39,30 @@
           >
           </b-form-input>
         </b-input-group>
+        <h6>
+          <b-badge
+            v-for="(tag, i) in categories"
+            :key="tag"
+            class="m-1 category-toggle"
+            variant="danger"
+            @click="toggleSearchCategory(tag)"
+            size="lg"
+            :style="{
+              opacity: categoriesVisible[i] ? 1 : 0.5,
+            }"
+          >
+            {{ tag }}
+          </b-badge>
+        </h6>
         <transition-group name="tags">
           <b-badge
             pill
             v-for="tag in searchTags"
             :key="tag.meno"
-            :style="{ background: tag.color }"
+            :style="{
+              background: tag.color,
+              color: getContrastColor(tag.color),
+            }"
             class="m-1"
           >
             <span
@@ -63,11 +81,19 @@
 </template>
 
 <script lang="ts">
-import { activeParser } from "@/DocumentManager";
+import { activeParser, eventHub } from "@/DocumentManager";
+// eslint-disable-next-line no-unused-vars
+import { DocumentParser } from "@/DocumentParser";
+import Color from "color";
 import Vue from "vue";
 export default Vue.extend({
   mounted() {
     this.getTags();
+    eventHub.$on("loaded", (activeParser: DocumentParser) => {
+      this.categories = activeParser.kategorie;
+      this.categoriesVisible = activeParser.kategorie.map(() => true);
+      this.getTags();
+    });
   },
   data() {
     return {
@@ -77,6 +103,8 @@ export default Vue.extend({
       currTag: "",
       expanded: false,
       tagValid: null,
+      categoriesVisible: Array<Boolean>(),
+      categories: Array<String>(),
     };
   },
   methods: {
@@ -84,7 +112,10 @@ export default Vue.extend({
       this.$emit(
         "search",
         this.searchStr,
-        this.searchTags.map((e: any) => e.meno)
+        this.searchTags.map((e: any) => e.meno),
+        this.categories.filter((e: String, i: number) => {
+          return this.categoriesVisible[i];
+        })
       );
     },
     addtag() {
@@ -94,6 +125,7 @@ export default Vue.extend({
         );
         this.currTag = "";
         this.tagValid = null;
+        this.search();
       }
     },
     removeTag(tag: string) {
@@ -101,15 +133,16 @@ export default Vue.extend({
         this.searchTags.findIndex((e: any) => e.meno == tag),
         1
       );
+      this.search();
     },
     getTags() {
       if (activeParser == undefined) return;
       const tags = JSON.parse(localStorage.getItem("tags") || "[]");
-      for (const kategoria of activeParser.kategorie.map((e: string) => {
-        return { meno: e, color: "#3D556E" };
-      })) {
-        tags.push(kategoria);
-      }
+      // for (const kategoria of activeParser.kategorie.map((e: string) => {
+      //   return { meno: e, color: "#3D556E" };
+      // })) {
+      //   tags.push(kategoria);
+      // }
       this.$data.availableTags = tags;
     },
     checkValidity(tag: string) {
@@ -123,6 +156,17 @@ export default Vue.extend({
       )
         this.$data.tagValid = true;
       else this.$data.tagValid = null;
+    },
+    getContrastColor(color: string) {
+      const c = new Color(color);
+      return c.isDark() ? "#ffffff" : "#000000";
+    },
+    toggleSearchCategory(category: string) {
+      const i = this.categories.findIndex((e) => e == category);
+      this.categoriesVisible[i] = !this.categoriesVisible[i];
+      console.log(this.categoriesVisible);
+      this.$forceUpdate();
+      this.search();
     },
   },
 });
@@ -155,5 +199,10 @@ export default Vue.extend({
   100% {
     transform: scale(1);
   }
+}
+.category-toggle {
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.7rem;
 }
 </style>

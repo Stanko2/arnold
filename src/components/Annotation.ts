@@ -32,56 +32,41 @@ export abstract class Annotation {
     }
 
     protected abstract serialize(): any;
+}
 
-    convertSvgData(svg: string): string {
-        const commands: string[] = [];
-        const data = svg.split(' ');
-        let index = 0;
-        while (index < data.length) {
-            switch (data[index]) {
-                case 'M':
-                    commands.push(data[index]);
-                    commands.push(`${this.floorString(data[index + 1])},${this.floorString(data[index + 2])}`);
-                    index += 3;
-                    break;
-                case 'Q':
-                    commands.push(data[index]);
-                    commands.push(`${this.floorString(data[index + 1])},${this.floorString(data[index + 2])}`);
-                    index += 3;
-                    commands.push(`${this.floorString(data[index])},${this.floorString(data[index + 1])}`);
-                    index += 2;
-                    break;
-                case 'L':
-                    commands.push(data[index]);
-                    commands.push(`${this.floorString(data[index + 1])},${this.floorString(data[index + 2])}`);
-                    index += 3;
-                    break;
-            }
-        }
-        return commands.join(" ");
-    }
+abstract class SvgAnnotation extends Annotation {
+    public bake(page: PDFPage): void {
 
-    floorString(str: string): number {
-        return Math.floor(parseInt(str));
     }
+    protected abstract serialize(): any;
 
 }
 
 export class PathAnnotation extends Annotation {
     public bake(page: PDFPage): void {
-        const path = this.convertSvgData(this.object.toClipPathSVG().split('d=')[1].split('"')[1]);
+        const parser = new DOMParser();
+        const a = parser.parseFromString(this.object.toSVG(), "image/svg+xml");
+        const translationMatrix = a.firstElementChild?.getAttribute('transform')?.match(/-?[0-9]+(\.[0-9]*)?/gm)?.map(e => parseFloat(e));
+        const objTranslation = a.querySelector('path')?.getAttribute('transform')?.match(/-?[0-9]+(\.[0-9]*)?/gm)?.map(e => parseFloat(e));
+        if (objTranslation == null || translationMatrix == null) return;
+        const objMatrix: number[] = [1, 0, 1, 0, objTranslation[0], objTranslation[1]]
+        const finalMatrix = fabric.util.multiplyTransformMatrices(translationMatrix, objMatrix);
+        const position = fabric.util.transformPoint(new fabric.Point(0, 0), finalMatrix, false);
+        const path = a.querySelector('path')?.getAttribute('d') || '';
         var color = Color(this.object.stroke).object();
         page.drawSvgPath(path, {
             borderWidth: this.object.strokeWidth,
-            x: 0,
-            y: page.getHeight(),
+            x: position.x,
+            y: page.getHeight() - position.y,
             borderLineCap: LineCapStyle.Round,
             borderDashPhase: 1,
             borderColor: rgb(color.r / 255, color.g / 255, color.b / 255)
         });
     }
     protected serialize() {
-        const path = this.convertSvgData(this.object.toClipPathSVG().split('d=')[1].split('"')[1]);
+        const parser = new DOMParser();
+        const a = parser.parseFromString(this.object.toSVG(), "image/svg+xml");
+        const path = a.querySelector('path')?.getAttribute('d') || '';
         return {
             path: path,
             options: <Partial<fabric.IPathOptions>>{
@@ -100,16 +85,10 @@ export class PathAnnotation extends Annotation {
     }
     constructor(page: number, object: fabric.Path | { path: string, options: fabric.IPathOptions }, canvas: Canvas) {
         if (object instanceof fabric.Path) {
-            object.hasControls = false;
-            object.lockMovementX = true;
-            object.lockMovementY = true;
             super(page, object, canvas, 'Path', false);
         }
         else {
             const options = object.options;
-            options.hasControls = false;
-            options.lockMovementY = true;
-            options.lockMovementX = true;
             super(page, new fabric.Path(object.path, options), canvas, 'Path');
         }
     }
@@ -168,8 +147,11 @@ export class SignAnnotation extends Annotation {
             scaleX: grp.scaleX,
             scaleY: grp.scaleY,
             paths: grp.getObjects().map(e => {
+                const parser = new DOMParser();
+                const a = parser.parseFromString(e.toSVG(), "image/svg+xml");
+                const path = a.querySelector('path')?.getAttribute('d') || '';
                 return {
-                    path: this.convertSvgData(e.toClipPathSVG().split('d=')[1].split('"')[1]),
+                    path: path,
                     top: e.top,
                     left: e.left
                 }
@@ -329,7 +311,7 @@ export class LineAnnotation extends Annotation {
             tl: true,
             tr: false,
         }
-        this.tip = new fabric.Triangle({
+        this.tip = new fabric.Rect({
             hasControls: false,
             lockMovementY: true,
             lockMovementX: true,
@@ -337,11 +319,12 @@ export class LineAnnotation extends Annotation {
             width: 2 * (options.strokeWidth || 1),
             height: 2 * (options.strokeWidth || 1),
             strokeWidth: 0,
-            fill: options.stroke,
-            // centeredRotation: true,
-            angle: Math.atan2(options.y1 - options.y2, options.x1 - options.x2) * (180 / Math.PI) + 30,
+            fill: '#ff0000',
+            angle: Math.atan2(options.y1 - options.y2, options.x1 - options.x2) * (180 / Math.PI) - 90,
             left: options.x2,
             top: options.y2,
+            originX: 'center',
+            originY: 'center',
         });
         (this.object as fabric.Line).controls.tl = new fabric.Control({
             visible: true,
@@ -350,27 +333,27 @@ export class LineAnnotation extends Annotation {
                 if (!line.x1 || !line.x2 || !line.y1 || !line.y2 || !line.strokeWidth) return false;
                 if (!this.tip.width || !this.tip.height) return false;
                 this.tip.set({
-                    angle: Math.atan2(line.y1 - line.y2, line.x1 - line.x2) * (180 / Math.PI) + 30,
+                    angle: Math.atan2(line.y1 - line.y2, line.x1 - line.x2) * (180 / Math.PI) - 90,
                     left: line.x2,
                     top: line.y2,
                 });
-                const angle = Math.atan2(line.y1 - line.y2, line.x1 - line.x2) * (180 / Math.PI) + 30;
+                const angle = Math.atan2(line.y1 - line.y2, line.x1 - line.x2) * (180 / Math.PI) - 90;
                 const pos = fabric.util.rotatePoint(
                     new fabric.Point(line.x2, line.y2),
                     new fabric.Point(line.x2 + this.tip.width / 2, line.y2 + this.tip.height / 3 * 2),
                     fabric.util.degreesToRadians(angle)
                 );
-                this.tip.set({
-                    left: pos.x,
-                    top: pos.y,
-                    angle: angle,
-                });
                 const multipliers = {
                     tly: Math.min(line.y1, line.y2) == line.y2 ? 1 : -1,
                     tlx: Math.min(line.x1, line.x2) == line.x2 ? 1 : -1,
                     bry: Math.min(line.y1, line.y2) == line.y1 ? 1 : -1,
                     brx: Math.min(line.x1, line.x2) == line.x1 ? 1 : -1,
                 }
+                this.tip.set({
+                    left: line.x2,
+                    top: line.y2,
+                    angle: angle,
+                });
                 line.set({
                     x1: x, y1: y,
                 })
@@ -378,10 +361,11 @@ export class LineAnnotation extends Annotation {
                 line.controls.tl.x = 0.5 * multipliers.tlx
                 line.controls.br.y = 0.5 * multipliers.bry
                 line.controls.br.x = 0.5 * multipliers.brx
-                line.controls.br.offsetX = -line.strokeWidth * multipliers.brx;
-                line.controls.br.offsetY = -line.strokeWidth * multipliers.bry;
-                line.controls.tl.offsetX = -line.strokeWidth * multipliers.tlx;
-                line.controls.tl.offsetY = -line.strokeWidth * multipliers.tly;
+                line.controls.br.offsetX = line.strokeWidth * multipliers.brx;
+                line.controls.br.offsetY = line.strokeWidth * multipliers.bry;
+                line.controls.tl.offsetX = line.strokeWidth * multipliers.tlx;
+                line.controls.tl.offsetY = line.strokeWidth * multipliers.tly;
+                line.cornerSize = 2 * line.strokeWidth;
                 return true;
             },
             actionName: 'firstMove',
@@ -397,10 +381,10 @@ export class LineAnnotation extends Annotation {
 
                 if (!line.x1 || !line.x2 || !line.y1 || !line.y2 || !line.strokeWidth) return false;
                 if (!this.tip.width || !this.tip.height) return false;
-                const angle = Math.atan2(line.y1 - line.y2, line.x1 - line.x2) * (180 / Math.PI) + 30;
+                const angle = Math.atan2(line.y1 - line.y2, line.x1 - line.x2) * (180 / Math.PI) - 90;
                 const pos = fabric.util.rotatePoint(
-                    new fabric.Point(x, y),
                     new fabric.Point(x + this.tip.width / 2, y + this.tip.height / 3 * 2),
+                    new fabric.Point(x, y),
                     fabric.util.degreesToRadians(angle)
                 );
                 const multipliers = {
@@ -410,8 +394,8 @@ export class LineAnnotation extends Annotation {
                     bry: Math.min(line.x1, line.x2) == line.x1 ? 1 : -1,
                 }
                 this.tip.set({
-                    left: pos.x + multipliers.brx * this.tip.width / 2,
-                    top: pos.y + multipliers.bry * this.tip.height / 2,
+                    left: line.x2,
+                    top: line.y2,
                     angle: angle,
                 });
                 line.set({
@@ -421,10 +405,11 @@ export class LineAnnotation extends Annotation {
                 line.controls.tl.x = 0.5 * multipliers.tlx
                 line.controls.br.y = 0.5 * multipliers.bry
                 line.controls.br.x = 0.5 * multipliers.brx
-                line.controls.br.offsetX = -line.strokeWidth * multipliers.brx;
-                line.controls.br.offsetY = -line.strokeWidth * multipliers.bry;
-                line.controls.tl.offsetX = -line.strokeWidth * multipliers.tlx;
-                line.controls.tl.offsetY = -line.strokeWidth * multipliers.tly;
+                line.controls.br.offsetX = line.strokeWidth * multipliers.brx;
+                line.controls.br.offsetY = line.strokeWidth * multipliers.bry;
+                line.controls.tl.offsetX = line.strokeWidth * multipliers.tlx;
+                line.controls.tl.offsetY = line.strokeWidth * multipliers.tly;
+                line.cornerSize = 2 * line.strokeWidth;
                 return true;
             },
             actionName: 'secondMove',

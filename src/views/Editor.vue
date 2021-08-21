@@ -134,6 +134,7 @@ export default Vue.extend({
       (this.$refs.topbar as any).updateStats();
     },
     selectDir(dir: number) {
+      this.save();
       const curr = Documents.findIndex((e) => e.id == this.$data.pdf.id);
       let i = curr + dir;
       while (this.$data.documentsShown[i] === false) {
@@ -161,19 +162,21 @@ export default Vue.extend({
         });
     },
     selectIndex(index: number) {
+      this.save();
       this.updateSelected(index, false);
       DocEventHub.$emit("setDocument", index);
     },
-    search(query: string, tags: string[]) {
+    search(query: string, tags: string[], categories: string[]) {
+      console.log(categories);
       const onlyLettersRegex = /[a-z]+/gi;
       query = query.match(onlyLettersRegex)?.join("").toLowerCase() || "";
       this.$data.Documents.forEach((e: Document, index: number) => {
-        if (e.riesitel.toLowerCase().match(query) != null) {
+        if (
+          e.riesitel.toLowerCase().match(query) != null &&
+          categories.includes(e.kategoria)
+        ) {
           if (tags.length > 0) {
-            this.documentsShown[index] = this.IsDocumentValid(tags, [
-              ...e.tags,
-              e.kategoria,
-            ]);
+            this.documentsShown[index] = this.IsDocumentValid(tags, e.tags);
           } else this.$data.documentsShown[index] = true;
         } else {
           this.$data.documentsShown[index] = false;
@@ -182,8 +185,7 @@ export default Vue.extend({
       this.$forceUpdate();
     },
     IsDocumentValid(searchTags: string[], documentTags: string[]): boolean {
-      // neviem ako to presne spravit - ak je viac tagov, tak musia sediet vsetky, alebo staci ak sedi aspon jeden?
-      return searchTags.some((e) => documentTags.includes(e));
+      return searchTags.every((e) => documentTags.includes(e));
     },
     UpdateCurrentPreview() {
       const documents = this.$refs.documentList as Vue[];
@@ -211,8 +213,11 @@ export default Vue.extend({
     scale(multiplier: number) {
       (this.$refs.viewport as any).setScale(multiplier);
     },
-    updateTags() {
-      this.tags = JSON.parse(localStorage.getItem("tags") || "[]");
+    updateTags(tags: any) {
+      this.tags = tags;
+      for (const preview of this.$refs.documentList as Vue[]) {
+        preview.$data.tags = tags;
+      }
     },
     updateDocumentTags() {
       const curr = Documents.find((e) => e.id == this.$data.pdf.id);
