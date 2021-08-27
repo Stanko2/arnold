@@ -85,7 +85,12 @@
         ><stats ref="stat"></stats
       ></b-modal>
       <b-button variant="success" v-b-modal.preferences>Nastavenia</b-button>
-      <b-modal id="preferences" title="Nastavenia" size="xl" ok-only
+      <b-modal
+        id="preferences"
+        title="Nastavenia"
+        size="xl"
+        ok-only
+        @ok="$refs.preferences.save()"
         ><preferences ref="preferences"></preferences
       ></b-modal>
     </div>

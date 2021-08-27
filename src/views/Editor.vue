@@ -22,6 +22,7 @@
               v-show="documentsShown[i]"
               ref="documentList"
               class="list-group-item"
+              :showPDFPreview="prefs && prefs.showPreviews"
               :documentID="document.id"
               :tags="tags"
               @click.native="selectIndex(document.index - 1)"
@@ -115,6 +116,8 @@ export default Vue.extend({
   data() {
     Documents.sort((a: Document, b: Document) => a.index - b.index);
     const tags = JSON.parse(localStorage.getItem("tags") || "[]");
+    const prefs = JSON.parse(localStorage.getItem("preferences") || "{}")?.other
+      ?.settings;
     return {
       pdf: undefined,
       Documents: Documents,
@@ -122,10 +125,11 @@ export default Vue.extend({
       documentsShown: Documents.map(() => true),
       ukazBodovanie: false,
       tags: tags,
+      prefs: prefs,
     };
   },
   methods: {
-    save() {
+    async save() {
       this.$data.pdf.save();
       this.UpdateCurrentPreview();
       (this.$refs.documentList as Vue[])[
@@ -133,8 +137,8 @@ export default Vue.extend({
       ].$data.documentBusy = true;
       (this.$refs.topbar as any).updateStats();
     },
-    selectDir(dir: number) {
-      this.save();
+    async selectDir(dir: number) {
+      if (this.prefs && this.prefs.autoSave) await this.save();
       const curr = Documents.findIndex((e) => e.id == this.$data.pdf.id);
       let i = curr + dir;
       while (this.$data.documentsShown[i] === false) {
@@ -161,8 +165,8 @@ export default Vue.extend({
           behavior: "smooth",
         });
     },
-    selectIndex(index: number) {
-      this.save();
+    async selectIndex(index: number) {
+      if (this.prefs && this.prefs.autoSave) await this.save();
       this.updateSelected(index, false);
       DocEventHub.$emit("setDocument", index);
     },

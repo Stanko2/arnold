@@ -1,5 +1,5 @@
 <template>
-  <b-row>
+  <b-row class="window">
     <b-col cols="4">
       <b-list-group>
         <b-list-group-item
@@ -11,23 +11,26 @@
         >
       </b-list-group>
     </b-col>
-    <b-col cols="8">
+    <b-col cols="8" class="categoryMenu">
       <h1 class="text-center">{{ selectedCategory.text }}</h1>
       <hr />
       <div v-if="selectedCategory.name == 'tools'">
-        <b-row class="m-2">
+        <b-row class="setting">
           <b-col>Prvy selectnuty nastroj</b-col>
           <b-col>
             <b-select
               :options="selectedCategory.settings.defaultTool.options"
-              v-model.number="selectedCategory.settings.defaultTool.value"
+              v-model="selectedCategory.settings.defaultTool.value"
             >
             </b-select>
           </b-col>
         </b-row>
-        <h2 class="text-center">Defaultne nastavenia pre nastroje</h2>
+        <hr />
+        <h2 class="text-center m-2">Defaultne nastavenia pre nastroje</h2>
         <b-card
-          v-for="tool in selectedCategory.settings.tools"
+          v-for="tool in selectedCategory.settings.tools.filter((e) =>
+            hasSettings(e)
+          )"
           :key="tool.name"
           :no-body="!tool.expanded"
         >
@@ -37,8 +40,8 @@
             </div>
           </template>
           <transition name="slide">
-            <b-card-body v-if="tool.expanded">
-              <b-row v-if="tool.options.hasText">
+            <div v-if="tool.expanded">
+              <b-row v-if="tool.options.hasText" class="setting">
                 <b-col align-self="center"> Font </b-col>
                 <b-col align-self="center">
                   <b-dropdown
@@ -57,7 +60,7 @@
                   </b-dropdown>
                 </b-col>
               </b-row>
-              <b-row class="form-inline" v-if="tool.options.hasText">
+              <b-row v-if="tool.options.hasText" class="setting">
                 <b-col align-self="center"> Velkost Pisma </b-col>
                 <b-col align-self="center">
                   <input
@@ -69,7 +72,7 @@
                   />
                 </b-col>
               </b-row>
-              <b-row v-if="tool.options.hasStrokeWidth">
+              <b-row v-if="tool.options.hasStrokeWidth" class="setting">
                 <b-col align-self="center">Hrubka ciary</b-col>
                 <b-col align-self="center">
                   <div class="float-right">
@@ -85,35 +88,37 @@
                   </div>
                 </b-col>
               </b-row>
-              <b-row v-if="tool.options.hasStroke">
+
+              <b-row v-if="tool.options.hasStroke" class="setting">
                 <b-col align-self="center">Farba ciary</b-col>
                 <b-col align-self="center">
                   <v-swatches
                     class="float-right"
-                    v-model="tool.defaultOptions.fill"
+                    v-model="tool.defaultOptions.stroke"
+                    popover-x="left"
                   ></v-swatches>
                 </b-col>
               </b-row>
-              <b-row v-if="tool.options.hasFill">
-                <b-col align-self="center">Hrubka ciary</b-col>
+              <b-row v-if="tool.options.hasFill" class="setting">
+                <b-col align-self="center">Farba</b-col>
                 <b-col align-self="center">
                   <v-swatches
                     class="float-right"
-                    v-model="tool.defaultOptions.stroke"
+                    v-model="tool.defaultOptions.fill"
+                    popover-x="left"
                   ></v-swatches>
                 </b-col>
               </b-row>
-            </b-card-body>
+            </div>
           </transition>
         </b-card>
       </div>
-      <div v-else-if="selectedCategory.name == 'themes'">
+      <div v-else-if="selectedCategory.name == 'other'">
         <b-row>
-          <b-col align-self="center"
-            >Ukazat preview rieseni v lavej liste</b-col
-          >
-          <b-col align-self="center">
+          <b-col>Ukazat preview rieseni v lavej liste</b-col>
+          <b-col>
             <b-form-checkbox
+              class="float-right"
               size="md"
               v-model="selectedCategory.settings.showPreviews"
               switch
@@ -121,9 +126,20 @@
           </b-col>
         </b-row>
         <hr />
-        <h3 class="text-center">Moje farby</h3>
+        <!-- <h3 class="text-center">Moje farby</h3>
         <p>Tu si mozes vybrat farby ktore budes vsade pouzivat</p>
-        <input type="color" class="colorInput" />
+        <input type="color" class="colorInput" /> -->
+        <b-row>
+          <b-col>Auto-save rieseni pri prepnuti</b-col>
+          <b-col>
+            <b-form-checkbox
+              class="float-right"
+              size="md"
+              v-model="selectedCategory.settings.autoSave"
+              switch
+            ></b-form-checkbox>
+          </b-col>
+        </b-row>
       </div>
     </b-col>
   </b-row>
@@ -131,7 +147,7 @@
 
 <script lang="ts">
 import Vue from "vue";
-import { tools } from "./Tools/Tool";
+import { tools, eventHub as ToolEvents } from "./Tools/Tool";
 import { FontsAvailable } from "./Fonts";
 const VSwatches = require("vue-swatches");
 export default Vue.extend({
@@ -147,7 +163,7 @@ export default Vue.extend({
         expanded: false,
       };
     });
-    const categories = [
+    let categories = [
       {
         text: "Nastroje",
         settings: {
@@ -167,13 +183,15 @@ export default Vue.extend({
         name: "tools",
       },
       {
-        text: "Vzhlad",
+        text: "Ostatne",
         settings: {
           showPreviews: true,
+          autoSave: true,
         },
-        name: "themes",
+        name: "other",
       },
     ];
+
     return {
       categories: categories,
       selectedCategoryIndex: 0,
@@ -181,11 +199,36 @@ export default Vue.extend({
       fonts: FontsAvailable,
     };
   },
-  mounted() {},
+  mounted() {
+    // FIXME: tu nieco nefunguje
+    // const data = localStorage.getItem("preferences");
+    // if (data) {
+    //   const prefs = JSON.parse(data);
+    //   //   this.categories = [];
+    //   //   Object.keys(prefs).forEach((key) => {
+    //   //     this.categories.push({
+    //   //       ...prefs[key],
+    //   //       name: key,
+    //   //     });
+    //   //   });
+    // }
+  },
   methods: {
     select(i: number) {
       this.selectedCategoryIndex = i;
       this.selectedCategory = this.categories[this.selectedCategoryIndex];
+    },
+    hasSettings(tool: any): boolean {
+      return Object.keys(tool.options).some((key) => tool.options[key]);
+    },
+    save() {
+      localStorage.removeItem("preferences");
+      const preferences: Record<string, any> = {};
+      for (const category of this.categories) {
+        preferences[category.name] = category;
+      }
+      localStorage.setItem("preferences", JSON.stringify(preferences));
+      ToolEvents.$emit("init");
     },
   },
 });
@@ -210,5 +253,22 @@ export default Vue.extend({
 }
 .slide-leave-to {
   transform: translate(0, -100%);
+}
+.window {
+  height: 75vh;
+  max-height: 75vh;
+}
+.categoryMenu {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  user-select: none;
+}
+.categoryMenu::-webkit-scrollbar {
+  display: none;
+}
+.setting {
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 </style>

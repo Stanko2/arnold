@@ -23,12 +23,27 @@ var vue: Vue | null = null;
 export const eventHub = new Vue();
 
 eventHub.$on('init', init);
-function init(VueRef: Vue) {
-    vue = VueRef;
-    TextAnnotation.toolOptions = tools[0];
-    LineAnnotation.toolOptions = tools[3];
-    RectAnnotation.toolOptions = tools[5];
-    selectTool(selectedTool);
+function init(VueRef: Vue | undefined = undefined) {
+    if (VueRef) {
+        vue = VueRef;
+        TextAnnotation.toolOptions = tools[0];
+        LineAnnotation.toolOptions = tools[3];
+        RectAnnotation.toolOptions = tools[5];
+    }
+    const data = localStorage.getItem('preferences')
+    if (data) {
+        const prefs = JSON.parse(data).tools.settings;
+        prefs.tools.forEach((tool: any, index: number) => {
+            tools[index].defaultOptions = {};
+            tools[index].defaultOptions = tool.defaultOptions;
+        });
+        console.log(prefs);
+
+        selectTool(tools[prefs.defaultTool.value]);
+    }
+    else {
+        selectTool(tools[0]);
+    }
 }
 DocEventHub.$on('documentChanged', () => { selectTool(selectedTool); });
 
@@ -236,7 +251,6 @@ function selectTool(tool: Tool) {
     getViewedDocument()?.pageCanvases.forEach(e => {
         e.setSelectable(tool.name === 'Select')
         e.discardActiveObject();
-        console.log('discardActiveObject');
         e.requestRenderAll();
     });
     if (vue != null) {

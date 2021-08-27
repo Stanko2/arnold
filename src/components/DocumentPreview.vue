@@ -5,9 +5,12 @@
       active: selected,
     }"
   >
-    <div v-if="document != null" class="row">
+    <div
+      v-if="document != null"
+      :class="{ row: showPDFPreview, 'w-100': !showPDFPreview }"
+    >
       <b-overlay :show="documentBusy" no-wrap> </b-overlay>
-      <div class="col-5">
+      <div class="col-5" v-if="showPDFPreview">
         <div class="card">
           <div
             v-if="pdf == undefined"
@@ -25,24 +28,32 @@
           </div>
         </div>
       </div>
-      <div class="col-7">
+      <div :class="{ 'col-7': showPDFPreview, 'w-100': !showPDFPreview }">
         <div class="text-left">
-          <p v-if="document.opened" class="header-text">
+          <div
+            v-if="document.opened"
+            class="header-text"
+            :class="{ 'd-inline': !showPDFPreview }"
+          >
             {{ document.index }}. {{ document.riesitel }}
-          </p>
+          </div>
           <strong v-else class="header-text"
             >{{ document.index }}. {{ document.riesitel }}</strong
           >
-          <div v-if="document.scoring" class="points-text">
-            {{ document.scoring.points }}
-            <span
-              class="material-icons text-success"
-              v-if="document.scoring.final"
-              >check</span
-            >
-            <span class="material-icons text-danger" v-else>close</span>
+          <div class="d-inline" v-if="document.opened">
+            <div v-if="document.scoring" class="points-text d-inline">
+              {{ document.scoring.points }}
+              <span
+                class="material-icons text-success"
+                v-if="document.scoring.final"
+                >check</span
+              >
+              <span class="material-icons text-danger" v-else>close</span>
+            </div>
+            <div v-else class="points-text text-danger d-inline">
+              Neobodovane
+            </div>
           </div>
-          <div v-else class="points-text text-danger">Neohodnotene</div>
           <p>
             <span class="badge badge-secondary mr-1">{{
               document.kategoria
@@ -75,7 +86,7 @@ export default Vue.extend({
   components: {
     pdf: pdf.default,
   },
-  props: ["documentID", "tags"],
+  props: ["documentID", "tags", "showPDFPreview"],
   data() {
     return {
       document: undefined,
