@@ -33,11 +33,20 @@ function init(VueRef: Vue | undefined = undefined) {
     const data = localStorage.getItem('preferences')
     if (data) {
         const prefs = JSON.parse(data).tools.settings;
+        const shortcuts = JSON.parse(data).shortcut.settings;
         prefs.tools.forEach((tool: any, index: number) => {
-            tools[index].defaultOptions = {};
-            tools[index].defaultOptions = tool.defaultOptions;
+            if (index < tools.length - 1) {
+                tools[index].defaultOptions = {};
+                tools[index].defaultOptions = tool.defaultOptions;
+            }
         });
-        console.log(prefs);
+        shortcuts.forEach((shortcut: any) => {
+            const tool = tools.find(e => e.name == shortcut.name)
+            if (tool) {
+                tool.shortcut = shortcut.shortcut;
+            }
+        });
+
 
         selectTool(tools[prefs.defaultTool.value]);
     }
@@ -76,7 +85,7 @@ export const tools: Tool[] = [
             hasText: true,
             hasStrokeWidth: false,
         },
-        shortcut: 't',
+        shortcut: 'q',
     },
     <Tool>{
         name: 'Draw',
@@ -106,13 +115,14 @@ export const tools: Tool[] = [
             hasStrokeWidth: true,
             hasText: false,
         },
-        shortcut: 'd'
+        shortcut: 'w'
     },
     <Tool>{
         name: 'Photo',
         cursor: 'pointer',
         icon: 'add_photo_alternate',
         tooltip: 'Pridat peciatku',
+        shortcut: 'e',
         // TODO: add photo modal, photo embedding to pdf & photo support for canvas
         options: {
             hasFill: false,
@@ -126,6 +136,7 @@ export const tools: Tool[] = [
         cursor: 'pointer',
         icon: 'north_east',
         tooltip: 'Pridat sipku',
+        shortcut: 'r',
         defaultOptions: <fabric.ILineOptions>{
             stroke: '#000000',
             strokeWidth: 5,
@@ -151,6 +162,7 @@ export const tools: Tool[] = [
         cursor: 'pointer',
         icon: 'circle',
         tooltip: 'Pridat kruh / elipsu',
+        shortcut: 't',
         // TODO: add circle annotation class
         options: {
             hasFill: false,
@@ -181,13 +193,14 @@ export const tools: Tool[] = [
             hasStrokeWidth: true,
             hasText: false,
         },
-        shortcut: 'r',
+        shortcut: 'y',
     },
     <Tool>{
         name: 'Sign',
         cursor: 'pointer',
         icon: 'edit',
         tooltip: 'Pridat podpis',
+        shortcut: 'u',
         defaultOptions: {},
         click: (pdf: PDFdocument, page: number, position: { x: number, y: number }) => {
             Database.getTemplate((selectedTool.defaultOptions as any).sign).then((sign) => {
@@ -234,7 +247,7 @@ export const tools: Tool[] = [
             hasStrokeWidth: false,
             hasText: false,
         },
-        shortcut: 's',
+        shortcut: 'i',
     },
 ]
 

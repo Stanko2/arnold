@@ -1,7 +1,7 @@
 <template>
   <div>
     <h2 class="text-center">Obrazky nie su zatial k dispozicii</h2>
-    <p class="text-center">Ich podpora pride neskor</p>
+    <p class="text-center">Ich podpora pride mozno neskor</p>
   </div>
 </template>
 

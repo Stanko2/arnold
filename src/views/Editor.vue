@@ -44,10 +44,19 @@
     </div>
     <scoring @save="save" />
     <tagy @tagUpdate="updateTags" @documentTag="updateDocumentTags" />
-    <div v-shortkey.once="['ctrl', 'arrowup']" @shortkey="selectDir(-1)"></div>
-    <div v-shortkey.once="['ctrl', 'arrowdown']" @shortkey="selectDir(1)"></div>
-    <div v-shortkey.once="['ctrl', 's']" @shortkey="save"></div>
-    <div v-shortkey.once="['del']" @shortkey="deleteSelected"></div>
+    <div
+      v-shortkey.once="getShortcut('selectPrev')"
+      @shortkey="selectDir(-1)"
+    ></div>
+    <div
+      v-shortkey.once="getShortcut('selectNext')"
+      @shortkey="selectDir(1)"
+    ></div>
+    <div v-shortkey.once="getShortcut('save')" @shortkey="save"></div>
+    <div
+      v-shortkey.once="getShortcut('delete')"
+      @shortkey="deleteSelected"
+    ></div>
   </div>
 </template>
 
@@ -118,6 +127,8 @@ export default Vue.extend({
     const tags = JSON.parse(localStorage.getItem("tags") || "[]");
     const prefs = JSON.parse(localStorage.getItem("preferences") || "{}")?.other
       ?.settings;
+    const shortcuts = JSON.parse(localStorage.getItem("preferences") || "{}")
+      ?.shortcut.settings;
     return {
       pdf: undefined,
       Documents: Documents,
@@ -126,9 +137,24 @@ export default Vue.extend({
       ukazBodovanie: false,
       tags: tags,
       prefs: prefs,
+      shortcuts: shortcuts,
     };
   },
   methods: {
+    getShortcut(name: string) {
+      const defaultShortcuts: Record<string, string> = {
+        selectNext: "ctrl+arrowdown",
+        selectPrev: "ctrl+arrowup",
+        save: "ctrl+s",
+        delete: "del",
+      };
+      let shortcut: string = defaultShortcuts[name];
+      const savedShortcut = this.shortcuts.find((e: any) => e.name == name);
+      if (savedShortcut) {
+        shortcut = savedShortcut.shortcut;
+      }
+      return shortcut.split("+");
+    },
     async save() {
       this.$data.pdf.save();
       this.UpdateCurrentPreview();

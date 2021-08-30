@@ -1,7 +1,7 @@
 import { Canvas } from '@/Canvas';
 import { fabric } from 'fabric';
 import Color from 'color';
-import { LineCapStyle, PDFFont, PDFPage, PDFPageDrawTextOptions, rgb } from 'pdf-lib';
+import { defaultOptionListAppearanceProvider, LineCapStyle, PDFFont, PDFPage, PDFPageDrawTextOptions, rgb } from 'pdf-lib';
 import { getViewedDocument } from '@/DocumentManager';
 import { EmbedFont } from './Fonts';
 
@@ -99,13 +99,13 @@ export class PathAnnotation extends Annotation {
 export class SignAnnotation extends Annotation {
     public bake(page: PDFPage): void {
         const grp = this.object as fabric.Group;
-        const color = Color(this.object.stroke).object();
         if (!grp.left || !grp.top || !grp.height || !grp.width) {
             throw new Error(`Invalid object location`);
         }
         const parser = new DOMParser();
         const a = parser.parseFromString(grp.toSVG(), "image/svg+xml");
         const translationMatrix = a.firstElementChild?.getAttribute('transform')?.match(/-?[0-9]+(\.[0-9]*)?/gm)?.map(e => parseFloat(e));
+        const color = Color(this.object.stroke).object();
         console.log(a);
         if (translationMatrix == null) return;
 
@@ -282,180 +282,158 @@ export class RectAnnotation extends Annotation {
 
 export class LineAnnotation extends Annotation {
     static toolOptions: any;
-    tip: fabric.Triangle;
-    get line(): fabric.Line {
-        return this.object as fabric.Line;
+    from: fabric.Point;
+    to: fabric.Point;
+    get line(): fabric.Polyline {
+        return this.object as fabric.Polyline;
     }
     constructor(page: number, options: fabric.ILineOptions, canvas: Canvas) {
         options.hasControls = true;
         options.hasBorders = false;
         options.strokeLineCap = 'round';
-        options.lockMovementX = true;
-        options.lockMovementY = true;
         options.cornerSize = 20;
         options.cornerStyle = "circle";
-        options.cornerColor = 'blue'
-        if (!options.x1 || !options.x2 || !options.y1 || !options.y2) throw new Error('Invalid location')
+        options.cornerColor = 'blue';
+        options.originX = 'left';
+        options.originY = 'top';
+        if (!options.x1 || !options.x2 || !options.y1 || !options.y2 || !options.strokeWidth) throw new Error('Invalid location')
 
-        super(page, new fabric.Line([options.x1, options.y1, options.x2, options.y2], options), canvas, 'Line');
-        (this.object as fabric.Line).set({ x1: options.x1, y1: options.y1, x2: options.x2, y2: options.y2 });
-        (this.object as any).tool = LineAnnotation.toolOptions;
-        this.object._controlsVisibility = {
-            bl: false,
-            br: true,
-            mb: false,
-            ml: false,
-            mr: false,
-            mt: false,
-            mtr: false,
-            tl: true,
-            tr: false,
+        super(page, new fabric.Polyline([{ x: options.x1, y: options.y1 }, { x: options.x2, y: options.y2 }], options), canvas, 'Line');
+        this.from = new fabric.Point(options.x1, options.y1);
+        this.to = new fabric.Point(options.x2, options.y2);
+        this.line.set({
+            points: this.getArrowPoints(options.x1, options.y1, options.x2, options.y2, options.strokeWidth)
+        });
+        console.log(this.line.points);
+        const annotation = this;
+        function actionHandler(eventData: MouseEvent, transform: fabric.Transform, x: number, y: number, tip: boolean) {
+            let polygon = transform.target as fabric.Polyline,
+                mouseLocalPosition = polygon.toLocalPoint(new fabric.Point(x, y), 'center', 'center'),
+                polygonBaseSize = polygon._getNonTransformedDimensions(),
+                size = polygon._getTransformedDimensions(0, 0),
+                finalPointPosition = {
+                    x: mouseLocalPosition.x * polygonBaseSize.x / size.x + polygon.pathOffset.x,
+                    y: mouseLocalPosition.y * polygonBaseSize.y / size.y + polygon.pathOffset.y
+                };
+            let points;
+            if (tip) {
+                points = annotation.getArrowPoints(annotation.from.x, annotation.from.y, finalPointPosition.x, finalPointPosition.y, polygon.strokeWidth || 1);
+            }
+            else {
+                points = annotation.getArrowPoints(finalPointPosition.x, finalPointPosition.y, annotation.to.x, annotation.to.y, polygon.strokeWidth || 1)
+            }
+            polygon.set({
+                points: points,
+                // top: Math.min(...points.map(e => e.y)),
+                // left: Math.min(...points.map(e => e.x))
+            });
+            return true;
         }
-        this.tip = new fabric.Rect({
-            hasControls: false,
-            lockMovementY: true,
-            lockMovementX: true,
-            selectable: false,
-            width: 2 * (options.strokeWidth || 1),
-            height: 2 * (options.strokeWidth || 1),
-            strokeWidth: 0,
-            fill: '#ff0000',
-            angle: Math.atan2(options.y1 - options.y2, options.x1 - options.x2) * (180 / Math.PI) - 90,
-            left: options.x2,
-            top: options.y2,
-            originX: 'center',
-            originY: 'center',
-        });
-        (this.object as fabric.Line).controls.tl = new fabric.Control({
-            visible: true,
-            actionHandler: (e, transform, x, y) => {
-                const line = transform.target as fabric.Line;
-                if (!line.x1 || !line.x2 || !line.y1 || !line.y2 || !line.strokeWidth) return false;
-                if (!this.tip.width || !this.tip.height) return false;
-                this.tip.set({
-                    angle: Math.atan2(line.y1 - line.y2, line.x1 - line.x2) * (180 / Math.PI) - 90,
-                    left: line.x2,
-                    top: line.y2,
-                });
-                const angle = Math.atan2(line.y1 - line.y2, line.x1 - line.x2) * (180 / Math.PI) - 90;
-                const pos = fabric.util.rotatePoint(
-                    new fabric.Point(line.x2, line.y2),
-                    new fabric.Point(line.x2 + this.tip.width / 2, line.y2 + this.tip.height / 3 * 2),
-                    fabric.util.degreesToRadians(angle)
-                );
-                const multipliers = {
-                    tly: Math.min(line.y1, line.y2) == line.y2 ? 1 : -1,
-                    tlx: Math.min(line.x1, line.x2) == line.x2 ? 1 : -1,
-                    bry: Math.min(line.y1, line.y2) == line.y1 ? 1 : -1,
-                    brx: Math.min(line.x1, line.x2) == line.x1 ? 1 : -1,
-                }
-                this.tip.set({
-                    left: line.x2,
-                    top: line.y2,
-                    angle: angle,
-                });
-                line.set({
-                    x1: x, y1: y,
-                })
-                line.controls.tl.y = 0.5 * multipliers.tly
-                line.controls.tl.x = 0.5 * multipliers.tlx
-                line.controls.br.y = 0.5 * multipliers.bry
-                line.controls.br.x = 0.5 * multipliers.brx
-                line.controls.br.offsetX = line.strokeWidth * multipliers.brx;
-                line.controls.br.offsetY = line.strokeWidth * multipliers.bry;
-                line.controls.tl.offsetX = line.strokeWidth * multipliers.tlx;
-                line.controls.tl.offsetY = line.strokeWidth * multipliers.tly;
-                line.cornerSize = 2 * line.strokeWidth;
-                return true;
-            },
-            actionName: 'firstMove',
-            cursorStyle: 'pointer',
-            x: -0.5,
-            y: -0.5
-        });
-        (this.object as fabric.Line).controls.br = new fabric.Control({
-            visible: true,
-            actionHandler: (e, transform, x, y) => {
 
-                const line = transform.target as fabric.Line;
+        function anchorWrapper(tip: boolean, fn: (eventData: MouseEvent, transform: fabric.Transform, x: number, y: number, tip: boolean) => boolean) {
+            return function (eventData: MouseEvent, transform: fabric.Transform, x: number, y: number) {
+                var fabricObject = transform.target as fabric.Polyline,
+                    point = tip ? annotation.to : annotation.from,
+                    absolutePoint = fabric.util.transformPoint(point.subtract(fabricObject.pathOffset), fabricObject.calcTransformMatrix()),
+                    actionPerformed = fn(eventData, transform, x, y, tip),
+                    baseSize = fabricObject._getNonTransformedDimensions(),
+                    // @ts-ignore
+                    newDim = fabricObject._setPositionDimensions({}),
+                    newPoint = point.subtract(fabricObject.pathOffset);
+                newPoint.x /= baseSize.x;
+                newPoint.y /= baseSize.y;
+                // @ts-ignore
+                fabricObject.setPositionByOrigin(absolutePoint, newPoint.x + 0.5, newPoint.y + 0.5);
+                return actionPerformed;
+            }
+        }
 
-                if (!line.x1 || !line.x2 || !line.y1 || !line.y2 || !line.strokeWidth) return false;
-                if (!this.tip.width || !this.tip.height) return false;
-                const angle = Math.atan2(line.y1 - line.y2, line.x1 - line.x2) * (180 / Math.PI) - 90;
-                const pos = fabric.util.rotatePoint(
-                    new fabric.Point(x + this.tip.width / 2, y + this.tip.height / 3 * 2),
-                    new fabric.Point(x, y),
-                    fabric.util.degreesToRadians(angle)
-                );
-                const multipliers = {
-                    tlx: Math.min(line.y1, line.y2) == line.y2 ? 1 : -1,
-                    tly: Math.min(line.x1, line.x2) == line.x2 ? 1 : -1,
-                    brx: Math.min(line.y1, line.y2) == line.y1 ? 1 : -1,
-                    bry: Math.min(line.x1, line.x2) == line.x1 ? 1 : -1,
-                }
-                this.tip.set({
-                    left: line.x2,
-                    top: line.y2,
-                    angle: angle,
-                });
-                line.set({
-                    x2: x, y2: y,
-                })
-                line.controls.tl.y = 0.5 * multipliers.tly
-                line.controls.tl.x = 0.5 * multipliers.tlx
-                line.controls.br.y = 0.5 * multipliers.bry
-                line.controls.br.x = 0.5 * multipliers.brx
-                line.controls.br.offsetX = line.strokeWidth * multipliers.brx;
-                line.controls.br.offsetY = line.strokeWidth * multipliers.bry;
-                line.controls.tl.offsetX = line.strokeWidth * multipliers.tlx;
-                line.controls.tl.offsetY = line.strokeWidth * multipliers.tly;
-                line.cornerSize = 2 * line.strokeWidth;
-                return true;
-            },
-            actionName: 'secondMove',
-            cursorStyle: 'pointer',
-            x: 0.5,
-            y: 0.5,
+        (this.object as any).tool = LineAnnotation.toolOptions;
+        this.object.controls = {
+            from: new fabric.Control({
+                positionHandler: (dim, finalMatrix, fabricObject, control) => polygonPositionHandler(dim, finalMatrix, fabricObject as fabric.Polyline, this.from),
+                actionHandler: anchorWrapper(false, actionHandler),
+                actionName: 'move_from'
+            }),
+            to: new fabric.Control({
+                positionHandler: (dim, finalMatrix, fabricObject, control) => polygonPositionHandler(dim, finalMatrix, fabricObject as fabric.Polyline, this.to),
+                actionHandler: anchorWrapper(true, actionHandler),
+                actionName: 'move_to'
+            })
+        }
 
-        })
         this.options = options;
-        canvas.add(this.tip);
         canvas.setActiveObject(this.object);
     }
     options: any;
     delete() {
-        this.canvas.remove(this.tip);
         super.delete();
     }
     bake(page: PDFPage) {
-        var stroke: Color = Color(this.object.stroke);
-        const { width, height } = page.getSize();
-        var line = this.object as fabric.Line;
-        console.log(this.tip.toSVG());
 
-        page.drawLine({
-            start: {
-                x: line.x1 || 0,
-                y: height - (line.y1 || 0)
-            },
-            end: {
-                x: line.x2 || 0,
-                y: height - (line.y2 || 0)
-            },
-            color: rgb(stroke.red() / 255, stroke.green() / 255, stroke.blue() / 255),
-            thickness: this.object.strokeWidth,
-            lineCap: LineCapStyle.Round
+
+
+        const height = page.getHeight(),
+            parser = new DOMParser(),
+            svg = parser.parseFromString(this.object.toSVG(), "image/svg+xml"),
+            transform = svg.querySelector('g')?.getAttribute('transform')?.match(/-?[0-9]+(\.[0-9]*)?/gm)?.map(e => parseFloat(e)),
+            position = fabric.util.transformPoint(new fabric.Point(0, 0), transform || [1, 0, 0, 1, 0, 0]),
+            path = 'M' + svg.querySelector('polyline')?.getAttribute('points'),
+            stroke = Color(this.object.stroke).object();
+
+
+        page.drawSvgPath(path, {
+            borderColor: rgb(stroke.r / 255, stroke.g / 255, stroke.b / 255),
+
+            x: position.x,
+            y: height - position.y,
+            borderWidth: this.object.strokeWidth,
+            borderLineCap: LineCapStyle.Round
         });
     }
+    getArrowPoints(fromx: number, fromy: number, tox: number, toy: number, width: number): fabric.Point[] {
+        this.from = new fabric.Point(fromx, fromy);
+        this.to = new fabric.Point(tox, toy);
+        var angle = Math.atan2(toy - fromy, tox - fromx);
 
+        var headlen = width;  // arrow head size
+
+        // bring the line end back some to account for arrow head.
+        tox = tox - (headlen) * Math.cos(angle);
+        toy = toy - (headlen) * Math.sin(angle);
+
+        // calculate the points.
+        return [
+            new fabric.Point(fromx, fromy),
+            new fabric.Point(fromx - (headlen / 4) * Math.cos(angle - Math.PI / 2), fromy - (headlen / 4) * Math.sin(angle - Math.PI / 2)),
+            new fabric.Point(tox - (headlen / 4) * Math.cos(angle - Math.PI / 2), toy - (headlen / 4) * Math.sin(angle - Math.PI / 2)),
+            new fabric.Point(tox - (headlen) * Math.cos(angle - Math.PI / 2), toy - (headlen) * Math.sin(angle - Math.PI / 2)),
+            new fabric.Point(tox + (headlen) * Math.cos(angle), toy + (headlen) * Math.sin(angle)),
+            new fabric.Point(tox - (headlen) * Math.cos(angle + Math.PI / 2), toy - (headlen) * Math.sin(angle + Math.PI / 2)),
+            new fabric.Point(tox - (headlen / 4) * Math.cos(angle + Math.PI / 2), toy - (headlen / 4) * Math.sin(angle + Math.PI / 2)),
+            new fabric.Point(fromx - (headlen / 4) * Math.cos(angle + Math.PI / 2), fromy - (headlen / 4) * Math.sin(angle + Math.PI / 2)),
+            new fabric.Point(fromx, fromy),
+        ];
+    }
     serialize(): any {
         return {
-            x1: this.line.x1,
-            y1: this.line.y1,
-            x2: this.line.x2,
-            y2: this.line.y2,
+            x1: this.from.x,
+            y1: this.from.y,
+            x2: this.to.x,
+            y2: this.to.y,
             stroke: this.object.stroke,
             strokeWidth: this.object.strokeWidth,
         };
     }
+}
+
+
+function polygonPositionHandler(dim: any, finalMatrix: any, fabricObject: fabric.Polyline, point: fabric.Point) {
+    return fabric.util.transformPoint(
+        point.subtract(fabricObject.pathOffset),
+        fabric.util.multiplyTransformMatrices(
+            fabricObject.canvas?.viewportTransform || [],
+            fabricObject.calcTransformMatrix()
+        )
+    );
 }

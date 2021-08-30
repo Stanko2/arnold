@@ -200,11 +200,17 @@ export default Vue.extend({
       const pdf: PDFdocument = this.$data.pdf;
       this.$data.final = !this.$data.final;
       if (this.$data.final) {
+        const options = JSON.parse(
+          localStorage.getItem("preferences") || "{}"
+        ).tools.settings.tools.find(
+          (e: any) => e.name == "scoring"
+        )?.defaultOptions;
         const pointsAnnot = new TextAnnotation(
           0,
           {
+            ...options,
             text: `${this.$data.points}B`,
-            top: 90,
+            top: 30,
             left: 300,
             hasControls: false,
             editable: false,

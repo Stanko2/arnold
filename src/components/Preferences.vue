@@ -12,6 +12,9 @@
       </b-list-group>
     </b-col>
     <b-col cols="8" class="categoryMenu">
+      <b-alert show dismissible
+        >Niektore nastavenia sa prejavia az po reloadnuti stranky</b-alert
+      >
       <h1 class="text-center">{{ selectedCategory.text }}</h1>
       <hr />
       <div v-if="selectedCategory.name == 'tools'">
@@ -126,9 +129,6 @@
           </b-col>
         </b-row>
         <hr />
-        <!-- <h3 class="text-center">Moje farby</h3>
-        <p>Tu si mozes vybrat farby ktore budes vsade pouzivat</p>
-        <input type="color" class="colorInput" /> -->
         <b-row>
           <b-col>Auto-save rieseni pri prepnuti</b-col>
           <b-col>
@@ -140,6 +140,20 @@
             ></b-form-checkbox>
           </b-col>
         </b-row>
+      </div>
+      <div v-else-if="selectedCategory.name == 'shortcut'">
+        <div v-for="tool in selectedCategory.settings" :key="tool.name">
+          <b-row>
+            <b-col align-self="center">{{ tool.name }}</b-col>
+            <b-col align-self="center">
+              <b-form-input
+                class="float-right w-50"
+                v-model="tool.shortcut"
+              ></b-form-input>
+            </b-col>
+          </b-row>
+          <hr />
+        </div>
       </div>
     </b-col>
   </b-row>
@@ -155,14 +169,33 @@ export default Vue.extend({
     VSwatches,
   },
   data() {
-    const toolsCopy = tools.map((e) => {
-      return {
-        options: e.options,
-        defaultOptions: e.defaultOptions,
-        name: e.name,
+    const toolsCopy = [
+      ...tools.map((e) => {
+        return {
+          options: e.options,
+          defaultOptions: e.defaultOptions,
+          name: e.name,
+          expanded: false,
+          shortcut: e.shortcut,
+        };
+      }),
+      {
+        options: {
+          hasFill: true,
+          hasStroke: false,
+          hasText: true,
+          hasStrokeWidth: false,
+        },
+        defaultOptions: {
+          fontFamily: "Helvetica",
+          fill: "#000000",
+          fontSize: 12,
+        },
+        name: "scoring",
         expanded: false,
-      };
-    });
+        shortcut: "b",
+      },
+    ];
     let categories = [
       {
         text: "Nastroje",
@@ -171,7 +204,7 @@ export default Vue.extend({
             options: [
               { value: 0, text: "Text" },
               { value: 1, text: "Kreslit" },
-              { value: 3, text: "Sipka (ciara)" },
+              { value: 3, text: "Sipka" },
               { value: 5, text: "Obdlznik" },
               { value: 6, text: "Podpis" },
               { value: 7, text: "Vybrat objekty" },
@@ -181,6 +214,19 @@ export default Vue.extend({
           tools: toolsCopy,
         },
         name: "tools",
+      },
+      {
+        text: "Klavesove skratky",
+        settings: [
+          ...toolsCopy.map((e) => {
+            return { name: e.name, shortcut: e.shortcut };
+          }),
+          { name: "selectNext", shortcut: "ctrl+arrowdown" },
+          { name: "selectPrev", shortcut: "ctrl+arrowup" },
+          { name: "save", shortcut: "ctrl+s" },
+          { name: "delete", shortcut: "del" },
+        ],
+        name: "shortcut",
       },
       {
         text: "Ostatne",
@@ -200,18 +246,24 @@ export default Vue.extend({
     };
   },
   mounted() {
-    // FIXME: tu nieco nefunguje
-    // const data = localStorage.getItem("preferences");
-    // if (data) {
-    //   const prefs = JSON.parse(data);
-    //   //   this.categories = [];
-    //   //   Object.keys(prefs).forEach((key) => {
-    //   //     this.categories.push({
-    //   //       ...prefs[key],
-    //   //       name: key,
-    //   //     });
-    //   //   });
-    // }
+    const data = localStorage.getItem("preferences");
+    if (data) {
+      // eslint-disable-next-line no-unused-vars
+      const prefs = JSON.parse(data);
+      // @ts-ignore
+      this.categories[0].settings.defaultTool.value =
+        prefs.tools.settings.defaultTool.value;
+      this.categories[2] = prefs.other;
+      this.categories[1] = prefs.shortcut;
+      // @ts-ignore
+      this.categories[0].settings.tools[
+        // @ts-ignore
+        this.categories[0].settings.tools.length - 1
+      ] = prefs.tools.settings.tools.find((e: any) => e.name == "scoring");
+    }
+    setTimeout(() => {
+      console.log(this.categories);
+    }, 5000);
   },
   methods: {
     select(i: number) {

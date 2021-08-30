@@ -19,7 +19,7 @@
       </b-tooltip>
     </div>
     <div class="btn" v-if="selectedOptions.hasText">
-      <b-dropdown text="Font">
+      <b-dropdown :text="selectedTool.defaultOptions.fontFamily">
         <b-dropdown-item
           v-for="font in fonts"
           :key="font.viewport"
@@ -195,11 +195,10 @@ export default {
               PDFdocument.activeObject.getObjects().forEach((obj) => {
                 obj.set(this.$data.selectedTool.defaultOptions);
               });
-            } else {
-              PDFdocument.activeObject.set(
-                this.$data.selectedTool.defaultOptions
-              );
             }
+            PDFdocument.activeObject.set(
+              this.$data.selectedTool.defaultOptions
+            );
             PDFdocument.activeObject.canvas?.renderAll();
           }
         } else if (this.$data.selectedTool.name == "Draw") {
