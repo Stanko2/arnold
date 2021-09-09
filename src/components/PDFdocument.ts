@@ -3,7 +3,7 @@ import { Canvas } from "@/Canvas";
 import { Database } from "@/Db";
 import { fabric } from "fabric";
 import { BlendMode, LineCapStyle, LineJoinStyle, PDFDocument, PDFFont, PDFPage, StandardFonts } from "pdf-lib";
-import { Annotation, LineAnnotation, PathAnnotation, RectAnnotation, SignAnnotation, TextAnnotation } from "./Annotation";
+import { Annotation, LineAnnotation, PathAnnotation, RectAnnotation, SignAnnotation, TextAnnotation } from "@/Annotation";
 import { Tool } from "./Tools/Tool";
 import fontKit from '@pdf-lib/fontkit';
 
@@ -105,16 +105,6 @@ export class PDFdocument {
             currDoc.changes.push(annot.serializeToJSON());
         }
         Database.updateDocument(this.id, currDoc);
-        // var blob = new Blob([pdfBytes], {type: 'application/pdf'});
-        // var a = document.createElement("a");
-        // document.body.appendChild(a);
-        // var url = window.URL.createObjectURL(blob);
-        // a.href = url;
-        // a.download = `opravene_${Math.random() * 1000000}.pdf`;
-        // a.click();
-        // window.URL.revokeObjectURL(url);
-        // document.body.removeChild(a);
-
         await this.InitModifyRef();
     }
 

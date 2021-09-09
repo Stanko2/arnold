@@ -1,17 +1,11 @@
 <template>
   <div id="app">
     <nav class="navbar navbar-light bg-primary" style="padding: 0">
-      <topbar
-        @save="save"
-        @select="selectDir"
-        class="pdf"
-        @download="downloadCurrent"
-        ref="topbar"
-      ></topbar>
+      <topbar class="pdf" @download="downloadCurrent" ref="topbar"></topbar>
     </nav>
     <div class="d-flex main">
       <div class="right-bar bg-secondary position-relative">
-        <search-bar ref="searchBar" @search="search" />
+        <search-bar ref="searchBar" />
         <ul ref="previews" class="list-group document-list">
           <transition
             v-for="(document, i) in Documents"
@@ -24,7 +18,6 @@
               class="list-group-item"
               :showPDFPreview="prefs && prefs.showPreviews"
               :documentID="document.id"
-              :tags="tags"
               @click.native="selectIndex(document.index - 1)"
             ></document-preview>
           </transition>
@@ -34,7 +27,7 @@
         </ul>
       </div>
       <div style="width: 100%">
-        <toolbar :pdf="pdf" @refresh="refresh" @scale="scale"></toolbar>
+        <toolbar :pdf="pdf" @refresh="refresh"></toolbar>
         <div class="viewportWrapper" v-if="pdf != null">
           <keep-alive>
             <Viewport :pdf="pdf" :key="selectedIndex" ref="viewport"></Viewport>
@@ -42,8 +35,8 @@
         </div>
       </div>
     </div>
-    <scoring @save="save" />
-    <tagy @tagUpdate="updateTags" @documentTag="updateDocumentTags" />
+    <scoring />
+    <tagy />
     <div
       v-shortkey.once="getShortcut('selectPrev')"
       @shortkey="selectDir(-1)"
@@ -69,7 +62,6 @@ import SearchBar from "../components/SearchBar.vue";
 import DocumentPreview from "../components/DocumentPreview.vue";
 import {
   getViewedDocument,
-  eventHub as DocEventHub,
   // eslint-disable-next-line no-unused-vars
   Document,
   Documents,
@@ -79,7 +71,7 @@ import {
 import { PDFdocument } from "@/components/PDFdocument";
 import Scoring from "@/components/Scoring.vue";
 import { loadFonts } from "@/components/Fonts";
-import Tagy from "@/components/Tagy.vue";
+import Tagy from "@/components/Tags/Tagy.vue";
 
 export default Vue.extend({
   components: {
@@ -97,14 +89,14 @@ export default Vue.extend({
         this.$data.Documents = Documents;
         this.$data.documentsShown = Documents.map(() => true);
         this.$nextTick(() => init());
-        (this.$refs.topbar as any).updateStats();
         (this.$refs.searchBar as any).getTags();
       });
     } else this.$nextTick(() => init());
-
+    this.eventHub.$on("document:save", this.save);
+    this.eventHub.$on("editor:search", this.search);
     const init = () => {
-      DocEventHub.$on(
-        "documentChanged",
+      this.eventHub.$on(
+        "editor:documentChanged",
         (doc: PDFdocument, metadata: Document) => {
           this.$data.selectedIndex = metadata.index - 1;
           this.$data.pdf = doc;
@@ -116,7 +108,7 @@ export default Vue.extend({
       if (getViewedDocument() == null) {
         this.updateSelected(0, false);
         setTimeout(() => {
-          DocEventHub.$emit("setDocument", 0);
+          this.eventHub.$emit("editor:setDocument", 0);
         }, 50);
       }
       loadFonts();
@@ -128,7 +120,7 @@ export default Vue.extend({
     const prefs = JSON.parse(localStorage.getItem("preferences") || "{}")?.other
       ?.settings;
     const shortcuts = JSON.parse(localStorage.getItem("preferences") || "{}")
-      ?.shortcut.settings;
+      ?.shortcut?.settings;
     return {
       pdf: undefined,
       Documents: Documents,
@@ -149,7 +141,7 @@ export default Vue.extend({
         delete: "del",
       };
       let shortcut: string = defaultShortcuts[name];
-      const savedShortcut = this.shortcuts.find((e: any) => e.name == name);
+      const savedShortcut = this.shortcuts?.find((e: any) => e.name == name);
       if (savedShortcut) {
         shortcut = savedShortcut.shortcut;
       }
@@ -161,7 +153,6 @@ export default Vue.extend({
       (this.$refs.documentList as Vue[])[
         this.selectedIndex
       ].$data.documentBusy = true;
-      (this.$refs.topbar as any).updateStats();
     },
     async selectDir(dir: number) {
       if (this.prefs && this.prefs.autoSave) await this.save();
@@ -172,7 +163,7 @@ export default Vue.extend({
       }
       if (i < 0 || i >= Documents.length) return;
       this.updateSelected(i, true);
-      DocEventHub.$emit("setDocument", i);
+      this.eventHub.$emit("editor:setDocument", i);
     },
     updateSelected(newIndex: number, scrolling: boolean) {
       const previews = this.$refs.documentList as Vue[];
@@ -194,7 +185,7 @@ export default Vue.extend({
     async selectIndex(index: number) {
       if (this.prefs && this.prefs.autoSave) await this.save();
       this.updateSelected(index, false);
-      DocEventHub.$emit("setDocument", index);
+      this.eventHub.$emit("editor:setDocument", index);
     },
     search(query: string, tags: string[], categories: string[]) {
       console.log(categories);
@@ -228,7 +219,7 @@ export default Vue.extend({
       }, 500);
     },
     downloadCurrent() {
-      DocEventHub.$emit("download", this.$data.pdf.id);
+      this.eventHub.$emit("editor:download", this.$data.pdf.id);
     },
     deleteSelected() {
       const viewport = this.$refs.viewport as any;
@@ -237,24 +228,11 @@ export default Vue.extend({
     refresh() {
       (this.$refs.viewport as Vue).$forceUpdate();
       this.$nextTick().then(() => {
-        DocEventHub.$emit("setDocument", this.selectedIndex);
+        this.eventHub.$emit("editor:setDocument", this.selectedIndex);
       });
     },
     scale(multiplier: number) {
       (this.$refs.viewport as any).setScale(multiplier);
-    },
-    updateTags(tags: any) {
-      this.tags = tags;
-      for (const preview of this.$refs.documentList as Vue[]) {
-        preview.$data.tags = tags;
-      }
-    },
-    updateDocumentTags() {
-      const curr = Documents.find((e) => e.id == this.$data.pdf.id);
-      const preview = (this.$refs.documentList as Vue[])[
-        (curr?.index || 0) - 1
-      ];
-      preview.$data.document.tags = curr?.tags || [];
     },
   },
 });
@@ -281,8 +259,6 @@ export default Vue.extend({
 }
 .right-bar ul {
   overflow: auto;
-  /* height: auto; */
-  /* max-height: 100% !important; */
   top: 0;
   bottom: 0;
 }

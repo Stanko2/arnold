@@ -1,9 +1,10 @@
 import { fabric } from "fabric";
-import { Annotation, LineAnnotation, PathAnnotation, RectAnnotation, TextAnnotation } from "../Annotation";
+import { Annotation, LineAnnotation, PathAnnotation, RectAnnotation, TextAnnotation } from "@/Annotation";
 import { PDFdocument } from "../PDFdocument";
-import { getViewedDocument, eventHub as DocEventHub } from '@/DocumentManager';
+import { getViewedDocument } from '@/DocumentManager';
 import Vue from "vue";
 import { Database } from "@/Db";
+import eventHub from "@/EventHub";
 export interface Tool {
     defaultOptions: fabric.IObjectOptions,
     click(pdf: PDFdocument, page: number, position: { x: number, y: number }): fabric.Object,
@@ -20,9 +21,7 @@ export interface Tool {
 }
 var vue: Vue | null = null;
 
-export const eventHub = new Vue();
-
-eventHub.$on('init', init);
+eventHub.$on('tool:init', init);
 function init(VueRef: Vue | undefined = undefined) {
     if (VueRef) {
         vue = VueRef;
@@ -54,7 +53,7 @@ function init(VueRef: Vue | undefined = undefined) {
         selectTool(tools[0]);
     }
 }
-DocEventHub.$on('documentChanged', () => { selectTool(selectedTool); });
+eventHub.$on('editor:documentChanged', () => { selectTool(selectedTool); });
 
 export const tools: Tool[] = [
     <Tool>{
@@ -254,7 +253,7 @@ export const tools: Tool[] = [
 let selectedTool: Tool = tools[1];
 
 eventHub.$on('tool:select', selectTool);
-eventHub.$on('initCurrent', () => selectTool(selectedTool));
+eventHub.$on('tool:initCurrent', () => selectTool(selectedTool));
 function selectTool(tool: Tool) {
     selectedTool?.onDeselect?.();
     selectedTool = tool;

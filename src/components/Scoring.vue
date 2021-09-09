@@ -110,10 +110,10 @@
 <script lang="ts">
 import { Database } from "@/Db";
 // eslint-disable-next-line no-unused-vars
-import { Document, eventHub as DocEventHub } from "@/DocumentManager";
+import { Document } from "@/DocumentManager";
 import Vue from "vue";
 // eslint-disable-next-line no-unused-vars
-import { Annotation, TextAnnotation } from "./Annotation";
+import { TextAnnotation } from "@/Annotation";
 // eslint-disable-next-line no-unused-vars
 import { PDFdocument } from "./PDFdocument";
 export default Vue.extend({
@@ -124,7 +124,7 @@ export default Vue.extend({
       this.$data.acceptedCriteria = this.$data.pointCriterias.map(() => false);
       this.$data.final = false;
     }
-    DocEventHub.$on("documentChanged", (pdf: PDFdocument, doc: Document) => {
+    this.eventHub.$on("editor:documentChanged", (pdf: PDFdocument, doc: Document) => {
       setTimeout(() => {
         this.$data.pdf = pdf;
         this.getScoring(doc);
@@ -220,7 +220,7 @@ export default Vue.extend({
         pdf.pageCanvases[0].discardActiveObject();
         pdf.addAnnotation(pointsAnnot);
         this.$data.annotName = pointsAnnot.object.name;
-        this.$emit("save");
+        this.eventHub.$emit("document:save");
       } else if (this.$data.annotName) {
         pdf.deleteAnnotation(this.$data.annotName);
         this.$data.annotName = undefined;

@@ -49,7 +49,6 @@ const pdf = require("pdfvuer");
 import { Canvas } from "../Canvas";
 import { PDFdocument } from "./PDFdocument";
 import { getViewedDocument } from "@/DocumentManager";
-import { eventHub } from "./Tools/Tool";
 import Vue from "vue";
 import { Database } from "@/Db";
 const contextMenu = require("vue-context-menu");
@@ -84,6 +83,7 @@ export default Vue.extend({
     doc?.pageCanvases.forEach((e) => e.dispose());
   },
   mounted() {
+    this.eventHub.$on("viewport:scale", this.setScale);
     window.addEventListener("resize", this.resize);
     PDFdocument.initDocument = (task: any) => {
       this.$data.loaded = false;
@@ -126,7 +126,7 @@ export default Vue.extend({
         document.pageCanvases = pageCanvases;
         document.initCanvases();
         this.$data.loaded = true;
-        eventHub.$emit("initCurrent");
+        this.eventHub.$emit("tool:initCurrent");
       }, 50);
     },
     deleteSelected() {

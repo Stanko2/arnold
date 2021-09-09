@@ -1,8 +1,9 @@
 
 import { PDFdocument } from "./components/PDFdocument";
-import { eventHub as ToolEvents, Tool, tools } from "./components/Tools/Tool";
+import { Tool, tools } from "./components/Tools/Tool";
 import { fabric } from "fabric";
-import { PathAnnotation, SignAnnotation } from "./components/Annotation";
+import { PathAnnotation, SignAnnotation } from "@/Annotation";
+import eventHub from "./EventHub";
 
 export class Canvas extends fabric.Canvas {
     Clear(): void {
@@ -23,7 +24,7 @@ export class Canvas extends fabric.Canvas {
     constructor(el: any, private pdf: PDFdocument, private page: number) {
         super(el);
         this.selection = false;
-        ToolEvents.$on('tool:select', (tool: Tool) => Canvas.selectedTool = tool);
+        eventHub.$on('tool:select', (tool: Tool) => Canvas.selectedTool = tool);
     }
 
 
@@ -61,7 +62,7 @@ export class Canvas extends fabric.Canvas {
                     this.creating = Canvas.selectedTool.click?.(this.pdf, this.page, pointerPos);
                     this.setActiveObject(this.creating);
                     this.requestRenderAll();
-                    ToolEvents.$emit('tool:select', tools[7]);
+                    eventHub.$emit('tool:select', tools[7]);
                 }
             }
 

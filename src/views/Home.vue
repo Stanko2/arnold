@@ -26,7 +26,7 @@
 <script lang="ts">
 import { Database } from "@/Db";
 import Vue from "vue";
-import { loadFromDatabase, eventHub } from "../DocumentManager";
+import { loadFromDatabase } from "../DocumentManager";
 
 export default Vue.extend({
   name: "Home",
@@ -58,7 +58,7 @@ export default Vue.extend({
     fileAdded: function () {
       var file = this.fileInput;
       if (file != null) {
-        eventHub.$emit("parseDocuments", file);
+        this.eventHub.$emit("editor:parseDocuments", file);
         this.$data.fileName = file["name"];
         this.$data.hasFile = true;
       }

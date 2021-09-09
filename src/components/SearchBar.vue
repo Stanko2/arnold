@@ -81,18 +81,17 @@
 </template>
 
 <script lang="ts">
-import { activeParser, eventHub } from "@/DocumentManager";
-// eslint-disable-next-line no-unused-vars
+import { activeParser } from "@/DocumentManager";
 import { DocumentParser } from "@/DocumentParser";
 import Color from "color";
 import Vue from "vue";
 export default Vue.extend({
   mounted() {
     this.getTags();
-    eventHub.$on("loaded", (activeParser: DocumentParser) => {
+    this.eventHub.$on("tags:update", this.getTags);
+    this.eventHub.$on("editor:loaded", (activeParser: DocumentParser) => {
       this.categories = activeParser.kategorie;
       this.categoriesVisible = activeParser.kategorie.map(() => true);
-      this.getTags();
     });
   },
   data() {
@@ -109,10 +108,10 @@ export default Vue.extend({
   },
   methods: {
     search() {
-      this.$emit(
-        "search",
+      this.eventHub.$emit(
+        "editor:search",
         this.searchStr,
-        this.searchTags.map((e: any) => e.meno),
+        this.searchTags.map((e: any) => e.id),
         this.categories.filter((e: String, i: number) => {
           return this.categoriesVisible[i];
         })
@@ -130,19 +129,13 @@ export default Vue.extend({
     },
     removeTag(tag: string) {
       this.searchTags.splice(
-        this.searchTags.findIndex((e: any) => e.meno == tag),
+        this.searchTags.findIndex((e: any) => e.id == tag),
         1
       );
       this.search();
     },
     getTags() {
-      if (activeParser == undefined) return;
       const tags = JSON.parse(localStorage.getItem("tags") || "[]");
-      // for (const kategoria of activeParser.kategorie.map((e: string) => {
-      //   return { meno: e, color: "#3D556E" };
-      // })) {
-      //   tags.push(kategoria);
-      // }
       this.$data.availableTags = tags;
     },
     checkValidity(tag: string) {

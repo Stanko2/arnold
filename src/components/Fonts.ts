@@ -16,30 +16,44 @@ export const FontsAvailable: Record<string, any> = {
         pdf: StandardFonts.Courier,
         viewport: 'Courier New',
     },
-    // 'Roboto': {
-    //     url: 'https://fonts.googleapis.com/css2?family=Roboto',
-    //     pdf: '/fonts/Roboto.ttf',
-    //     viewport: 'Roboto'
-    // },
-    // 'Bebas neue': {
-    //     url: 'https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap',
-    //     pdf: '/fonts/Bebas-neue.ttf',
-    //     viewport: 'Bebas neue'
-    // }
+    'Gloria Hallelujah': {
+        url: 'https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap',
+        pdf: '/fonts/GloriaHallelujah.otf',
+        viewport: 'Gloria Hallelujah'
+    },
+    'Bebas neue': {
+        url: 'https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap',
+        pdf: '/fonts/BebasNeue.otf',
+        viewport: 'Bebas neue'
+    },
+    'Emoji': {
+        url: '/fonts/OpenMoji.woff',
+        pdf: '/fonts/OpenMoji.otf',
+        viewport: 'Emoji'
+    }
 }
 
 export async function loadFonts() {
     Object.keys(FontsAvailable).forEach(e => {
         if (!FontsAvailable[e].url) return;
+        if (FontsAvailable[e].url.match(/\.woff/)) {
+            LoadFont(e, FontsAvailable[e].url);
+            return;
+        }
         fetch(FontsAvailable[e].url).then(res => res.text().then(str => {
-            for (const url of str.matchAll(/https:\/\/fonts.gstatic.com\/s\/.*\.woff2/gm)) {
-                const font = new FontFace(FontsAvailable[e].viewport, `url(${url})`);
-                font.load().then((res: any) => {
-                    (document as any).fonts.add(res);
-                }).catch((err: any) => console.log(err));
+            const fontUrlRegex = /https:\/\/fonts.gstatic.com\/s\/.*\.woff2/gm
+            for (const url of str.matchAll(fontUrlRegex)) {
+                LoadFont(e, url);
             }
         }));
     })
+}
+
+function LoadFont(e: string, url: RegExpMatchArray | string) {
+    const font = new FontFace(FontsAvailable[e].viewport, `url(${url})`);
+    font.load().then((res: any) => {
+        (document as any).fonts.add(res);
+    }).catch((err: any) => console.log(err));
 }
 
 export async function EmbedFont(pdf: PDFdocument | null, font: string) {
@@ -56,7 +70,6 @@ export async function EmbedFont(pdf: PDFdocument | null, font: string) {
         return;
     }
     const fontbytes = await fetch(FontsAvailable[font].pdf).then(res => {
-        console.log(res);
         return res.arrayBuffer()
     })
     pdf.embeddedResources[font] = await pdf.modifyRef.embedFont(fontbytes);

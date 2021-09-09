@@ -61,10 +61,11 @@
             <transition-group name="tags">
               <b-badge
                 v-for="tag in document.tags"
-                :key="tag"
-                :style="{ background: getTagColor(tag) }"
+                :key="tag.id"
+                :style="getTagStyle(tag.id)"
+                style="transition: 500ms"
                 class="m-1"
-                >{{ tag }}</b-badge
+                >{{ tag.meno }}</b-badge
               >
             </transition-group>
           </p>
@@ -80,13 +81,14 @@
 
 <script lang="ts">
 import { Database } from "@/Db";
+import Color from "color";
 import Vue from "vue";
 var pdf = require("pdfvuer");
 export default Vue.extend({
   components: {
     pdf: pdf.default,
   },
-  props: ["documentID", "tags", "showPDFPreview"],
+  props: ["documentID", "showPDFPreview"],
   data() {
     return {
       document: undefined,
@@ -94,28 +96,44 @@ export default Vue.extend({
       selected: false,
       documentBusy: false,
       pdfKey: false,
+      tags: JSON.parse(localStorage.getItem("tags") || "[]"),
     };
   },
   mounted() {
+    this.eventHub.$on("tags:update", (tags: any) => {
+      this.$data.tags = tags;
+      this.$data.document.tags = this.$data.document.tags.map((e: any) =>
+        tags.find((f: { id: any }) => f.id == e)
+      );
+    });
     Database.getDocument(this.documentID).then((doc) => {
       this.$data.document = doc;
+      this.$data.document.tags = this.$data.document.tags.map((e: any) =>
+        this.$data.tags.find((f: { id: any }) => f.id == e)
+      );
       setTimeout(() => {
         this.$data.pdf = pdf.createLoadingTask({
           data: new Uint8Array(doc.pdfData),
         });
       }, 500 * doc.index);
     });
+    this.eventHub.$on("tags:documentTag", (id: number, tags: any) => {
+      if (!this.document || this.documentID != id) return;
+      this.$data.document.tags = tags;
+    });
   },
   methods: {
     updatePreview() {
       Database.getDocument(this.documentID).then((doc) => {
         this.$data.documentBusy = false;
-        this.$data.document.tags = doc.tags;
+        this.$data.document.tags = doc.tags.map((e) =>
+          this.$data.tags.find((f: { id: any }) => f.id == e)
+        );
+        console.log(doc.tags);
+
         this.$data.document.opened = doc.opened;
         this.$data.document.scoring = doc.scoring;
         setTimeout(() => {
-          console.log("updating pdf preview");
-
           this.$data.pdf = pdf.createLoadingTask({
             data: new Uint8Array(doc.pdfData),
           });
@@ -123,9 +141,14 @@ export default Vue.extend({
         }, 30);
       });
     },
-    getTagColor(tag: string) {
-      const a = this.tags.find((e: any) => e.meno == tag);
-      return a.color;
+    getTagStyle(tag: string) {
+      console.log(tag);
+
+      const a = this.tags.find((e: any) => e.id == tag);
+      return {
+        background: a.color,
+        color: Color(a.color).isLight() ? "black" : "white",
+      };
     },
   },
 });

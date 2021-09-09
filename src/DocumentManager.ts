@@ -1,16 +1,15 @@
 import { PDFdocument } from "./components/PDFdocument";
 import JSZip, { JSZipObject } from "jszip";
 import { Database } from "./Db";
-import Vue from "vue";
 import FileSaver from "file-saver";
 import { DocumentParser, PMatParser } from "./DocumentParser";
+import eventHub from "./EventHub";
 
-export const eventHub = new Vue();
 
-eventHub.$on('setDocument', setPdf);
-eventHub.$on('parseDocuments', readZip);
-eventHub.$on('downloadZip', createZip);
-eventHub.$on('download', download);
+eventHub.$on('editor:setDocument', setPdf);
+eventHub.$on('editor:parseDocuments', readZip);
+eventHub.$on('editor:downloadZip', createZip);
+eventHub.$on('editor:download', download);
 
 async function download(id: number) {
     const curr = await Database.getDocument(id);
@@ -32,7 +31,7 @@ async function setPdf(index: number) {
     }
     pdf = new PDFdocument(data.initialPdf, data.id);
 
-    eventHub.$emit('documentChanged', pdf, Documents[index]);
+    eventHub.$emit('editor:documentChanged', pdf, Documents[index]);
 }
 
 export function getViewedDocument() { return pdf }
@@ -84,7 +83,7 @@ export async function loadFromDatabase() {
     metaDatas.sort((a: Document, b: Document) => a.index - b.index);
     Documents = metaDatas;
     activeParser = new PMatParser(localStorage.getItem('uloha') || '');
-    eventHub.$emit('loaded', activeParser, Documents);
+    eventHub.$emit('editor:loaded', activeParser, Documents);
     return metaDatas;
 }
 
@@ -102,11 +101,11 @@ async function createZip() {
     }
     zip.file('/points.json', JSON.stringify(pts, null, '\t'));
     const data = await zip.generateAsync({ type: "blob" }, (progress) => {
-        eventHub.$emit('zip-progress', progress.percent, progress.currentFile);
+        eventHub.$emit('download:progress', progress.percent, progress.currentFile);
     });
     const file = new File([data], 'Opravene.zip');
     FileSaver.saveAs(file);
-    eventHub.$emit('downloaded');
+    eventHub.$emit('download:done');
 }
 
 

@@ -161,7 +161,7 @@
 
 <script lang="ts">
 import Vue from "vue";
-import { tools, eventHub as ToolEvents } from "./Tools/Tool";
+import { tools } from "./Tools/Tool";
 import { FontsAvailable } from "./Fonts";
 const VSwatches = require("vue-swatches");
 export default Vue.extend({
@@ -280,7 +280,7 @@ export default Vue.extend({
         preferences[category.name] = category;
       }
       localStorage.setItem("preferences", JSON.stringify(preferences));
-      ToolEvents.$emit("init");
+      this.eventHub.$emit("tools:init");
     },
   },
 });

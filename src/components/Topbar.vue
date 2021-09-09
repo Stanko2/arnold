@@ -48,7 +48,9 @@
           </div>
         </template>
       </b-modal>
-      <button class="btn btn-success" @click="save">Save</button>
+      <button class="btn btn-success" @click="eventHub.$emit('document:save')">
+        Save
+      </button>
       <b-button variant="success" :disabled="downloading" @click="downloadAll">
         <div v-if="downloading">
           <b-spinner
@@ -114,7 +116,7 @@ import {
   // eslint-disable-next-line no-unused-vars
   Document,
   Documents,
-  eventHub as DocEventHub,
+  getViewedDocument,
 } from "@/DocumentManager";
 import { Database } from "@/Db";
 import Stats from "./Stats.vue";
@@ -123,12 +125,11 @@ import Preferences from "./Preferences.vue";
 export default Vue.extend({
   components: { Stats, Preferences },
   mounted() {
-    DocEventHub.$on("downloaded", () => (this.$data.downloading = false));
-    DocEventHub.$on("zip-progress", (progress: number, file: string) => {
+    this.eventHub.$on("download:done", () => (this.$data.downloading = false));
+    this.eventHub.$on("download:progress", (progress: number, file: string) => {
       this.$data.progress = progress;
       this.$data.file = file;
     });
-    this.updateStats();
   },
   data() {
     return {
@@ -139,23 +140,15 @@ export default Vue.extend({
     };
   },
   methods: {
-    save() {
-      this.$emit("save");
-    },
-    select(dir: number) {
-      this.$emit("select", dir);
-    },
     download() {
-      this.$emit("download");
+      this.eventHub.$emit("editor:download", getViewedDocument()?.id);
     },
     downloadAll() {
-      DocEventHub.$emit("downloadZip");
+      this.eventHub.$emit("editor:downloadZip");
       this.$data.downloading = true;
       this.$data.progress = 0;
       this.$data.file = "";
     },
-    updateStats() {},
-
     destroySession() {
       console.log("Destroy");
       Database.clearAllDocuments().then(() => {

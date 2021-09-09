@@ -95,14 +95,14 @@
       <button
         id="zoomInButton"
         class="btn btn-outline-primary"
-        @click="$emit('scale', 0.1)"
+        @click="eventHub.$emit('viewport:scale', 0.1)"
       >
         <span class="material-icons">add</span>
       </button>
       <button
         id="zoomOutButton"
         class="btn btn-outline-primary"
-        @click="$emit('scale', -0.1)"
+        @click="eventHub.$emit('viewport:scale', -0.1)"
       >
         <span class="material-icons">remove</span>
       </button>
@@ -113,7 +113,7 @@
 </template>
 
 <script>
-import { eventHub as ToolEvents, tools } from "./Tool";
+import { tools } from "./Tool";
 import { PDFdocument } from "../PDFdocument";
 import { FontsAvailable } from "../Fonts";
 import { Canvas } from "../../Canvas";
@@ -145,7 +145,7 @@ export default {
     };
   },
   mounted() {
-    ToolEvents.$emit("init", this);
+    this.eventHub.$emit("tool:init", this);
     Canvas.toolbarRef = this;
     this.getSigns().then((signs) => {
       this.$data.signatures = signs;
@@ -154,7 +154,7 @@ export default {
   methods: {
     select(tool) {
       this.$data.selectedTool = tool;
-      ToolEvents.$emit("tool:select", tool);
+      this.eventHub.$emit("tool:select", tool);
     },
     openSignModal() {
       this.$refs.signMenu.show();
@@ -176,10 +176,6 @@ export default {
       this.getSigns().then((signs) => {
         this.$data.signatures = signs;
       });
-    },
-    refresh() {
-      console.log("refresh");
-      this.$emit("refresh");
     },
   },
   created() {
