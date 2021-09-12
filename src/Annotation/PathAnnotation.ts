@@ -1,11 +1,11 @@
 import { Canvas } from "@/Canvas";
-import {Annotation} from "./Annotation";
+import { Annotation } from "./Annotation";
 import Color from "color";
 import { fabric } from "fabric";
 import { PDFPage, LineCapStyle, rgb } from "pdf-lib";
 
 export class PathAnnotation extends Annotation {
-    public bake(page: PDFPage): void {
+    public bakeObject(page: PDFPage): void {
         const parser = new DOMParser();
         const a = parser.parseFromString(this.object.toSVG(), "image/svg+xml");
         const translationMatrix = a.firstElementChild?.getAttribute('transform')?.match(/-?[0-9]+(\.[0-9]*)?/gm)?.map(e => parseFloat(e));
@@ -53,8 +53,11 @@ export class PathAnnotation extends Annotation {
         }
         else {
             const options = object.options;
-            options.hasControls = false;
+            // options.hasControls = false;
             super(page, new fabric.Path(object.path, options), canvas, 'Path');
+            this.object.originY = 'center';
+            this.object.originX = 'center';
+            this.object._controlsVisibility = { mtr: true };
         }
     }
 

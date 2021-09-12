@@ -1,11 +1,11 @@
 import { Canvas } from "@/Canvas";
-import {Annotation} from "./Annotation";
+import { Annotation } from "./Annotation";
 import Color from "color";
 import { fabric } from "fabric";
 import { PDFPage, LineCapStyle, rgb } from "pdf-lib";
 
 export class SignAnnotation extends Annotation {
-    public bake(page: PDFPage): void {
+    public bakeObject(page: PDFPage): void {
         const grp = this.object as fabric.Group;
         if (!grp.left || !grp.top || !grp.height || !grp.width) {
             throw new Error(`Invalid object location`);
@@ -76,6 +76,7 @@ export class SignAnnotation extends Annotation {
             const options = Object.assign({}, object);
             delete options.paths;
             options.scaleX = 1, options.scaleY = 1;
+            options.originX = 'center', options.originY = 'center';
             const position = new fabric.Point(object.left, object.top);
             delete object.top, object.left;
             for (const path of object.paths) {

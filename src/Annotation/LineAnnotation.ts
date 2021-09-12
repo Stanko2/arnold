@@ -1,5 +1,5 @@
 import { Canvas } from "@/Canvas";
-import {Annotation} from "./Annotation";
+import { Annotation } from "./Annotation";
 import Color from "color";
 import { fabric } from "fabric";
 import { PDFPage, rgb, LineCapStyle } from "pdf-lib";
@@ -93,7 +93,7 @@ export class LineAnnotation extends Annotation {
     delete() {
         super.delete();
     }
-    bake(page: PDFPage) {
+    bakeObject(page: PDFPage) {
 
 
 
