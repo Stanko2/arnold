@@ -95,21 +95,23 @@
               <b-row v-if="tool.options.hasStroke" class="setting">
                 <b-col align-self="center">Farba ciary</b-col>
                 <b-col align-self="center">
-                  <v-swatches
+                  <color-picker
                     class="float-right"
                     v-model="tool.defaultOptions.stroke"
-                    popover-x="left"
-                  ></v-swatches>
+                    :value="tool.defaultOptions.stroke"
+                    :name="tool.name + 'stroke'"
+                  />
                 </b-col>
               </b-row>
               <b-row v-if="tool.options.hasFill" class="setting">
                 <b-col align-self="center">Farba</b-col>
                 <b-col align-self="center">
-                  <v-swatches
+                  <color-picker
                     class="float-right"
                     v-model="tool.defaultOptions.fill"
-                    popover-x="left"
-                  ></v-swatches>
+                    :value="tool.defaultOptions.fill"
+                    :name="tool.name + 'fill'"
+                  />
                 </b-col>
               </b-row>
             </div>
@@ -163,10 +165,10 @@
 import Vue from "vue";
 import { tools } from "./Tools/Tool";
 import { FontsAvailable } from "./Fonts";
-const VSwatches = require("vue-swatches");
+import ColorPicker from "./ColorPicker.vue";
 export default Vue.extend({
   components: {
-    VSwatches,
+    ColorPicker,
   },
   data() {
     const toolsCopy = [

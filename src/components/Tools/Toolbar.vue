@@ -53,11 +53,19 @@
     </div>
     <div v-if="selectedOptions.hasFill" class="d-flex align-items-center">
       <p style="margin: 5px">Fill</p>
-      <v-swatches v-model="selectedTool.defaultOptions.fill"></v-swatches>
+      <color-picker
+        name="fill"
+        v-model="selectedTool.defaultOptions.fill"
+        :value="selectedTool.defaultOptions.fill"
+      />
     </div>
     <div v-if="selectedOptions.hasStroke" class="d-flex align-items-center">
       <p style="margin: 5px">Stroke</p>
-      <v-swatches v-model="selectedTool.defaultOptions.stroke"></v-swatches>
+      <color-picker
+        name="stroke"
+        v-model="selectedTool.defaultOptions.stroke"
+        :value="selectedTool.defaultOptions.stroke"
+      />
     </div>
     <div v-if="selectedTool.name == 'Photo'">
       <b-button variant="primary" @click="openImageModal"
@@ -91,7 +99,6 @@
     </b-modal>
     <hr />
     <div class="right-controls">
-      <!-- TODO: zooming canvas & document -->
       <button
         id="zoomInButton"
         class="btn btn-outline-primary"
@@ -106,8 +113,16 @@
       >
         <span class="material-icons">remove</span>
       </button>
+      <button
+        id="rotateButton"
+        class="btn btn-outline-primary"
+        @click="eventHub.$emit('viewport:rotate')"
+      >
+        <span class="material-icons">refresh</span>
+      </button>
       <b-tooltip target="zoomOutButton" triggers="hover"> Oddialit </b-tooltip>
       <b-tooltip target="zoomInButton" triggers="hover"> Priblizit </b-tooltip>
+      <b-tooltip target="rotateButton" triggers="hover"> Otocit </b-tooltip>
     </div>
   </div>
 </template>
@@ -119,17 +134,14 @@ import { FontsAvailable } from "../Fonts";
 import { Canvas } from "../../Canvas";
 import { getViewedDocument } from "@/DocumentManager";
 
-import VSwatches from "vue-swatches";
 import SignModal from "./SignModal.vue";
 import ImageModal from "./ImageModal.vue";
-
-// Import the styles too, globally
-import "vue-swatches/dist/vue-swatches.css";
+import ColorPicker from "../ColorPicker.vue";
 import { Database } from "@/Db";
 
 export default {
   components: {
-    VSwatches,
+    ColorPicker,
     SignModal,
     ImageModal,
   },

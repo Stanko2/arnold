@@ -13,20 +13,9 @@ export abstract class Annotation {
     public abstract bakeObject(page: PDFPage): void;
 
     public bake(page: PDFPage) {
-        if (this.object.originY === 'center' && this.object.originX === 'center') {
-            const height = page.getHeight();
-            const pos = new fabric.Point((this.object.left || 0), height - (this.object.top || 0));
-            console.log(pos);
-            page.pushOperators(
-                pushGraphicsState(),
-                translate(pos.x, pos.y),
-                rotateDegrees(-(this.object.angle || 0)),
-                translate(-pos.x, -pos.y)
-            );
-            this.bakeObject(page);
-            page.pushOperators(popGraphicsState());
-        }
-        else this.bakeObject(page);
+        page.pushOperators(pushGraphicsState());
+        this.bakeObject(page);
+        page.pushOperators(popGraphicsState());
     }
 
     public serializeToJSON(): any {

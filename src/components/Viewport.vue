@@ -25,12 +25,18 @@
         </li>
       </context-menu>
       <div class="pdf" ref="pdf">
-        <div v-for="i in pageCount" :key="i" class="page-wrapper">
+        <div
+          v-for="i in pageCount"
+          :key="i"
+          class="page-wrapper"
+          v-b-visible="(visible) => changeActivePage(i, visible)"
+        >
           <pdf
             :key="i.toString() + id.toString()"
             :src="src"
             :page="i"
             :scale.sync="scale"
+            :rotate="(rotation[i - 1] || 0) * 90"
             class="card page-data"
             @error="err"
             @loading="documentLoaded"
@@ -70,6 +76,8 @@ export default Vue.extend({
       pagesLoaded: 0,
       loaded: false,
       scale: 1,
+      rotation: Array<number>(pdfDocument?.pageCount || 0).map(() => 0),
+      activePage: 0,
     };
   },
   activated() {
@@ -84,12 +92,15 @@ export default Vue.extend({
   },
   mounted() {
     this.eventHub.$on("viewport:scale", this.setScale);
+    this.eventHub.$on("viewport:rotate", this.rotate);
     window.addEventListener("resize", this.resize);
     PDFdocument.initDocument = (task: any) => {
       this.$data.loaded = false;
       if (task) this.src = task;
       this.src.then((pdf: any) => {
         this.pageCount = pdf.numPages;
+        this.rotation = Array<number>(pdf.numPages).fill(0);
+        // console.log(this.rotation);
       });
     };
     PDFdocument.viewport = this;
@@ -97,6 +108,10 @@ export default Vue.extend({
   methods: {
     err(err: any) {
       console.log(err);
+    },
+    changeActivePage(i: number, visible: boolean) {
+      if (!visible) return;
+      this.activePage = i - 1;
     },
     createCanvases(document: PDFdocument) {
       const pageCanvases: Canvas[] = [];
@@ -137,10 +152,10 @@ export default Vue.extend({
       }
     },
     moveToFront() {
-      // TODO: move active object to front & its annotation to the beginning
       const doc = getViewedDocument();
       const data = doc?.annotations;
       if (data == null) return;
+
       for (const obj of this.getActiveObjects()) {
         let index = data.findIndex((e) => e.object.name === obj.name);
         obj.canvas?.bringToFront(obj);
@@ -148,7 +163,6 @@ export default Vue.extend({
       }
     },
     moveToBack() {
-      // TODO: move active object to back & its annotation to the end
       const doc = getViewedDocument();
       const data = doc?.annotations;
       if (data == null) return;
@@ -193,12 +207,12 @@ export default Vue.extend({
 
           for (let i = 0; i < pages.length; i++) {
             const page = pages[i].querySelector(".page") as HTMLElement;
-            console.log(page);
+            // console.log(page);
             const dimensions = {
               width: parseInt(page.style.width),
               height: parseInt(page.style.height),
             };
-            console.log(dimensions);
+            // console.log(dimensions);
             (pages[i] as HTMLElement).style.width = dimensions.width + "px";
             if (page) {
               var canvas: Canvas = getViewedDocument()?.pageCanvases[
@@ -219,6 +233,22 @@ export default Vue.extend({
       if (!viewedDoc) return;
       const doc = await Database.getDocument(viewedDoc.id);
       viewedDoc.init(doc.initialPdf);
+    },
+    rotate() {
+      const doc = getViewedDocument();
+      doc?.rotatePage(this.activePage);
+      this.$destroy();
+      // this.eventHub.$emit("editor:setDocument");
+      // console.log(this.rotation);
+      // console.log(this.activePage);
+      // this.rotation[this.activePage]++;
+      // const canvas = doc?.pageCanvases[this.activePage];
+      // canvas?.Rotate(90);
+      // canvas?.setDimensions({
+      //   width: canvas.getHeight(),
+      //   height: canvas.getWidth(),
+      // });
+      // this.$forceUpdate();
     },
   },
 });

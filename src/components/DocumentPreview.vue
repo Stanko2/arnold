@@ -129,7 +129,6 @@ export default Vue.extend({
         this.$data.document.tags = doc.tags.map((e) =>
           this.$data.tags.find((f: { id: any }) => f.id == e)
         );
-        console.log(doc.tags);
 
         this.$data.document.opened = doc.opened;
         this.$data.document.scoring = doc.scoring;
@@ -142,8 +141,6 @@ export default Vue.extend({
       });
     },
     getTagStyle(tag: string) {
-      console.log(tag);
-
       const a = this.tags.find((e: any) => e.id == tag);
       return {
         background: a.color,

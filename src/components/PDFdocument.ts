@@ -2,7 +2,7 @@ import Vue from "vue";
 import { Canvas } from "@/Canvas";
 import { Database } from "@/Db";
 import { fabric } from "fabric";
-import { BlendMode, LineCapStyle, LineJoinStyle, PDFDocument, PDFFont, PDFPage, StandardFonts } from "pdf-lib";
+import { BlendMode, decodeFromBase64DataUri, degrees, LineCapStyle, LineJoinStyle, PageSizes, PDFDocument, PDFFont, PDFPage, StandardFonts } from "pdf-lib";
 import { Annotation, LineAnnotation, PathAnnotation, RectAnnotation, SignAnnotation, TextAnnotation } from "@/Annotation";
 import { Tool } from "./Tools/Tool";
 import fontKit from '@pdf-lib/fontkit';
@@ -64,17 +64,9 @@ export class PDFdocument {
     private LoadPdfToViewport(pdfbytes: ArrayBuffer) {
         this.viewref = pdf.createLoadingTask({ data: new Uint8Array(pdfbytes) });
         var progressUpdated = false;
-        this.viewref.onProgress = (progress: number) => {
-            progressUpdated = true;
-        };
         setTimeout(() => {
-            // if (!progressUpdated) {
-            //     this.LoadPdfToViewport(pdfbytes);
-            //     console.error('retry');
-            //     return;
-            // }
             PDFdocument.initDocument.call(PDFdocument.viewport, this.viewref, this);
-        }, 500);
+        }, 50);
     }
 
     async write(annotation: Annotation) {
@@ -152,6 +144,26 @@ export class PDFdocument {
 
     onToolSelect(tool: Tool) {
         tool.onSelect();
+    }
+    async rotatePage(i: number) {
+        if (!this.pdfbytes) return;
+        const currData = await Database.getDocument(this.id);
+        const pdf = await PDFDocument.load(this.pdfbytes);
+        const pages = pdf.getPages();
+        pages[i].setRotation(degrees(pages[i].getRotation().angle + 90));
+        this.pdfbytes = (await pdf.save()).buffer;
+        currData.initialPdf = this.pdfbytes;
+        await Database.updateDocument(this.id, currData, true);
+    }
+
+    async addPage() {
+        if (!this.pdfbytes) return;
+        const currData = await Database.getDocument(this.id);
+        const pdf = await PDFDocument.load(this.pdfbytes);
+        pdf.addPage(PageSizes.A4);
+        this.pdfbytes = (await pdf.save()).buffer;
+        currData.initialPdf = this.pdfbytes;
+        await Database.updateDocument(this.id, currData, true);
     }
 
     deleteAnnotation(name: string) {

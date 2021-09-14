@@ -20,6 +20,8 @@ export class LineAnnotation extends Annotation {
         options.cornerColor = 'blue';
         options.originX = 'left';
         options.originY = 'top';
+        options.lockMovementX = true;
+        options.lockMovementY = true;
         if (!options.x1 || !options.x2 || !options.y1 || !options.y2 || !options.strokeWidth) throw new Error('Invalid location')
 
         super(page, new fabric.Polyline([{ x: options.x1, y: options.y1 }, { x: options.x2, y: options.y2 }], options), canvas, 'Line');
@@ -28,7 +30,6 @@ export class LineAnnotation extends Annotation {
         this.line.set({
             points: this.getArrowPoints(options.x1, options.y1, options.x2, options.y2, options.strokeWidth)
         });
-        console.log(this.line.points);
         const annotation = this;
         function actionHandler(eventData: MouseEvent, transform: fabric.Transform, x: number, y: number, tip: boolean) {
             let polygon = transform.target as fabric.Polyline,
@@ -48,8 +49,6 @@ export class LineAnnotation extends Annotation {
             }
             polygon.set({
                 points: points,
-                // top: Math.min(...points.map(e => e.y)),
-                // left: Math.min(...points.map(e => e.x))
             });
             return true;
         }
@@ -57,17 +56,15 @@ export class LineAnnotation extends Annotation {
         function anchorWrapper(tip: boolean, fn: (eventData: MouseEvent, transform: fabric.Transform, x: number, y: number, tip: boolean) => boolean) {
             return function (eventData: MouseEvent, transform: fabric.Transform, x: number, y: number) {
                 var fabricObject = transform.target as fabric.Polyline,
-                    point = tip ? annotation.to : annotation.from,
-                    absolutePoint = fabric.util.transformPoint(point.subtract(fabricObject.pathOffset), fabricObject.calcTransformMatrix()),
+                    anchorPoint = tip ? annotation.from : annotation.to,
+                    absolutePoint = fabric.util.transformPoint(anchorPoint.subtract(fabricObject.pathOffset), fabricObject.calcTransformMatrix()),
                     actionPerformed = fn(eventData, transform, x, y, tip),
                     baseSize = fabricObject._getNonTransformedDimensions(),
                     // @ts-ignore
                     newDim = fabricObject._setPositionDimensions({}),
-                    newPoint = point.subtract(fabricObject.pathOffset);
+                    newPoint = anchorPoint.subtract(fabricObject.pathOffset);
                 newPoint.x /= baseSize.x;
                 newPoint.y /= baseSize.y;
-                // @ts-ignore
-                fabricObject.setPositionByOrigin(absolutePoint, newPoint.x + 0.5, newPoint.y + 0.5);
                 return actionPerformed;
             }
         }

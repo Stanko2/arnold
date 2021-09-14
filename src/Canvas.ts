@@ -16,7 +16,6 @@ export class Canvas extends fabric.Canvas {
     }
     static toolbarRef: any;
 
-    dragStart: fabric.Point = new fabric.Point(0, 0);
     creating: fabric.Object | null = null;
     pageIndex = 0;
     drawnShapes: fabric.Path[] = [];
@@ -52,8 +51,7 @@ export class Canvas extends fabric.Canvas {
                 options.top = e.absolutePointer?.y - height / 2;
                 options.left = e.absolutePointer?.x - width / 2;
                 Canvas.selectedTool.defaultOptions = options;
-                var pointerPos = this.getPointer(e.e);
-                this.dragStart = new fabric.Point(pointerPos.x, pointerPos.y);
+                const pointerPos = this.getPointer(e.e);
                 if (Canvas.selectedTool.name == 'Arrow') {
                     (Canvas.selectedTool.defaultOptions as fabric.ILineOptions).x1 = pointerPos.x;
                     (Canvas.selectedTool.defaultOptions as fabric.ILineOptions).y1 = pointerPos.y;
@@ -176,6 +174,7 @@ export class Canvas extends fabric.Canvas {
 
     setSelectable(selection: boolean) {
         this.selection = selection;
+        this.discardActiveObject();
         this.getObjects().forEach(obj => {
             obj.selectable = selection;
         });
@@ -198,5 +197,14 @@ export class Canvas extends fabric.Canvas {
         newProps.width = obj.width;
         newProps.height = obj.height;
         obj.set(newProps);
+    }
+    Rotate(angle: number) {
+        const rads = fabric.util.degreesToRadians(angle);
+        console.log(this.viewportTransform);
+
+        const rotate = fabric.util.multiplyTransformMatrices([1, 0, 0, 1, (this.width || 0) / 2, (this.height || 0) / 2], [Math.cos(rads), Math.sin(rads), -Math.sin(rads), Math.cos(rads), 0, 0])
+        if (this.viewportTransform)
+            this.viewportTransform = fabric.util.multiplyTransformMatrices(this.viewportTransform || [1, 0, 0, 1, 0, 0], rotate);
+        this.renderAll();
     }
 }

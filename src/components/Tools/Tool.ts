@@ -97,7 +97,7 @@ export const tools: Tool[] = [
         },
         onSelect: () => {
             getViewedDocument()?.pageCanvases.forEach((e) => {
-                var ref = tools.find(e => e.name == 'Draw');
+                const ref = tools.find(e => e.name == 'Draw');
                 e.freeDrawingBrush.color = ref?.defaultOptions.stroke || '#000000';
                 e.freeDrawingBrush.width = ref?.defaultOptions.strokeWidth || 10;
                 e.isDrawingMode = true;
@@ -141,12 +141,10 @@ export const tools: Tool[] = [
             strokeWidth: 5,
         },
         click: (pdf: PDFdocument, page: number, position: { x: number, y: number }) => {
-            var options = (selectedTool.defaultOptions as fabric.ILineOptions);
-            var annot = new LineAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
+            const annot = new LineAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
-            // selectTool(tools[7]);
+            selectTool(tools[7]);
             selectedTool.defaultOptions = tools.find(e => e.name == 'Arrow')?.defaultOptions || {};
-            console.log(annot.object);
             return annot.object;
         },
         options: {
@@ -262,7 +260,6 @@ function selectTool(tool: Tool) {
     }
     getViewedDocument()?.pageCanvases.forEach(e => {
         e.setSelectable(tool.name === 'Select')
-        e.discardActiveObject();
         e.requestRenderAll();
     });
     if (vue != null) {

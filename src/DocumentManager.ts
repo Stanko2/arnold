@@ -20,8 +20,12 @@ export let Documents: Document[] = []
 let pdf: null | PDFdocument = null;
 let selectedDocumentIndex = -1;
 async function setPdf(index: number) {
+    // if (!index) {
+    //     setPdf(selectedDocumentIndex);
+    //     return;
+    // }
     if (index < 0 || index >= Documents.length) return;
-    // if (index == selectedDocumentIndex) return;
+    if (index == selectedDocumentIndex) return;
 
     selectedDocumentIndex = index;
     var data = Documents[index];
