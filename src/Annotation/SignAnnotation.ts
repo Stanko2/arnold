@@ -5,7 +5,7 @@ import { fabric } from "fabric";
 import { PDFPage, LineCapStyle, rgb } from "pdf-lib";
 
 export class SignAnnotation extends Annotation {
-    public bakeObject(page: PDFPage): void {
+    public bake(page: PDFPage): void {
         const grp = this.object as fabric.Group;
         if (!grp.left || !grp.top || !grp.height || !grp.width) {
             throw new Error(`Invalid object location`);

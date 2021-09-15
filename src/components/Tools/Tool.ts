@@ -258,10 +258,13 @@ function selectTool(tool: Tool) {
     if (tool.onSelect) {
         tool.onSelect();
     }
-    getViewedDocument()?.pageCanvases.forEach(e => {
-        e.setSelectable(tool.name === 'Select')
-        e.requestRenderAll();
-    });
+    setTimeout(() => {
+        getViewedDocument()?.pageCanvases.forEach(e => {
+            e.selection = tool.name === 'Select';
+            e.setSelectable(tool.name === 'Select');
+            e.requestRenderAll();
+        });
+    }, 200);
     if (vue != null) {
         vue.$data.selectedTool = selectedTool;
         vue.$data.selectedOptions = selectedTool.options;

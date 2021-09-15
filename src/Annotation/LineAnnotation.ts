@@ -90,7 +90,7 @@ export class LineAnnotation extends Annotation {
     delete() {
         super.delete();
     }
-    bakeObject(page: PDFPage) {
+    bake(page: PDFPage) {
 
 
 

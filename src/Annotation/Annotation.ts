@@ -10,13 +10,7 @@ export abstract class Annotation {
             this.object.name = `${this.type}_${Math.random().toString(36).substr(2, 9)}`
     }
 
-    public abstract bakeObject(page: PDFPage): void;
-
-    public bake(page: PDFPage) {
-        page.pushOperators(pushGraphicsState());
-        this.bakeObject(page);
-        page.pushOperators(popGraphicsState());
-    }
+    public abstract bake(page: PDFPage): void;
 
     public serializeToJSON(): any {
         return {

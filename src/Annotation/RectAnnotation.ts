@@ -13,7 +13,7 @@ export class RectAnnotation extends Annotation {
         (this.object as any).tool = RectAnnotation.toolOptions;
         canvas.setActiveObject(this.object);
     }
-    bakeObject(page: PDFPage) {
+    bake(page: PDFPage) {
         const fill = Color((this.object.fill as string).substring(0, 7));
         const stroke = Color((this.object.stroke as string).substring(0, 7));
         const height = page.getHeight();

@@ -44,9 +44,9 @@
             v-for="(tag, i) in categories"
             :key="tag"
             class="m-1 category-toggle"
-            variant="danger"
             @click="toggleSearchCategory(tag)"
             size="lg"
+            style="background: var(--cyan)"
             :style="{
               opacity: categoriesVisible[i] ? 1 : 0.5,
             }"

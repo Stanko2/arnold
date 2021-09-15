@@ -14,17 +14,17 @@ export interface DocumentMetadata {
 export class PMatParser implements DocumentParser {
     kategorieMapper: Record<string, string>;
     constructor(public uloha: string) {
-        this.kategorie = ['5', '6', '7', '8', '9', 'Prima', 'Sekunda', 'Tercia', 'Kvarta'];
+        this.kategorie = ['5', '6', '7', '8', '9', 'Pri', 'Sek', 'Ter', 'Kva'];
         this.kategorieMapper = {
             'c5': '5',
             'c6': '6',
             'c7': '7',
             'c8': '8',
             'c9': '9',
-            'cp': 'Prima',
-            'cs': 'Sekunda',
-            'ct': 'Tercia',
-            'ck': 'Kvarta'
+            'cp': 'Pri',
+            'cs': 'Sek',
+            'ct': 'Ter',
+            'ck': 'Kva'
         };
     }
     kategorie: string[];

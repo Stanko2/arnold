@@ -1,13 +1,18 @@
 <template>
   <li
+    style="font-size: 1.3rem"
     :class="{
       'list-group-item-action': !selected,
       active: selected,
+      opened: document && document.opened,
     }"
   >
     <div
       v-if="document != null"
-      :class="{ row: showPDFPreview, 'w-100': !showPDFPreview }"
+      :class="{
+        row: showPDFPreview,
+        'w-100': !showPDFPreview,
+      }"
     >
       <b-overlay :show="documentBusy" no-wrap> </b-overlay>
       <div class="col-5" v-if="showPDFPreview">
@@ -29,7 +34,84 @@
         </div>
       </div>
       <div :class="{ 'col-7': showPDFPreview, 'w-100': !showPDFPreview }">
-        <div class="text-left">
+        <div class="text-left overflow-hidden mw-100">
+          <h5 class="d-inline pr-1 mr-2 border-right">
+            {{ document.index }}
+          </h5>
+          <h5 class="d-inline">{{ document.riesitel }}</h5>
+        </div>
+        <div class="p-3 grid">
+          <b-row class="border-bottom">
+            <b-col class="border-right">
+              <b-badge
+                style="background: var(--cyan)"
+                class="badge badge-secondary mr-1"
+                >{{ document.kategoria }}</b-badge
+              >
+            </b-col>
+            <b-col>
+              <div v-if="!hasComment">
+                <span
+                  :id="'commentNotDone' + document.id"
+                  class="material-icons"
+                  :class="{
+                    'text-danger': document.scoring && document.scoring.final,
+                  }"
+                  >chat_bubble_outline</span
+                >
+                <b-tooltip
+                  :target="'commentNotDone' + document.id"
+                  triggers="hover"
+                >
+                  Toto riesenie este nema komentar
+                </b-tooltip>
+              </div>
+              <div v-else>
+                <span class="material-icons" :id="'commentDone' + document.id"
+                  >chat</span
+                >
+                <b-tooltip
+                  :target="'commentDone' + document.id"
+                  triggers="hover"
+                >
+                  Toto riesenie uz ma napisany komentar
+                </b-tooltip>
+              </div>
+            </b-col>
+          </b-row>
+          <b-row>
+            <b-col class="border-right">
+              <div v-if="document.scoring">{{ document.scoring.points }}B</div>
+              <div v-else>?B</div>
+            </b-col>
+            <b-col
+              ><div v-if="document.scoring" class="points-text d-inline">
+                <span
+                  class="material-icons text-success"
+                  v-if="document.scoring.final"
+                  >check</span
+                >
+                <span class="material-icons text-danger" v-else>close</span>
+              </div>
+              <div v-else class="points-text text-danger d-inline">
+                <span class="material-icons text-danger">close</span>
+              </div></b-col
+            >
+          </b-row>
+        </div>
+        <p class="text-left">
+          <transition-group name="tags">
+            <b-badge
+              v-for="tag in document.tags"
+              :key="tag.id"
+              :style="getTagStyle(tag.id)"
+              style="transition: 500ms"
+              class="m-1"
+              >{{ tag.meno }}</b-badge
+            >
+          </transition-group>
+        </p>
+        <!-- <div class="text-left">
           <div
             v-if="document.opened"
             class="header-text"
@@ -55,21 +137,14 @@
             </div>
           </div>
           <p>
-            <span class="badge badge-secondary mr-1">{{
-              document.kategoria
-            }}</span>
-            <transition-group name="tags">
-              <b-badge
-                v-for="tag in document.tags"
-                :key="tag.id"
-                :style="getTagStyle(tag.id)"
-                style="transition: 500ms"
-                class="m-1"
-                >{{ tag.meno }}</b-badge
-              >
-            </transition-group>
+            <b-badge
+              style="background: var(--cyan)"
+              class="badge badge-secondary mr-1"
+              >{{ document.kategoria }}</b-badge
+            >
+            
           </p>
-        </div>
+        </div> -->
       </div>
     </div>
     <div v-else>
@@ -95,6 +170,7 @@ export default Vue.extend({
       pdf: null,
       selected: false,
       documentBusy: false,
+      hasComment: false,
       pdfKey: false,
       tags: JSON.parse(localStorage.getItem("tags") || "[]"),
     };
@@ -129,7 +205,9 @@ export default Vue.extend({
         this.$data.document.tags = doc.tags.map((e) =>
           this.$data.tags.find((f: { id: any }) => f.id == e)
         );
-
+        this.hasComment = doc.changes.some(
+          (f) => f.type === "Text" && !f.data.text.match(/[0-9]*(\.[0-9])?B/)
+        );
         this.$data.document.opened = doc.opened;
         this.$data.document.scoring = doc.scoring;
         setTimeout(() => {
@@ -174,5 +252,21 @@ export default Vue.extend({
 }
 .points-text {
   font-size: 1.2rem;
+}
+h5 {
+  font-weight: 900;
+  font-size: 1.4rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.opened h5 {
+  font-weight: normal;
+}
+.opened {
+  background-color: rgb(243, 243, 243);
+}
+.active.opened {
+  background-color: #007bff;
 }
 </style>

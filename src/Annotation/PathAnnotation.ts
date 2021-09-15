@@ -5,7 +5,7 @@ import { fabric } from "fabric";
 import { PDFPage, LineCapStyle, rgb, concatTransformationMatrix, pushGraphicsState, scale, translate, popGraphicsState, rotateDegrees } from "pdf-lib";
 
 export class PathAnnotation extends Annotation {
-    public bakeObject(page: PDFPage): void {
+    public bake(page: PDFPage): void {
         /*
                 <g transform="matrix(0.89 0.46 -0.46 0.89 225.08 585.02)"  >
         <path style="stroke: rgb(0,0,0); stroke-width: 10; stroke-dasharray: none; stroke-linecap: round; stroke-dashoffset: 0; stroke-linejoin: round; stroke-miterlimit: 4; fill: none; fill-rule: nonzero; opacity: 1;"  transform=" translate(-233.78, -183.69)" d="M 73.27734375 20255 73.27734375" /></g>

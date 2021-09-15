@@ -6,7 +6,7 @@
     <div class="d-flex main">
       <div class="right-bar bg-secondary position-relative">
         <search-bar ref="searchBar" />
-        <ul ref="previews" class="list-group document-list">
+        <ul ref="previews" class="list-group document-list p-0">
           <transition
             v-for="(document, i) in Documents"
             :key="document.id"
@@ -148,11 +148,11 @@ export default Vue.extend({
       return shortcut.split("+");
     },
     async save() {
-      this.$data.pdf.save();
-      this.UpdateCurrentPreview();
       (this.$refs.documentList as Vue[])[
         this.selectedIndex
       ].$data.documentBusy = true;
+      await this.$data.pdf.save();
+      this.UpdateCurrentPreview();
     },
     async selectDir(dir: number) {
       if (this.prefs && this.prefs.autoSave) await this.save();
@@ -281,7 +281,7 @@ export default Vue.extend({
   opacity: 0;
 }
 .document-list-leave-to {
-  transform: translate(100%, 0) scale(0.5);
+  transform: translate(100%, 0);
   opacity: 0;
 }
 </style>
