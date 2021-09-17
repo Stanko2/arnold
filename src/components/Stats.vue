@@ -52,14 +52,23 @@
 </template>
 
 <script lang="ts">
-// eslint-disable-next-line no-unused-vars
-import { Document } from "@/DocumentManager";
+import { Document } from "@/@types";
 import { Database } from "@/Db";
 import Vue from "vue";
-export default Vue.extend({
+import Component from "vue-class-component";
+
+@Component({})
+export default class Stats extends Vue {
+  stats!: {
+    celkovo: number;
+    otvorene: number;
+    komentar: number;
+    obodovane: number;
+    hotovo: number;
+  };
   mounted() {
     this.update();
-  },
+  }
   data() {
     return {
       stats: {
@@ -70,44 +79,41 @@ export default Vue.extend({
         hotovo: 0,
       },
     };
-  },
-  methods: {
-    update() {
-      Database.getAllDocuments().then((Documents) => {
-        this.$data.stats = {
-          celkovo: Documents.length,
-          otvorene: this.count(Documents, (e: Document) => e.opened),
-          komentar: this.count(Documents, (e: Document) => {
-            return e.changes.some(
+  }
+  update() {
+    Database.getAllDocuments().then((Documents) => {
+      this.stats = {
+        celkovo: Documents.length,
+        otvorene: this.count(Documents, (e: Document) => e.opened),
+        komentar: this.count(Documents, (e: Document) => {
+          return e.changes.some(
+            (f) => f.type === "Text" && !f.data.text.match(/[0-9]*(\.[0-9])?B/)
+          );
+        }),
+        obodovane: this.count(Documents, (e: Document) => {
+          return e.scoring != null;
+        }),
+        hotovo: this.count(Documents, (e: Document) => {
+          return (
+            (e.scoring?.final || false) &&
+            e.changes.some(
               (f) =>
                 f.type === "Text" && !f.data.text.match(/[0-9]*(\.[0-9])?B/)
-            );
-          }),
-          obodovane: this.count(Documents, (e: Document) => {
-            return e.scoring != null;
-          }),
-          hotovo: this.count(Documents, (e: Document) => {
-            return (
-              (e.scoring?.final || false) &&
-              e.changes.some(
-                (f) =>
-                  f.type === "Text" && !f.data.text.match(/[0-9]*(\.[0-9])?B/)
-              )
-            );
-          }),
-        };
-      });
-    },
-    count(arr: any[], fn: (e: any) => boolean): number {
-      let out = 0;
-      for (let i = 0; i < arr.length; i++) {
-        const el = arr[i];
-        if (fn(el)) out++;
-      }
-      return out;
-    },
-  },
-});
+            )
+          );
+        }),
+      };
+    });
+  }
+  count(arr: any[], fn: (e: any) => boolean): number {
+    let out = 0;
+    for (let i = 0; i < arr.length; i++) {
+      const el = arr[i];
+      if (fn(el)) out++;
+    }
+    return out;
+  }
+}
 </script>
 
 <style scoped>

@@ -1,15 +1,4 @@
-export interface DocumentParser {
-    kategorie: string[];
-    uloha: string;
-    parse: (name: string) => DocumentMetadata;
-}
-
-export interface DocumentMetadata {
-    riesitel: string;
-    kategoria: string;
-    id: number;
-    originalName: string;
-}
+import { DocumentMetadata, DocumentParser } from "./@types";
 
 export class PMatParser implements DocumentParser {
     kategorieMapper: Record<string, string>;

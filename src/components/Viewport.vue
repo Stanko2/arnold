@@ -57,16 +57,28 @@ import { PDFdocument } from "./PDFdocument";
 import { getViewedDocument } from "@/DocumentManager";
 import Vue from "vue";
 import { Database } from "@/Db";
+import Component from "vue-class-component";
 const contextMenu = require("vue-context-menu");
 
 var pdfDocument = null;
 
-export default Vue.extend({
+const ViewportProps = Vue.extend({
   props: ["pdf"],
+});
+@Component({
   components: {
     pdf: pdf.default,
     contextMenu,
   },
+})
+export default class Viewport extends ViewportProps {
+  loaded: boolean = false;
+  src: any;
+  pageCount: number = 0;
+  rotation: number[] = [];
+  activePage: number = 0;
+  scale: number = 1;
+
   data() {
     pdfDocument = getViewedDocument();
     return {
@@ -79,23 +91,23 @@ export default Vue.extend({
       rotation: Array<number>(pdfDocument?.pageCount || 0).map(() => 0),
       activePage: 0,
     };
-  },
+  }
   activated() {
     const doc = getViewedDocument();
     if (doc) {
       this.createCanvases(doc);
     }
-  },
+  }
   deactivated() {
     const doc = getViewedDocument();
     doc?.pageCanvases.forEach((e) => e.dispose());
-  },
+  }
   mounted() {
     this.eventHub.$on("viewport:scale", this.setScale);
     this.eventHub.$on("viewport:rotate", this.rotate);
     window.addEventListener("resize", this.resize);
     PDFdocument.initDocument = (task: any) => {
-      this.$data.loaded = false;
+      this.loaded = false;
       if (task) this.src = task;
       this.src.then((pdf: any) => {
         this.pageCount = pdf.numPages;
@@ -104,154 +116,150 @@ export default Vue.extend({
       });
     };
     PDFdocument.viewport = this;
-  },
-  methods: {
-    err(err: any) {
-      console.log(err);
-    },
-    changeActivePage(i: number, visible: boolean) {
-      if (!visible) return;
-      this.activePage = i - 1;
-    },
-    createCanvases(document: PDFdocument) {
-      const pageCanvases: Canvas[] = [];
-      // setTimeout musi byt, lebo z nejakych dovodov sa to pdfko resizne na co canvas nevie reagovat
-      // nepodarilo sa mi vyriesit lepsie
-      setTimeout(() => {
-        if (document.pageCanvases.length > 0) return;
+  }
+  err(err: any) {
+    console.log(err);
+  }
+  changeActivePage(i: number, visible: boolean) {
+    if (!visible) return;
+    this.activePage = i - 1;
+  }
+  createCanvases(document: PDFdocument) {
+    const pageCanvases: Canvas[] = [];
+    // setTimeout musi byt, lebo z nejakych dovodov sa to pdfko resizne na co canvas nevie reagovat
+    // nepodarilo sa mi vyriesit lepsie
+    setTimeout(() => {
+      if (document.pageCanvases.length > 0) return;
 
-        const pages = this.$refs.page as Element[];
-        const PDFpages = (this.$refs.pdf as Element).children;
-        for (var i = 0; i < pages.length; i++) {
-          const page = pages[i];
-          const canvas = new Canvas(page, document, i);
-          const pagePDF = PDFpages[i].querySelector(".page") as HTMLElement;
+      const pages = this.$refs.page as Element[];
+      const PDFpages = (this.$refs.pdf as Element).children;
+      for (var i = 0; i < pages.length; i++) {
+        const page = pages[i];
+        const canvas = new Canvas(page, document, i);
+        const pagePDF = PDFpages[i].querySelector(".page") as HTMLElement;
+        const dimensions = {
+          width: parseInt(pagePDF.style.width),
+          height: parseInt(pagePDF.style.height),
+        };
+        (PDFpages[i] as HTMLElement).style.width = dimensions.width + "px";
+        canvas.setHeight(dimensions?.height);
+        canvas.setWidth(dimensions?.width);
+        canvas.setScale(dimensions);
+        canvas.pageIndex = i;
+        pageCanvases.push(canvas);
+      }
+
+      document.pageCanvases = pageCanvases;
+      document.initCanvases();
+      this.loaded = true;
+      this.eventHub.$emit("tool:initCurrent");
+    }, 50);
+  }
+  deleteSelected() {
+    const doc = getViewedDocument();
+    if (doc == null) return;
+    for (const cnv of doc.pageCanvases) {
+      cnv.deleteSelected();
+    }
+  }
+  moveToFront() {
+    const doc = getViewedDocument();
+    const data = doc?.annotations;
+    if (data == null) return;
+
+    for (const obj of this.getActiveObjects()) {
+      let index = data.findIndex((e) => e.object.name === obj.name);
+      obj.canvas?.bringToFront(obj);
+      data.push(data.splice(index, 1)[0]);
+    }
+  }
+  moveToBack() {
+    const doc = getViewedDocument();
+    const data = doc?.annotations;
+    if (data == null) return;
+
+    for (const obj of this.getActiveObjects()) {
+      let index = data.findIndex((e) => e.object.name === obj.name);
+      obj.canvas?.sendToBack(obj);
+      data.unshift(data.splice(index, 1)[0]);
+    }
+  }
+  documentLoaded(loading: boolean) {
+    this.loaded = !loading;
+    if (!loading) {
+      const document = getViewedDocument();
+      if (document) this.createCanvases(document);
+    }
+  }
+  openCtxMenu(e: Event) {
+    const doc = getViewedDocument();
+    if (doc?.pageCanvases.some((f) => f.canOpenCtxMenu(e))) {
+      (this.$refs.ctxMenu as any).open();
+    }
+    e.preventDefault();
+  }
+  getActiveObjects() {
+    const doc = getViewedDocument();
+    var active: fabric.Object[] = [];
+    doc?.pageCanvases.forEach((e) => {
+      e.getActiveObjects().forEach((f) => active.push(f));
+    });
+    return active;
+  }
+  setScale(mult: number) {
+    this.scale += mult;
+    this.resize();
+  }
+  resize() {
+    setTimeout(() => {
+      try {
+        const pdf = this.$refs.pdf as HTMLElement;
+        const pages = pdf.children;
+
+        for (let i = 0; i < pages.length; i++) {
+          const page = pages[i].querySelector(".page") as HTMLElement;
+          // console.log(page);
           const dimensions = {
-            width: parseInt(pagePDF.style.width),
-            height: parseInt(pagePDF.style.height),
+            width: parseInt(page.style.width),
+            height: parseInt(page.style.height),
           };
-          (PDFpages[i] as HTMLElement).style.width = dimensions.width + "px";
-          canvas.setHeight(dimensions?.height);
-          canvas.setWidth(dimensions?.width);
-          canvas.setScale(dimensions);
-          canvas.pageIndex = i;
-          pageCanvases.push(canvas);
-        }
-
-        document.pageCanvases = pageCanvases;
-        document.initCanvases();
-        this.$data.loaded = true;
-        this.eventHub.$emit("tool:initCurrent");
-      }, 50);
-    },
-    deleteSelected() {
-      const doc = getViewedDocument();
-      if (doc == null) return;
-      for (const cnv of doc.pageCanvases) {
-        cnv.deleteSelected();
-      }
-    },
-    moveToFront() {
-      const doc = getViewedDocument();
-      const data = doc?.annotations;
-      if (data == null) return;
-
-      for (const obj of this.getActiveObjects()) {
-        let index = data.findIndex((e) => e.object.name === obj.name);
-        obj.canvas?.bringToFront(obj);
-        data.push(data.splice(index, 1)[0]);
-      }
-    },
-    moveToBack() {
-      const doc = getViewedDocument();
-      const data = doc?.annotations;
-      if (data == null) return;
-
-      for (const obj of this.getActiveObjects()) {
-        let index = data.findIndex((e) => e.object.name === obj.name);
-        obj.canvas?.sendToBack(obj);
-        data.unshift(data.splice(index, 1)[0]);
-      }
-    },
-    documentLoaded(loading: boolean) {
-      this.$data.loaded = !loading;
-      if (!loading) {
-        const document = getViewedDocument();
-        if (document) this.createCanvases(document);
-      }
-    },
-    openCtxMenu(e: Event) {
-      const doc = getViewedDocument();
-      if (doc?.pageCanvases.some((f) => f.canOpenCtxMenu(e))) {
-        (this.$refs.ctxMenu as any).open();
-      }
-      e.preventDefault();
-    },
-    getActiveObjects() {
-      const doc = getViewedDocument();
-      var active: fabric.Object[] = [];
-      doc?.pageCanvases.forEach((e) => {
-        e.getActiveObjects().forEach((f) => active.push(f));
-      });
-      return active;
-    },
-    setScale(mult: number) {
-      this.$data.scale += mult;
-      this.resize();
-    },
-    resize() {
-      setTimeout(() => {
-        try {
-          const pdf = this.$refs.pdf as HTMLElement;
-          const pages = pdf.children;
-
-          for (let i = 0; i < pages.length; i++) {
-            const page = pages[i].querySelector(".page") as HTMLElement;
-            // console.log(page);
-            const dimensions = {
-              width: parseInt(page.style.width),
-              height: parseInt(page.style.height),
-            };
-            // console.log(dimensions);
-            (pages[i] as HTMLElement).style.width = dimensions.width + "px";
-            if (page) {
-              var canvas: Canvas = getViewedDocument()?.pageCanvases[
-                i
-              ] as Canvas;
-              canvas.setWidth(dimensions.width);
-              canvas.setHeight(dimensions.height);
-              canvas.setScale(dimensions);
-            }
+          // console.log(dimensions);
+          (pages[i] as HTMLElement).style.width = dimensions.width + "px";
+          if (page) {
+            var canvas: Canvas = getViewedDocument()?.pageCanvases[i] as Canvas;
+            canvas.setWidth(dimensions.width);
+            canvas.setHeight(dimensions.height);
+            canvas.setScale(dimensions);
           }
-        } catch (e) {
-          return;
         }
-      }, 20);
-    },
-    async refresh() {
-      const viewedDoc = getViewedDocument();
-      if (!viewedDoc) return;
-      const doc = await Database.getDocument(viewedDoc.id);
-      viewedDoc.init(doc.initialPdf);
-    },
-    rotate() {
-      const doc = getViewedDocument();
-      doc?.rotatePage(this.activePage);
-      this.$destroy();
-      // this.eventHub.$emit("editor:setDocument");
-      // console.log(this.rotation);
-      // console.log(this.activePage);
-      // this.rotation[this.activePage]++;
-      // const canvas = doc?.pageCanvases[this.activePage];
-      // canvas?.Rotate(90);
-      // canvas?.setDimensions({
-      //   width: canvas.getHeight(),
-      //   height: canvas.getWidth(),
-      // });
-      // this.$forceUpdate();
-    },
-  },
-});
+      } catch (e) {
+        return;
+      }
+    }, 20);
+  }
+  async refresh() {
+    const viewedDoc = getViewedDocument();
+    if (!viewedDoc) return;
+    const doc = await Database.getDocument(viewedDoc.id);
+    viewedDoc.init(doc.initialPdf);
+  }
+  rotate() {
+    const doc = getViewedDocument();
+    doc?.rotatePage(this.activePage);
+    this.$destroy();
+    // this.eventHub.$emit("editor:setDocument");
+    // console.log(this.rotation);
+    // console.log(this.activePage);
+    // this.rotation[this.activePage]++;
+    // const canvas = doc?.pageCanvases[this.activePage];
+    // canvas?.Rotate(90);
+    // canvas?.setDimensions({
+    //   width: canvas.getHeight(),
+    //   height: canvas.getWidth(),
+    // });
+    // this.$forceUpdate();
+  }
+}
 </script>
 <style scoped>
 .pageAnnot {

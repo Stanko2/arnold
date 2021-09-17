@@ -1,9 +1,10 @@
 import { PDFdocument } from "./components/PDFdocument";
-import JSZip, { JSZipObject } from "jszip";
+import JSZip from "jszip";
 import { Database } from "./Db";
 import FileSaver from "file-saver";
-import { DocumentParser, PMatParser } from "./DocumentParser";
+import { PMatParser } from "./DocumentParser";
 import eventHub from "./EventHub";
+import type { IScoring, Document, DocumentParser } from "./@types";
 
 
 eventHub.$on('editor:setDocument', setPdf);
@@ -87,7 +88,9 @@ export async function loadFromDatabase() {
     metaDatas.sort((a: Document, b: Document) => a.index - b.index);
     Documents = metaDatas;
     activeParser = new PMatParser(localStorage.getItem('uloha') || '');
-    eventHub.$emit('editor:loaded', activeParser, Documents);
+    setTimeout(() => {
+        eventHub.$emit('editor:loaded', activeParser, Documents);
+    }, 50);
     return metaDatas;
 }
 
@@ -113,24 +116,3 @@ async function createZip() {
 }
 
 
-export interface Document {
-    riesitel: string;
-    kategoria: string;
-    index: number;
-    id: number;
-    scoring?: IScoring;
-    pdfData: ArrayBuffer;
-    initialPdf: ArrayBuffer;
-    changes: any[];
-    tags: any[];
-    originalName: string;
-    opened: boolean;
-}
-
-interface IScoring {
-    points: number;
-    acceptedCriteria: boolean[];
-    final: boolean;
-    annotName?: string;
-    comments?: string[];
-}

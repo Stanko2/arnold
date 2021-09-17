@@ -18,10 +18,3 @@ import { fabric } from 'fabric';
 //     public id: string;
 // }
 
-export interface ITemplate {
-    id: string;
-    type: string;
-    templateOptions: fabric.IObjectOptions;
-    data: any;
-    name: string;
-}

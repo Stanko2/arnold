@@ -61,23 +61,35 @@
 <script lang="ts">
 import Vue from "vue";
 import { fabric } from "fabric";
-
-//eslint-disable-next-line no-unused-vars
-import { ITemplate } from "../Templates";
+import type { ITemplate } from "@/@types";
 import { Database } from "@/Db";
-export default Vue.extend({
+import Component from "vue-class-component";
+
+const SignModalProps = Vue.extend({
   props: ["signs"],
+});
+
+@Component({})
+export default class SignModal extends SignModalProps {
+  signatures!: {
+    hover: boolean;
+    canvas?: fabric.Canvas;
+    element?: HTMLCanvasElement;
+    id: string;
+    name?: string;
+  }[];
+  deleted: any;
   data() {
     return {
       signatures: [],
       canvases: [],
       deleted: [],
     };
-  },
+  }
   mounted() {
     this.signs().then((signs: ITemplate[]) => {
       console.log(signs);
-      this.$data.signatures = signs.map((sign, i) => {
+      this.signatures = signs.map((sign, i) => {
         return {
           hover: false,
           canvas: undefined,
@@ -96,79 +108,75 @@ export default Vue.extend({
             fabricCanvas.loadFromJSON(sign.data, () => {
               fabricCanvas.isDrawingMode = false;
             });
-            const signature = this.$data.signatures.find(
-              (e: any) => e.id == sign.id
-            );
-            signature.canvas = fabricCanvas;
-            signature.element = cnv;
+            const signature = this.signatures.find((e: any) => e.id == sign.id);
+            if (signature) {
+              signature.canvas = fabricCanvas;
+              signature.element = cnv;
+            }
           }
         }
-        console.log(this.$data.signatures);
+        console.log(this.signatures);
       });
     });
-  },
-  methods: {
-    addSignature() {
-      const id = Math.random().toString(36).substr(2, 9);
-      this.$data.signatures.push({
-        id: id,
-        hover: false,
+  }
+  addSignature() {
+    const id = Math.random().toString(36).substr(2, 9);
+    this.signatures.push({
+      id: id,
+      hover: false,
+    });
+    this.$nextTick().then(() => {
+      const cnv = document.getElementById("canvas_" + id) as HTMLCanvasElement;
+
+      console.log(cnv);
+
+      const fabricCanvas = new fabric.Canvas(cnv, { selection: false });
+      fabricCanvas.isDrawingMode = false;
+      fabricCanvas.on("object:added", (e) => {
+        if (!e.target) return;
+        e.target.selectable = false;
+        e.target.evented = false;
       });
-      this.$nextTick().then(() => {
-        const cnv = document.getElementById(
-          "canvas_" + id
-        ) as HTMLCanvasElement;
+      this.signatures[this.signatures.length - 1].canvas = fabricCanvas;
+      this.signatures[this.signatures.length - 1].element = cnv;
+    });
+  }
+  edit(id: number) {
+    const cnv = this.signatures.find((e: any) => e.id == id);
 
-        console.log(cnv);
-
-        const fabricCanvas = new fabric.Canvas(cnv, { selection: false });
-        fabricCanvas.isDrawingMode = false;
-        fabricCanvas.on("object:added", (e) => {
-          if (!e.target) return;
-          e.target.selectable = false;
-          e.target.evented = false;
-        });
-        this.$data.signatures[this.signatures.length - 1].canvas = fabricCanvas;
-        this.$data.signatures[this.signatures.length - 1].element = cnv;
-      });
-    },
-    edit(id: number) {
-      const cnv = this.$data.signatures.find((e: any) => e.id == id);
-
-      if (!cnv) return;
-      this.$data.signatures.forEach((e: any) => {
+    if (!cnv) return;
+    this.signatures.forEach((e: any) => {
+      e.canvas.isDrawingMode = false;
+    });
+    cnv.hover = false;
+    if (cnv.canvas) cnv.canvas.isDrawingMode = true;
+  }
+  deselectAll() {
+    if (!this.signatures.some((e: any) => e.hover)) {
+      this.signatures.forEach((e: any) => {
         e.canvas.isDrawingMode = false;
       });
-      cnv.hover = false;
-      cnv.canvas.isDrawingMode = true;
-    },
-    deselectAll() {
-      if (!this.$data.signatures.some((e: any) => e.hover)) {
-        this.$data.signatures.forEach((e: any) => {
-          e.canvas.isDrawingMode = false;
-        });
-      }
-    },
-    remove(id: number) {
-      const index = this.$data.signatures.findIndex((e: any) => e.id == id);
-      this.$data.signatures.splice(index, 1);
-      this.$data.deleted.push(id);
-    },
-    signModalAccepted() {
-      this.$data.signatures.forEach((e: any) => {
-        const data = {
-          id: e.id || Math.random().toString(36).substr(2, 9),
-          type: "Sign",
-          data: e.canvas.toJSON(),
-          name: e.name,
-        };
-        console.log(data);
-        Database.updateTemplate(data as ITemplate);
-      });
-      this.$data.deleted.forEach((e: string) => {
-        Database.removetemplate(e);
-      });
-    },
-  },
-});
+    }
+  }
+  remove(id: number) {
+    const index = this.signatures.findIndex((e: any) => e.id == id);
+    this.signatures.splice(index, 1);
+    this.deleted.push(id);
+  }
+  signModalAccepted() {
+    this.signatures.forEach((e: any) => {
+      const data = {
+        id: e.id || Math.random().toString(36).substr(2, 9),
+        type: "Sign",
+        data: e.canvas.toJSON(),
+        name: e.name,
+      };
+      console.log(data);
+      Database.updateTemplate(data as ITemplate);
+    });
+    this.deleted.forEach((e: string) => {
+      Database.removetemplate(e);
+    });
+  }
+}
 </script>

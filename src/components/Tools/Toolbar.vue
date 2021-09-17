@@ -76,7 +76,7 @@
       <b-button variant="primary" @click="openSignModal"
         >Open Sign Menu</b-button
       >
-      <b-dropdown text="Select signature">
+      <b-dropdown :text="getSignDropdownText()">
         <b-dropdown-item
           v-for="sign in signatures"
           :key="sign.id"
@@ -113,16 +113,16 @@
       >
         <span class="material-icons">remove</span>
       </button>
-      <button
+      <!-- <button
         id="rotateButton"
         class="btn btn-outline-primary"
         @click="eventHub.$emit('viewport:rotate')"
       >
         <span class="material-icons">refresh</span>
-      </button>
+      </button> -->
       <b-tooltip target="zoomOutButton" triggers="hover"> Oddialit </b-tooltip>
       <b-tooltip target="zoomInButton" triggers="hover"> Priblizit </b-tooltip>
-      <b-tooltip target="rotateButton" triggers="hover"> Otocit </b-tooltip>
+      <!-- <b-tooltip target="rotateButton" triggers="hover"> Otocit </b-tooltip> -->
     </div>
   </div>
 </template>
@@ -186,8 +186,15 @@ export default {
     signModalAccepted() {
       this.$refs.signModal.signModalAccepted();
       this.getSigns().then((signs) => {
-        this.$data.signatures = signs;
+        this.signatures = signs;
       });
+    },
+    getSignDropdownText() {
+      return (
+        this.signatures.find(
+          (e) => e.id == this.selectedTool.defaultOptions.sign
+        )?.name || "Select signature"
+      );
     },
   },
   created() {

@@ -4,33 +4,21 @@
       <topbar class="pdf" @download="downloadCurrent" ref="topbar"></topbar>
     </nav>
     <div class="d-flex main">
-      <div class="right-bar bg-secondary position-relative">
-        <search-bar ref="searchBar" />
-        <ul ref="previews" class="list-group document-list p-0">
-          <transition
-            v-for="(document, i) in Documents"
-            :key="document.id"
-            name="document-list"
-          >
-            <document-preview
-              v-show="documentsShown[i]"
-              ref="documentList"
-              class="list-group-item"
-              :showPDFPreview="prefs && prefs.showPreviews"
-              :documentID="document.id"
-              @click.native="selectIndex(document.index - 1)"
-            ></document-preview>
-          </transition>
-          <li v-if="!documentsShown.some((e) => e)">
-            <p class="text-danger">No matching documents</p>
-          </li>
-        </ul>
-      </div>
+      <transition name="sidebar">
+        <sidebar
+          v-if="loadedDocuments"
+          v-show="sidebarVisible"
+          :autoSave="prefs && prefs.autoSave"
+          :showPreviews="prefs && prefs.showPreviews"
+          :documents="Documents"
+          ref="sidebar"
+        />
+      </transition>
       <div style="width: 100%">
         <toolbar :pdf="pdf" @refresh="refresh"></toolbar>
         <div class="viewportWrapper" v-if="pdf != null">
           <keep-alive>
-            <Viewport :pdf="pdf" :key="selectedIndex" ref="viewport"></Viewport>
+            <Viewport :pdf="pdf" :key="pdf.id" ref="viewport"></Viewport>
           </keep-alive>
         </div>
       </div>
@@ -39,41 +27,42 @@
     <tagy />
     <div
       v-shortkey.once="getShortcut('selectPrev')"
-      @shortkey="selectDir(-1)"
+      @shortkey="$refs.sidebar.selectDir(-1)"
     ></div>
     <div
       v-shortkey.once="getShortcut('selectNext')"
-      @shortkey="selectDir(1)"
+      @shortkey="$refs.sidebar.selectDir(1)"
     ></div>
-    <div v-shortkey.once="getShortcut('save')" @shortkey="save"></div>
+    <div
+      v-shortkey.once="getShortcut('save')"
+      @shortkey="$refs.sidebar.save()"
+    ></div>
     <div
       v-shortkey.once="getShortcut('delete')"
       @shortkey="deleteSelected"
     ></div>
+    <div v-shortkey.once="getShortcut('zoomIn')" @shortkey="scale(0.1)"></div>
+    <div v-shortkey.once="getShortcut('zoomOut')" @shortkey="scale(-0.1)"></div>
   </div>
 </template>
 
 <script lang="ts">
 import { Vue } from "vue-property-decorator";
+import { Document } from "@/@types";
 import Viewport from "../components/Viewport.vue";
 import Topbar from "../components/Topbar.vue";
 import Toolbar from "../components/Tools/Toolbar.vue";
 import SearchBar from "../components/SearchBar.vue";
 import DocumentPreview from "../components/DocumentPreview.vue";
-import {
-  getViewedDocument,
-  // eslint-disable-next-line no-unused-vars
-  Document,
-  Documents,
-  loadFromDatabase,
-} from "../DocumentManager";
-// eslint-disable-next-line no-unused-vars
-import { PDFdocument } from "@/components/PDFdocument";
+import { Documents, loadFromDatabase } from "../DocumentManager";
+import type { PDFdocument } from "@/components/PDFdocument";
 import Scoring from "@/components/Scoring.vue";
 import { loadFonts } from "@/components/Fonts";
 import Tagy from "@/components/Tags/Tagy.vue";
+import Component from "vue-class-component";
+import Sidebar from "@/components/Sidebar.vue";
 
-export default Vue.extend({
+@Component({
   components: {
     Viewport,
     Topbar,
@@ -82,38 +71,42 @@ export default Vue.extend({
     Scoring,
     SearchBar,
     Tagy,
+    Sidebar,
   },
+})
+export default class Editor extends Vue {
+  Documents!: Document[];
+  documentsShown!: boolean[];
+  selectedIndex: number = 0;
+  pdf!: PDFdocument;
+  shortcuts: any;
+  prefs: any;
+  loadedDocuments: boolean = false;
+  sidebarVisible: boolean = true;
+
+  $refs!: {
+    searchBar: SearchBar;
+    viewport: Viewport;
+    sidebar: Sidebar;
+  };
   mounted() {
     if (Documents.length == 0) {
-      loadFromDatabase().then(() => {
-        this.$data.Documents = Documents;
-        this.$data.documentsShown = Documents.map(() => true);
+      loadFromDatabase().then((Documents) => {
+        this.Documents = Documents;
+        this.loadedDocuments = true;
         this.$nextTick(() => init());
-        (this.$refs.searchBar as any).getTags();
       });
     } else this.$nextTick(() => init());
-    this.eventHub.$on("document:save", this.save);
-    this.eventHub.$on("editor:search", this.search);
     const init = () => {
-      this.eventHub.$on(
-        "editor:documentChanged",
-        (doc: PDFdocument, metadata: Document) => {
-          this.$data.selectedIndex = metadata.index - 1;
-          this.$data.pdf = doc;
-          if (this.$refs.documentList) {
-            this.UpdateCurrentPreview();
-          }
-        }
-      );
-      if (getViewedDocument() == null) {
-        this.updateSelected(0, false);
-        setTimeout(() => {
-          this.eventHub.$emit("editor:setDocument", 0);
-        }, 50);
-      }
+      this.eventHub.$on("editor:documentChanged", (doc: PDFdocument) => {
+        this.pdf = doc;
+      });
+      this.eventHub.$on("editor:sidebarToggle", () => {
+        this.sidebarVisible = !this.sidebarVisible;
+      });
       loadFonts();
     };
-  },
+  }
   data() {
     Documents.sort((a: Document, b: Document) => a.index - b.index);
     const tags = JSON.parse(localStorage.getItem("tags") || "[]");
@@ -126,116 +119,46 @@ export default Vue.extend({
       Documents: Documents,
       selectedIndex: 0,
       documentsShown: Documents.map(() => true),
-      ukazBodovanie: false,
       tags: tags,
       prefs: prefs,
       shortcuts: shortcuts,
+      loadedDocuments: false,
+      sidebarVisible: true,
     };
-  },
-  methods: {
-    getShortcut(name: string) {
-      const defaultShortcuts: Record<string, string> = {
-        selectNext: "ctrl+arrowdown",
-        selectPrev: "ctrl+arrowup",
-        save: "ctrl+s",
-        delete: "del",
-      };
-      let shortcut: string = defaultShortcuts[name];
-      const savedShortcut = this.shortcuts?.find((e: any) => e.name == name);
-      if (savedShortcut) {
-        shortcut = savedShortcut.shortcut;
-      }
-      return shortcut.split("+");
-    },
-    async save() {
-      (this.$refs.documentList as Vue[])[
-        this.selectedIndex
-      ].$data.documentBusy = true;
-      await this.$data.pdf.save();
-      this.UpdateCurrentPreview();
-    },
-    async selectDir(dir: number) {
-      if (this.prefs && this.prefs.autoSave) await this.save();
-      const curr = Documents.findIndex((e) => e.id == this.$data.pdf.id);
-      let i = curr + dir;
-      while (this.$data.documentsShown[i] === false) {
-        i += dir;
-      }
-      if (i < 0 || i >= Documents.length) return;
-      this.updateSelected(i, true);
-      this.eventHub.$emit("editor:setDocument", i);
-    },
-    updateSelected(newIndex: number, scrolling: boolean) {
-      const previews = this.$refs.documentList as Vue[];
-      let height = 0;
-      for (let i = 0; i < previews.length; i++) {
-        const a = previews[i];
-        if (i < newIndex) {
-          height += a.$el.getBoundingClientRect().height;
-        }
-        a.$data.selected = i == newIndex;
-      }
-      if (scrolling)
-        (this.$refs.previews as Element).scrollTo({
-          top: height,
-          left: 0,
-          behavior: "smooth",
-        });
-    },
-    async selectIndex(index: number) {
-      if (this.prefs && this.prefs.autoSave) await this.save();
-      this.updateSelected(index, false);
-      this.eventHub.$emit("editor:setDocument", index);
-    },
-    search(query: string, tags: string[], categories: string[]) {
-      console.log(categories);
-      const onlyLettersRegex = /[a-z]+/gi;
-      query = query.match(onlyLettersRegex)?.join("").toLowerCase() || "";
-      this.$data.Documents.forEach((e: Document, index: number) => {
-        if (
-          e.riesitel.toLowerCase().match(query) != null &&
-          categories.includes(e.kategoria)
-        ) {
-          if (tags.length > 0) {
-            this.documentsShown[index] = this.IsDocumentValid(tags, e.tags);
-          } else this.$data.documentsShown[index] = true;
-        } else {
-          this.$data.documentsShown[index] = false;
-        }
-      });
-      this.$forceUpdate();
-    },
-    IsDocumentValid(searchTags: string[], documentTags: string[]): boolean {
-      return searchTags.every((e) => documentTags.includes(e));
-    },
-    UpdateCurrentPreview() {
-      const documents = this.$refs.documentList as Vue[];
-      if (documents.some((e: Vue) => e.$data.document == null)) return;
-      const editing = documents.find(
-        (e) => e.$data.document.id == this.$data.pdf.id
-      ) as any;
-      setTimeout(() => {
-        if (editing) editing.updatePreview();
-      }, 500);
-    },
-    downloadCurrent() {
-      this.eventHub.$emit("editor:download", this.$data.pdf.id);
-    },
-    deleteSelected() {
-      const viewport = this.$refs.viewport as any;
-      viewport.deleteSelected();
-    },
-    refresh() {
-      (this.$refs.viewport as Vue).$forceUpdate();
-      this.$nextTick().then(() => {
-        this.eventHub.$emit("editor:setDocument", this.selectedIndex);
-      });
-    },
-    scale(multiplier: number) {
-      (this.$refs.viewport as any).setScale(multiplier);
-    },
-  },
-});
+  }
+  getShortcut(name: string) {
+    const defaultShortcuts: Record<string, string> = {
+      selectNext: "ctrl+arrowdown",
+      selectPrev: "ctrl+arrowup",
+      save: "ctrl+s",
+      delete: "del",
+      zoomIn: "ctrl+plus",
+      zoomOut: "ctrl+-",
+    };
+    let shortcut: string = defaultShortcuts[name];
+    const savedShortcut = this.shortcuts?.find((e: any) => e.name == name);
+    if (savedShortcut) {
+      shortcut = savedShortcut.shortcut;
+    }
+    return shortcut.split("+").map((e) => (e === "plus" ? "+" : e));
+  }
+  downloadCurrent() {
+    this.eventHub.$emit("editor:download", this.pdf.id);
+  }
+  deleteSelected() {
+    const viewport = this.$refs.viewport;
+    viewport.deleteSelected();
+  }
+  refresh() {
+    this.$refs.viewport.$forceUpdate();
+    this.$nextTick().then(() => {
+      this.eventHub.$emit("editor:setDocument", this.selectedIndex);
+    });
+  }
+  scale(multiplier: number) {
+    this.$refs.viewport.setScale(multiplier);
+  }
+}
 </script>
 
 <style>
@@ -283,5 +206,16 @@ export default Vue.extend({
 .document-list-leave-to {
   transform: translate(100%, 0);
   opacity: 0;
+}
+
+.sidebar-leave-active,
+.sidebar-enter-active {
+  transition: 250ms ease-in-out;
+}
+.sidebar-enter {
+  right: 0;
+}
+.sidebar-leave-to {
+  right: 25vw;
 }
 </style>

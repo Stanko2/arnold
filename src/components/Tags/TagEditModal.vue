@@ -28,50 +28,53 @@
 </template>
 
 <script lang="ts">
+import { Tag } from "@/@types";
 import Color from "color";
 import Vue from "vue";
+import Component from "vue-class-component";
 const VSwatches = require("vue-swatches");
 
-export default Vue.extend({
+@Component({
   components: {
     VSwatches,
   },
+})
+export default class TagEditModal extends Vue {
+  availableTags: Tag[] = [];
   mounted() {
     this.eventHub.$emit(
       "tags:update",
       JSON.parse(localStorage.getItem("tags") || "[]")
     );
-  },
+  }
   data() {
     return {
       availableTags: JSON.parse(localStorage.getItem("tags") || "[]"),
     };
-  },
-  methods: {
-    removeTag(i: number) {
-      this.availableTags.splice(i, 1);
-    },
-    addTag() {
-      this.availableTags.push({
-        id: Math.random().toString(36).substr(2, 9),
-        meno: "",
-        color: "blue",
-      });
-    },
-    lighten(color: string) {
-      const c = new Color(color);
-      return c.lighten(0.5).hex();
-    },
-    getContrastColor(color: string) {
-      const c = new Color(color);
-      return c.isDark() ? "#ffffff" : "#000000";
-    },
-    tagUpdate() {
-      localStorage.setItem("tags", JSON.stringify(this.availableTags));
-      this.eventHub.$emit("tags:update", this.availableTags);
-    },
-  },
-});
+  }
+  removeTag(i: number) {
+    this.availableTags.splice(i, 1);
+  }
+  addTag() {
+    this.availableTags.push({
+      id: Math.random().toString(36).substr(2, 9),
+      meno: "",
+      color: "blue",
+    });
+  }
+  lighten(color: string) {
+    const c = new Color(color);
+    return c.lighten(0.5).hex();
+  }
+  getContrastColor(color: string) {
+    const c = new Color(color);
+    return c.isDark() ? "#ffffff" : "#000000";
+  }
+  tagUpdate() {
+    localStorage.setItem("tags", JSON.stringify(this.availableTags));
+    this.eventHub.$emit("tags:update", this.availableTags);
+  }
+}
 </script>
 
 <style scoped>

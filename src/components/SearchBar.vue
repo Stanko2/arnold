@@ -81,11 +81,21 @@
 </template>
 
 <script lang="ts">
-import { activeParser } from "@/DocumentManager";
-import { DocumentParser } from "@/DocumentParser";
+import type { DocumentParser, Tag } from "@/@types";
 import Color from "color";
 import Vue from "vue";
-export default Vue.extend({
+import Component from "vue-class-component";
+
+@Component({})
+export default class SearchBar extends Vue {
+  categories: string[] = [];
+  categoriesVisible: boolean[] = [];
+  searchTags: Tag[] = [];
+  tagValid: boolean | null = null;
+  currTag: string = "";
+  availableTags: Tag[] = [];
+  searchStr: string = "";
+
   mounted() {
     this.getTags();
     this.eventHub.$on("tags:update", this.getTags);
@@ -93,7 +103,7 @@ export default Vue.extend({
       this.categories = activeParser.kategorie;
       this.categoriesVisible = activeParser.kategorie.map(() => true);
     });
-  },
+  }
   data() {
     return {
       searchStr: "",
@@ -105,64 +115,59 @@ export default Vue.extend({
       categoriesVisible: Array<Boolean>(),
       categories: Array<String>(),
     };
-  },
-  methods: {
-    search() {
-      this.eventHub.$emit(
-        "editor:search",
-        this.searchStr,
-        this.searchTags.map((e: any) => e.id),
-        this.categories.filter((e: String, i: number) => {
-          return this.categoriesVisible[i];
-        })
-      );
-    },
-    addtag() {
-      if (this.tagValid) {
-        this.$data.searchTags.push(
-          this.$data.availableTags.find((e: any) => e.meno == this.currTag)
-        );
-        this.currTag = "";
-        this.tagValid = null;
-        this.search();
-      }
-    },
-    removeTag(tag: string) {
-      this.searchTags.splice(
-        this.searchTags.findIndex((e: any) => e.id == tag),
-        1
-      );
+  }
+  search() {
+    this.eventHub.$emit(
+      "editor:search",
+      this.searchStr,
+      this.searchTags.map((e: Tag) => e.id),
+      this.categories.filter((e: String, i: number) => {
+        return this.categoriesVisible[i];
+      })
+    );
+  }
+  addtag() {
+    const tag = this.availableTags.find((e: Tag) => e.meno == this.currTag);
+    if (this.tagValid && tag) {
+      this.searchTags.push(tag);
+      this.currTag = "";
+      this.tagValid = null;
       this.search();
-    },
-    getTags() {
-      const tags = JSON.parse(localStorage.getItem("tags") || "[]");
-      this.$data.availableTags = tags;
-    },
-    checkValidity(tag: string) {
-      if (
-        this.$data.availableTags.every((e: any) => e.meno.match(tag) == null) ||
-        this.$data.searchTags.findIndex((e: any) => e.meno == tag) != -1
-      )
-        this.$data.tagValid = false;
-      else if (
-        this.$data.availableTags.findIndex((e: any) => e.meno == tag) != -1
-      )
-        this.$data.tagValid = true;
-      else this.$data.tagValid = null;
-    },
-    getContrastColor(color: string) {
-      const c = new Color(color);
-      return c.isDark() ? "#ffffff" : "#000000";
-    },
-    toggleSearchCategory(category: string) {
-      const i = this.categories.findIndex((e) => e == category);
-      this.categoriesVisible[i] = !this.categoriesVisible[i];
-      console.log(this.categoriesVisible);
-      this.$forceUpdate();
-      this.search();
-    },
-  },
-});
+    }
+  }
+  removeTag(tag: string) {
+    this.searchTags.splice(
+      this.searchTags.findIndex((e: any) => e.id == tag),
+      1
+    );
+    this.search();
+  }
+  getTags() {
+    const tags = JSON.parse(localStorage.getItem("tags") || "[]");
+    this.availableTags = tags;
+  }
+  checkValidity(tag: string) {
+    if (
+      this.availableTags.every((e: any) => e.meno.match(tag) == null) ||
+      this.searchTags.findIndex((e: any) => e.meno == tag) != -1
+    )
+      this.tagValid = false;
+    else if (this.availableTags.findIndex((e: any) => e.meno == tag) != -1)
+      this.tagValid = true;
+    else this.tagValid = null;
+  }
+  getContrastColor(color: string) {
+    const c = new Color(color);
+    return c.isDark() ? "#ffffff" : "#000000";
+  }
+  toggleSearchCategory(category: string) {
+    const i = this.categories.findIndex((e) => e == category);
+    this.categoriesVisible[i] = !this.categoriesVisible[i];
+    console.log(this.categoriesVisible);
+    this.$forceUpdate();
+    this.search();
+  }
+}
 </script>
 
 <style scoped>

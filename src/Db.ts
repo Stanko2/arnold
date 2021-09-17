@@ -1,5 +1,4 @@
-import { ITemplate } from './components/Templates';
-import { Document } from './DocumentManager'
+import { Document, ITemplate } from '@/@types';
 
 class DB {
 

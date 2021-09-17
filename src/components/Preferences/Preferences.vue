@@ -12,9 +12,6 @@
       </b-list-group>
     </b-col>
     <b-col cols="8" class="categoryMenu">
-      <b-alert show dismissible
-        >Niektore nastavenia sa prejavia az po reloadnuti stranky</b-alert
-      >
       <h1 class="text-center">{{ selectedCategory.text }}</h1>
       <hr />
       <div v-if="selectedCategory.name == 'tools'">
@@ -119,6 +116,9 @@
         </b-card>
       </div>
       <div v-else-if="selectedCategory.name == 'other'">
+        <b-alert show dismissible variant="warning"
+          >Tieto nastavenia sa prejavia az po reloadnuti stranky</b-alert
+        >
         <b-row>
           <b-col>Ukazat preview rieseni v lavej liste</b-col>
           <b-col>
@@ -144,6 +144,11 @@
         </b-row>
       </div>
       <div v-else-if="selectedCategory.name == 'shortcut'">
+        <b-alert show variant="info" dismissible
+          >Chces vediet ako nastavit svoje skratky? klikni
+          <a @click="$refs.shortcutHelp.show()" class="link-primary">sem</a>
+          <shortcut-help-modal ref="shortcutHelp" />
+        </b-alert>
         <div v-for="tool in selectedCategory.settings" :key="tool.name">
           <b-row>
             <b-col align-self="center">{{ tool.name }}</b-col>
@@ -163,13 +168,22 @@
 
 <script lang="ts">
 import Vue from "vue";
-import { tools } from "./Tools/Tool";
-import { FontsAvailable } from "./Fonts";
-import ColorPicker from "./ColorPicker.vue";
-export default Vue.extend({
+import { tools } from "../Tools/Tool";
+import { FontsAvailable } from "../Fonts";
+import ColorPicker from "../ColorPicker.vue";
+import Component from "vue-class-component";
+import ShortcutHelpModal from "./ShortcutHelpModal.vue";
+
+@Component({
   components: {
     ColorPicker,
+    ShortcutHelpModal,
   },
+})
+export default class Preferences extends Vue {
+  categories: any;
+  selectedCategoryIndex!: number;
+  selectedCategory: any;
   data() {
     const toolsCopy = [
       ...tools.map((e) => {
@@ -227,6 +241,8 @@ export default Vue.extend({
           { name: "selectPrev", shortcut: "ctrl+arrowup" },
           { name: "save", shortcut: "ctrl+s" },
           { name: "delete", shortcut: "del" },
+          { name: "zoomIn", shortcut: "ctrl+plus" },
+          { name: "zoomOut", shortcut: "ctrl+-" },
         ],
         name: "shortcut",
       },
@@ -246,46 +262,40 @@ export default Vue.extend({
       selectedCategory: categories[0],
       fonts: FontsAvailable,
     };
-  },
+  }
   mounted() {
     const data = localStorage.getItem("preferences");
     if (data) {
-      // eslint-disable-next-line no-unused-vars
       const prefs = JSON.parse(data);
-      // @ts-ignore
       this.categories[0].settings.defaultTool.value =
         prefs.tools.settings.defaultTool.value;
       this.categories[2] = prefs.other;
       this.categories[1] = prefs.shortcut;
-      // @ts-ignore
       this.categories[0].settings.tools[
-        // @ts-ignore
         this.categories[0].settings.tools.length - 1
       ] = prefs.tools.settings.tools.find((e: any) => e.name == "scoring");
     }
     setTimeout(() => {
       console.log(this.categories);
     }, 5000);
-  },
-  methods: {
-    select(i: number) {
-      this.selectedCategoryIndex = i;
-      this.selectedCategory = this.categories[this.selectedCategoryIndex];
-    },
-    hasSettings(tool: any): boolean {
-      return Object.keys(tool.options).some((key) => tool.options[key]);
-    },
-    save() {
-      localStorage.removeItem("preferences");
-      const preferences: Record<string, any> = {};
-      for (const category of this.categories) {
-        preferences[category.name] = category;
-      }
-      localStorage.setItem("preferences", JSON.stringify(preferences));
-      this.eventHub.$emit("tools:init");
-    },
-  },
-});
+  }
+  select(i: number) {
+    this.selectedCategoryIndex = i;
+    this.selectedCategory = this.categories[this.selectedCategoryIndex];
+  }
+  hasSettings(tool: any): boolean {
+    return Object.keys(tool.options).some((key) => tool.options[key]);
+  }
+  save() {
+    localStorage.removeItem("preferences");
+    const preferences: Record<string, any> = {};
+    for (const category of this.categories) {
+      preferences[category.name] = category;
+    }
+    localStorage.setItem("preferences", JSON.stringify(preferences));
+    this.eventHub.$emit("tools:init");
+  }
+}
 </script>
 
 <style scoped>

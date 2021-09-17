@@ -5,20 +5,8 @@ import { getViewedDocument } from '@/DocumentManager';
 import Vue from "vue";
 import { Database } from "@/Db";
 import eventHub from "@/EventHub";
-export interface Tool {
-    defaultOptions: fabric.IObjectOptions,
-    click(pdf: PDFdocument, page: number, position: { x: number, y: number }): fabric.Object,
-    mouseMove: Function,
-    mouseUp: Function,
-    cursor: string,
-    icon: string,
-    name: string,
-    tooltip: string,
-    onSelect(): void,
-    onDeselect(): void,
-    options: any,
-    shortcut: string,
-}
+import type { Tool } from "@/@types";
+
 var vue: Vue | null = null;
 
 eventHub.$on('tool:init', init);

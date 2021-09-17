@@ -4,7 +4,7 @@ import { Database } from "@/Db";
 import { fabric } from "fabric";
 import { BlendMode, decodeFromBase64DataUri, degrees, LineCapStyle, LineJoinStyle, PageSizes, PDFDocument, PDFFont, PDFPage, StandardFonts } from "pdf-lib";
 import { Annotation, LineAnnotation, PathAnnotation, RectAnnotation, SignAnnotation, TextAnnotation } from "@/Annotation";
-import { Tool } from "./Tools/Tool";
+import type { Tool } from "@/@types";
 import fontKit from '@pdf-lib/fontkit';
 
 var pdf = require('pdfvuer');
@@ -66,7 +66,7 @@ export class PDFdocument {
         var progressUpdated = false;
         setTimeout(() => {
             PDFdocument.initDocument.call(PDFdocument.viewport, this.viewref, this);
-        }, 50);
+        }, 500);
     }
 
     async write(annotation: Annotation) {

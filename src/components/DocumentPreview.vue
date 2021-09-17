@@ -19,15 +19,16 @@
         <div class="card">
           <div
             v-if="pdf == undefined"
-            class="d-flex align-items-center justify-content-center text-danger"
+            class="d-flex align-items-center justify-content-center"
           >
-            Nepodarilo sa nacitat preview
+            Nacitavam preview
           </div>
           <div v-else>
             <pdf
               :key="pdfKey"
               :src="pdf"
               :page="1"
+              :text="false"
               style="display: inline-block; width: 100%"
             ></pdf>
           </div>
@@ -158,12 +159,28 @@
 import { Database } from "@/Db";
 import Color from "color";
 import Vue from "vue";
+import type { Document, Tag } from "@/@types";
+import Component from "vue-class-component";
 var pdf = require("pdfvuer");
-export default Vue.extend({
+
+const Previewprops = Vue.extend({
+  props: ["documentID", "showPDFPreview"],
+});
+
+@Component({
   components: {
     pdf: pdf.default,
   },
-  props: ["documentID", "showPDFPreview"],
+})
+export default class DocumentPreview extends Previewprops {
+  document: Document | undefined;
+  hasComment: boolean = false;
+  documentBusy: boolean = false;
+  pdfKey: boolean = false;
+  tags: Tag[] = [];
+  pdf: any;
+  selected: boolean = false;
+
   data() {
     return {
       document: undefined,
@@ -174,59 +191,59 @@ export default Vue.extend({
       pdfKey: false,
       tags: JSON.parse(localStorage.getItem("tags") || "[]"),
     };
-  },
+  }
   mounted() {
     this.eventHub.$on("tags:update", (tags: any) => {
-      this.$data.tags = tags;
-      this.$data.document.tags = this.$data.document.tags.map((e: any) =>
+      this.tags = tags;
+      if (!this.document) return;
+      this.document.tags = this.document.tags.map((e: any) =>
         tags.find((f: { id: any }) => f.id == e)
       );
     });
     Database.getDocument(this.documentID).then((doc) => {
-      this.$data.document = doc;
-      this.$data.document.tags = this.$data.document.tags.map((e: any) =>
-        this.$data.tags.find((f: { id: any }) => f.id == e)
+      this.document = doc;
+      this.document.tags = this.document.tags.map((e: any) =>
+        this.tags.find((f: { id: any }) => f.id == e)
       );
       setTimeout(() => {
-        this.$data.pdf = pdf.createLoadingTask({
+        this.pdf = pdf.createLoadingTask({
           data: new Uint8Array(doc.pdfData),
         });
       }, 500 * doc.index);
     });
     this.eventHub.$on("tags:documentTag", (id: number, tags: any) => {
       if (!this.document || this.documentID != id) return;
-      this.$data.document.tags = tags;
+      this.document.tags = tags;
     });
-  },
-  methods: {
-    updatePreview() {
-      Database.getDocument(this.documentID).then((doc) => {
-        this.$data.documentBusy = false;
-        this.$data.document.tags = doc.tags.map((e) =>
-          this.$data.tags.find((f: { id: any }) => f.id == e)
-        );
-        this.hasComment = doc.changes.some(
-          (f) => f.type === "Text" && !f.data.text.match(/[0-9]*(\.[0-9])?B/)
-        );
-        this.$data.document.opened = doc.opened;
-        this.$data.document.scoring = doc.scoring;
-        setTimeout(() => {
-          this.$data.pdf = pdf.createLoadingTask({
-            data: new Uint8Array(doc.pdfData),
-          });
-          this.pdfKey = !this.pdfKey;
-        }, 30);
-      });
-    },
-    getTagStyle(tag: string) {
-      const a = this.tags.find((e: any) => e.id == tag);
-      return {
-        background: a.color,
-        color: Color(a.color).isLight() ? "black" : "white",
-      };
-    },
-  },
-});
+  }
+  updatePreview() {
+    Database.getDocument(this.documentID).then((doc) => {
+      this.documentBusy = false;
+      if (!this.document) return;
+      this.document.tags = doc.tags.map((e) =>
+        this.tags.find((f: { id: any }) => f.id == e)
+      );
+      this.hasComment = doc.changes.some(
+        (f) => f.type === "Text" && !f.data.text.match(/[0-9]*(\.[0-9])?B/)
+      );
+      this.document.opened = doc.opened;
+      this.document.scoring = doc.scoring;
+      setTimeout(() => {
+        this.pdf = pdf.createLoadingTask({
+          data: new Uint8Array(doc.pdfData),
+        });
+        this.pdfKey = !this.pdfKey;
+      }, 30);
+    });
+  }
+  getTagStyle(tag: string) {
+    const a = this.tags.find((e: any) => e.id == tag);
+    return {
+      background: a?.color,
+      color: Color(a?.color).isLight() ? "black" : "white",
+    };
+  }
+}
 </script>
 
 <style scoped>
@@ -265,6 +282,9 @@ h5 {
 }
 .opened {
   background-color: rgb(243, 243, 243);
+}
+.opened:hover {
+  background-color: #b3bdc7;
 }
 .active.opened {
   background-color: #007bff;

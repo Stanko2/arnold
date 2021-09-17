@@ -1,10 +1,10 @@
 
 import { PDFdocument } from "./components/PDFdocument";
-import { Tool, tools } from "./components/Tools/Tool";
+import { tools } from "./components/Tools/Tool";
 import { fabric } from "fabric";
 import { PathAnnotation, SignAnnotation } from "@/Annotation";
 import eventHub from "./EventHub";
-
+import { Tool } from "./@types";
 export class Canvas extends fabric.Canvas {
     Clear(): void {
         try {

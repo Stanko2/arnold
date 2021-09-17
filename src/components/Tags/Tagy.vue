@@ -45,17 +45,22 @@
 
 <script lang="ts">
 import { Database } from "@/Db";
-import { Document } from "@/DocumentManager";
+import { Document, Tag } from "@/@types";
 import Color from "color";
 import Vue from "vue";
 import TagEditModal from "./TagEditModal.vue";
+import Component from "vue-class-component";
 
-export default Vue.extend({
+@Component({
   components: {
     TagEditModal,
   },
+})
+export default class Tags extends Vue {
+  availableTags: Tag[] = [];
+  doc: Document | undefined;
   mounted() {
-    this.$data.availableTags = JSON.parse(localStorage.getItem("tags") || "[]");
+    this.availableTags = JSON.parse(localStorage.getItem("tags") || "[]");
     this.eventHub.$on(
       "tags:update",
       (tags: any[]) => (this.$data.availableTags = tags)
@@ -63,7 +68,7 @@ export default Vue.extend({
     this.eventHub.$on(
       "editor:documentChanged",
       (pdf: any, document: Document) => {
-        this.$data.doc = document;
+        this.doc = document;
         const tagy = this.availableTags.map((e: any) => e.id);
         let i = 0;
         while (i < document.tags.length) {
@@ -75,41 +80,40 @@ export default Vue.extend({
         Database.updateDocument(document.id, document, false);
       }
     );
-  },
+  }
   data() {
     return {
       ukazMenu: false,
       availableTags: [],
       doc: undefined,
     };
-  },
-  methods: {
-    zistiTagy(doc: Document) {
-      this.$data.doc = doc;
-    },
-    getContrastColor(color: string) {
-      const c = new Color(color);
-      return c.isDark() ? "#ffffff" : "#000000";
-    },
-    toggleDocumentTag(tag: string) {
-      const a = this.$data.doc.tags.findIndex((e: string) => e == tag);
-      if (a != -1) {
-        this.$data.doc.tags.splice(a, 1);
-      } else {
-        this.$data.doc.tags.push(tag);
-      }
-      this.$data.doc.tags.sort();
-      Database.updateDocument(this.$data.doc.id, this.$data.doc);
-      this.eventHub.$emit(
-        "tags:documentTag",
-        this.$data.doc.id,
-        this.$data.doc.tags.map((e: any) =>
-          this.$data.availableTags.find((f: { id: any }) => f.id == e)
-        )
-      );
-    },
-  },
-});
+  }
+  zistiTagy(doc: Document) {
+    this.$data.doc = doc;
+  }
+  getContrastColor(color: string) {
+    const c = new Color(color);
+    return c.isDark() ? "#ffffff" : "#000000";
+  }
+  toggleDocumentTag(tag: string) {
+    if (!this.doc) return;
+    const a = this.doc.tags.findIndex((e: string) => e == tag);
+    if (a != -1) {
+      this.doc.tags.splice(a, 1);
+    } else {
+      this.doc.tags.push(tag);
+    }
+    this.doc.tags.sort();
+    Database.updateDocument(this.doc.id, this.doc);
+    this.eventHub.$emit(
+      "tags:documentTag",
+      this.doc.id,
+      this.doc.tags.map((e: any) =>
+        this.availableTags.find((f: { id: any }) => f.id == e)
+      )
+    );
+  }
+}
 </script>
 
 <style scoped>
