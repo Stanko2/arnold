@@ -206,6 +206,9 @@ export default class DocumentPreview extends Previewprops {
       this.document.tags = this.document.tags.map((e: any) =>
         this.tags.find((f: { id: any }) => f.id == e)
       );
+      this.hasComment = doc.changes.some(
+        (f) => f.type === "Text" && !f.data.text.match(/[0-9]*(\.[0-9])?B/)
+      );
       setTimeout(() => {
         this.pdf = pdf.createLoadingTask({
           data: new Uint8Array(doc.pdfData),

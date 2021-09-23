@@ -1,6 +1,6 @@
 import { Canvas } from "@/Canvas";
 import { fabric } from "fabric";
-import { PDFPage, popGraphicsState, pushGraphicsState, rotateDegrees, translate } from "pdf-lib";
+import { PDFPage } from "pdf-lib";
 
 export abstract class Annotation {
     constructor(public page: number, public object: fabric.Object, public canvas: Canvas, private type: string, create: boolean = true) {

@@ -95,14 +95,26 @@ export class Canvas extends fabric.Canvas {
             }
         });
         this.on('object:scaled', (e) => {
-            if (e.target != null && e.target.type != 'group') {
-                var obj: fabric.Object = e.target,
+            if (e.target != null && e.target.type != 'group' && e.target.type != 'ellipse') {
+                const obj: fabric.Object = e.target,
                     w = (obj.width || 0) * (obj.scaleX || 0),
                     h = (obj.height || 0) * (obj.scaleY || 0);
 
                 obj.set({
                     'height': h,
                     'width': w,
+                    'scaleX': 1,
+                    'scaleY': 1
+                });
+            }
+            else if (e.target && e.target.type == 'ellipse') {
+                const obj: fabric.Ellipse = e.target as fabric.Ellipse,
+                    w = (obj.rx || 0) * (obj.scaleX || 0),
+                    h = (obj.ry || 0) * (obj.scaleY || 0);
+
+                obj.set({
+                    'ry': h,
+                    'rx': w,
                     'scaleX': 1,
                     'scaleY': 1
                 });
