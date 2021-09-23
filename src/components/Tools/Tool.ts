@@ -1,5 +1,5 @@
 import { fabric } from "fabric";
-import { Annotation, LineAnnotation, PathAnnotation, RectAnnotation, TextAnnotation } from "@/Annotation";
+import { Annotation, EllipseAnnotation, LineAnnotation, PathAnnotation, RectAnnotation, TextAnnotation } from "@/Annotation";
 import { PDFdocument } from "../PDFdocument";
 import { getViewedDocument } from '@/DocumentManager';
 import Vue from "vue";
@@ -15,6 +15,7 @@ function init(VueRef: Vue | undefined = undefined) {
         vue = VueRef;
         TextAnnotation.toolOptions = tools[0];
         LineAnnotation.toolOptions = tools[3];
+        EllipseAnnotation.toolOptions = tools[4];
         RectAnnotation.toolOptions = tools[5];
     }
     const data = localStorage.getItem('preferences')
@@ -148,12 +149,24 @@ export const tools: Tool[] = [
         icon: 'circle',
         tooltip: 'Pridat kruh / elipsu',
         shortcut: 't',
-        // TODO: add circle annotation class
+        defaultOptions: <fabric.IEllipseOptions>{
+            rx: 30,
+            ry: 30,
+            stroke: '#000000',
+            strokeWidth: 5,
+        },
+        click: (pdf: PDFdocument, page: number, position: { x: number, y: number }) => {
+            var annot = new EllipseAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
+            pdf.addAnnotation(annot);
+            selectTool(tools[7]);
+            selectedTool.defaultOptions = tools.find(e => e.name == 'Circle')?.defaultOptions || {};
+            return annot.object;
+        },
         options: {
-            hasFill: false,
-            hasStroke: false,
+            hasFill: true,
+            hasStroke: true,
             hasText: false,
-            hasStrokeWidth: false,
+            hasStrokeWidth: true,
         }
     },
     <Tool>{

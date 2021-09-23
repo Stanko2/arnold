@@ -26,11 +26,11 @@ export const FontsAvailable: Record<string, any> = {
         pdf: '/fonts/BebasNeue.otf',
         viewport: 'Bebas neue'
     },
-    'Emoji': {
-        url: '/fonts/OpenMoji.woff',
-        pdf: '/fonts/OpenMoji.otf',
-        viewport: 'Emoji'
-    }
+    // 'Emoji': {
+    //     url: '/fonts/OpenMoji.woff',
+    //     pdf: '/fonts/OpenMoji.otf',
+    //     viewport: 'Emoji'
+    // }
 }
 
 export async function loadFonts() {

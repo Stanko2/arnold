@@ -32,7 +32,7 @@
           <b-form-input
             @change="addtag"
             v-model="currTag"
-            placeholder="Zadaj kategorie ... "
+            placeholder="Zadaj tagy ... "
             :state="tagValid"
             @update="checkValidity(currTag)"
           >
