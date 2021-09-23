@@ -37,6 +37,7 @@
             :page="i"
             :scale.sync="scale"
             :rotate="(rotation[i - 1] || 0) * 90"
+            :text="false"
             class="card page-data"
             @error="err"
             @loading="documentLoaded"

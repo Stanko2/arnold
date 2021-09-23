@@ -125,7 +125,7 @@ import {
   getViewedDocument,
 } from "@/DocumentManager";
 import { Database } from "@/Db";
-import Stats from "./Stats.vue";
+import Stats from "./Stats/Stats.vue";
 import Preferences from "./Preferences/Preferences.vue";
 import Component from "vue-class-component";
 

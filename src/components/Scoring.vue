@@ -114,6 +114,7 @@ import Vue from "vue";
 import { TextAnnotation } from "@/Annotation";
 import { PDFdocument } from "./PDFdocument";
 import Component from "vue-class-component";
+import { Prop } from "vue-property-decorator";
 
 @Component({})
 export default class Scoring extends Vue {
@@ -206,7 +207,6 @@ export default class Scoring extends Vue {
         break;
       }
     }
-    console.assert(this.final == doc.scoring.final);
   }
   finalScoringChange() {
     if (!this.pdf) return;
@@ -282,12 +282,14 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 /* .slide-leave-active,
 .slide-enter-active {
-  transition: 1s;
+  transition: 250ms;
 }
+.slide-enter-to,
+.slide-leave {
+  transform: translate(0, 0);
+}
+.slide-leave-to,
 .slide-enter {
-  transform: translate(100%, 0);
-}
-.slide-leave-to {
   transform: translate(100%, 0);
 } */
 </style>

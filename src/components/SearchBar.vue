@@ -5,7 +5,6 @@
         type="text"
         placeholder="Hladat v rieseniach"
         v-model="searchStr"
-        @input="search"
         size="lg"
       />
       <b-input-group-append>

@@ -29,6 +29,7 @@
               :src="pdf"
               :page="1"
               :text="false"
+              :resize="true"
               style="display: inline-block; width: 100%"
             ></pdf>
           </div>

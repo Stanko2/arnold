@@ -22,6 +22,7 @@ export class LineAnnotation extends Annotation {
         options.originY = 'top';
         options.lockMovementX = true;
         options.lockMovementY = true;
+        options.selectable = false;
         if (!options.x1 || !options.x2 || !options.y1 || !options.y2 || !options.strokeWidth) throw new Error('Invalid location')
 
         super(page, new fabric.Polyline([{ x: options.x1, y: options.y1 }, { x: options.x2, y: options.y2 }], options), canvas, 'Line');

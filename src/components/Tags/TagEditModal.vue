@@ -1,5 +1,5 @@
 <template>
-  <b-modal size="lg" id="tag-modal" title="Upravit kategorie" @ok="tagUpdate">
+  <b-modal size="lg" id="tag-modal" title="Upravit tagy" @ok="tagUpdate">
     <b-list-group>
       <b-list-group-item
         pill
@@ -13,7 +13,7 @@
             class="w-75 tag-edit"
             type="text"
             v-model="tag.meno"
-            placeholder="Zadaj meno kategorie"
+            placeholder="Zadaj meno"
             :style="{ color: getContrastColor(tag.color) }"
           />
           <b-input-group-append>
@@ -23,7 +23,7 @@
         <b-btn-close @click="removeTag(i)"></b-btn-close>
       </b-list-group-item>
     </b-list-group>
-    <b-button block @click="addTag()">Pridat novu kategoriu</b-button>
+    <b-button block @click="addTag()">Pridat novy Tag</b-button>
   </b-modal>
 </template>
 

@@ -110,7 +110,7 @@ async function createZip() {
     const data = await zip.generateAsync({ type: "blob" }, (progress) => {
         eventHub.$emit('download:progress', progress.percent, progress.currentFile);
     });
-    const file = new File([data], 'Opravene.zip');
+    const file = new File([data], localStorage.getItem('uloha') + '_opravene.zip' || 'Opravene.zip');
     FileSaver.saveAs(file);
     eventHub.$emit('download:done');
 }

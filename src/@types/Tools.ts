@@ -11,6 +11,13 @@ export interface Tool {
     tooltip: string,
     onSelect(): void,
     onDeselect(): void,
-    options: any,
+    options: ToolOptions,
     shortcut: string,
+}
+
+interface ToolOptions {
+    hasText: boolean,
+    hasStroke: boolean,
+    hasStrokeWidth: boolean,
+    hasFill: boolean,
 }

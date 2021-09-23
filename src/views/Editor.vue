@@ -212,10 +212,15 @@ export default class Editor extends Vue {
 .sidebar-enter-active {
   transition: 250ms ease-in-out;
 }
-.sidebar-enter {
+
+.sidebar-enter-to,
+.sidebar-leave {
+  /* transform: translate(0, 0); */
   right: 0;
 }
-.sidebar-leave-to {
+.sidebar-leave-to,
+.sidebar-enter {
+  /* transform: translate(-100%, 0); */
   right: 25vw;
 }
 </style>

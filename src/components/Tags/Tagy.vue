@@ -2,7 +2,7 @@
   <div class="tags">
     <div class="position-relative">
       <h4 class="btn btn-warning" @click="ukazMenu = !ukazMenu">
-        Kategorie
+        Tagy
         <span class="material-icons d-inline position-absolute">{{
           ukazMenu ? "expand_more" : "expand_less"
         }}</span>
@@ -34,7 +34,7 @@
             variant="secondary"
             @click="$bvModal.show('tag-modal')"
             size="sm"
-            >Upravit kategorie</b-button
+            >Upravit tagy</b-button
           >
         </div>
       </transition>

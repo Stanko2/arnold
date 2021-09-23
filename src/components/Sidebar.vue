@@ -59,6 +59,7 @@ export default class Sidebar extends SidebarProps {
   $refs!: {
     searchBar: SearchBar;
     documentList: DocumentPreview[];
+    previews: Element;
   };
   documentsShown!: boolean[];
   selectedIndex: number = 0;
@@ -127,7 +128,7 @@ export default class Sidebar extends SidebarProps {
       a.selected = i == newIndex;
     }
     if (scrolling)
-      this.$el.scrollTo({
+      this.$refs.previews.scrollTo({
         top: height,
         left: 0,
         behavior: "smooth",
@@ -157,12 +158,12 @@ export default class Sidebar extends SidebarProps {
 
       if (this.documentsShown[index]) resultCount++;
     });
-    this.$bvToast.toast(`Najdenych ${resultCount} rieseni`, {
-      variant: "info",
-      autoHideDelay: 1000,
-      toaster: "b-toaster-bottom-left",
-      appendToast: false,
-    });
+    // this.$bvToast.toast(`Najdenych ${resultCount} rieseni`, {
+    //   variant: "info",
+    //   autoHideDelay: 1000,
+    //   toaster: "b-toaster-bottom-left",
+    //   appendToast: false,
+    // });
     this.$forceUpdate();
   }
   IsDocumentValid(searchTags: string[], documentTags: string[]): boolean {

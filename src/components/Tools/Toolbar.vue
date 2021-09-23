@@ -202,26 +202,28 @@ export default {
       "selectedTool.defaultOptions",
       () => {
         if (
-          this.$data.selectedTool.name == "Select" &&
-          this.$data.selectedTool.defaultOptions
+          this.selectedTool.name == "Select" &&
+          this.selectedTool.defaultOptions
         ) {
           if (PDFdocument.activeObject != null) {
             if (PDFdocument.activeObject.type == "group") {
               PDFdocument.activeObject.getObjects().forEach((obj) => {
-                obj.set(this.$data.selectedTool.defaultOptions);
+                obj.set(this.selectedTool.defaultOptions);
               });
             }
-            PDFdocument.activeObject.set(
-              this.$data.selectedTool.defaultOptions
-            );
-            PDFdocument.activeObject.canvas?.renderAll();
+            PDFdocument.activeObject.set(this.selectedTool.defaultOptions);
+            try {
+              PDFdocument.activeObject.canvas?.requestRenderAll();
+            } catch (e) {
+              return;
+            }
           }
-        } else if (this.$data.selectedTool.name == "Draw") {
+        } else if (this.selectedTool.name == "Draw") {
           getViewedDocument()?.pageCanvases.forEach((e) => {
             e.freeDrawingBrush.color =
-              this.$data.selectedTool.defaultOptions.stroke || "#000000";
+              this.selectedTool.defaultOptions.stroke || "#000000";
             e.freeDrawingBrush.width =
-              this.$data.selectedTool.defaultOptions.strokeWidth || 10;
+              this.selectedTool.defaultOptions.strokeWidth || 10;
           });
         }
       },

@@ -131,7 +131,7 @@ export const tools: Tool[] = [
         click: (pdf: PDFdocument, page: number, position: { x: number, y: number }) => {
             const annot = new LineAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
-            selectTool(tools[7]);
+            // selectTool(tools[7]);
             selectedTool.defaultOptions = tools.find(e => e.name == 'Arrow')?.defaultOptions || {};
             return annot.object;
         },
@@ -217,9 +217,7 @@ export const tools: Tool[] = [
         tooltip: 'Vybrat objekty',
         defaultOptions: {},
         onSelect: () => {
-            getViewedDocument()?.pageCanvases.forEach((e) => {
-                e.selection = true;
-            })
+            selectedTool.defaultOptions = {}
         },
         onDeselect: () => {
             getViewedDocument()?.pageCanvases.forEach((e) => {
