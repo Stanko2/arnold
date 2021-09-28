@@ -17,7 +17,7 @@
       :disabled="!hasFile"
       tag="button"
       class="text btn btn-primary btn-lg btn-block"
-      to="/edit"
+      to="/edit/0"
       >Zacat opravovat</router-link
     >
   </div>
@@ -47,6 +47,9 @@ export default Vue.extend({
             .then(() => {
               this.$router.push({
                 name: "Editor",
+                params: {
+                  doc: '0'
+                }
               });
               resolve();
             });

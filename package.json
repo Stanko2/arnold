@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",
+    "array-to-image": "^1.0.0",
     "bootstrap": "^4.6.0",
     "bootstrap-vue": "^2.21.2",
     "chart.js": "^2.9.4",
@@ -36,6 +37,7 @@
     "@types/color": "^3.0.1",
     "@types/fabric": "^4.2.6",
     "@types/file-saver": "^2.0.2",
+    "@types/pdfjs-dist": "^2.7.5",
     "@typescript-eslint/eslint-plugin": "^2.33.0",
     "@typescript-eslint/parser": "^2.33.0",
     "@vue/cli-plugin-babel": "^4.5.13",

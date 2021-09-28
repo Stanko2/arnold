@@ -86,7 +86,7 @@ export default class Sidebar extends SidebarProps {
       }
     );
     if (getViewedDocument() == null) {
-      this.updateSelected(0, false);
+      this.updateSelected(parseInt(this.$route.params.doc), false);
       setTimeout(() => {
         this.eventHub.$emit("editor:setDocument", 0);
       }, 50);
@@ -118,6 +118,7 @@ export default class Sidebar extends SidebarProps {
     this.eventHub.$emit("editor:setDocument", i);
   }
   updateSelected(newIndex: number, scrolling: boolean) {
+    this.$router.push({name: 'Editor', params: {doc: newIndex.toString()}})
     const previews = this.$refs.documentList;
     let height = 0;
     for (let i = 0; i < previews.length; i++) {

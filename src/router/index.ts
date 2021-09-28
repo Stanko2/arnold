@@ -11,7 +11,7 @@ const routes: Array<RouteConfig> = [
     component: Home,
   },
   {
-    path: '/edit',
+    path: '/edit/:doc',
     name: 'Editor',
     // route level code-splitting
     // this generates a separate chunk (about.[hash].js) for this route

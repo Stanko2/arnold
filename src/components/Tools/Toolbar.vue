@@ -120,8 +120,15 @@
       >
         <span class="material-icons">refresh</span>
       </button> -->
+      <b-button id="repairButton" @click="$refs.repairTool.Open()">
+        <span class="material-icons">build</span>
+      </b-button>
+      <pdf-repairer ref="repairTool" />
       <b-tooltip target="zoomOutButton" triggers="hover"> Oddialit </b-tooltip>
       <b-tooltip target="zoomInButton" triggers="hover"> Priblizit </b-tooltip>
+      <b-tooltip target="repairButton" triggers="hover">
+        Opravit zle nahrate PDFko (pridat stranu a otocit obrazky)
+      </b-tooltip>
       <!-- <b-tooltip target="rotateButton" triggers="hover"> Otocit </b-tooltip> -->
     </div>
   </div>
@@ -137,6 +144,7 @@ import { getViewedDocument } from "@/DocumentManager";
 import SignModal from "./SignModal.vue";
 import ImageModal from "./ImageModal.vue";
 import ColorPicker from "../ColorPicker.vue";
+import PdfRepairer from "./PdfRepairer/PdfRepairer.vue";
 import { Database } from "@/Db";
 
 export default {
@@ -144,6 +152,7 @@ export default {
     ColorPicker,
     SignModal,
     ImageModal,
+    PdfRepairer,
   },
   data() {
     return {
