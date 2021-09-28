@@ -86,9 +86,10 @@ export default class Sidebar extends SidebarProps {
       }
     );
     if (getViewedDocument() == null) {
-      this.updateSelected(parseInt(this.$route.params.doc), false);
+      const idx = parseInt(this.$route.params.doc)
+      this.updateSelected(idx, false);
       setTimeout(() => {
-        this.eventHub.$emit("editor:setDocument", 0);
+        this.eventHub.$emit("editor:setDocument", idx);
       }, 50);
     }
   }
