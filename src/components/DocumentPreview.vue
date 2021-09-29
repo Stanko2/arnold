@@ -1,6 +1,5 @@
 <template>
   <li
-    style="font-size: 1.3rem"
     :class="{
       'list-group-item-action': !selected,
       active: selected,
@@ -101,7 +100,7 @@
             >
           </b-row>
         </div>
-        <p class="text-left">
+        <div cols="8" class="text-left">
           <transition-group name="tags">
             <b-badge
               v-for="tag in document.tags"
@@ -112,41 +111,10 @@
               >{{ tag.meno }}</b-badge
             >
           </transition-group>
-        </p>
-        <!-- <div class="text-left">
-          <div
-            v-if="document.opened"
-            class="header-text"
-            :class="{ 'd-inline': !showPDFPreview }"
-          >
-            {{ document.index }}. {{ document.riesitel }}
-          </div>
-          <strong v-else class="header-text"
-            >{{ document.index }}. {{ document.riesitel }}</strong
-          >
-          <div class="d-inline" v-if="document.opened">
-            <div v-if="document.scoring" class="points-text d-inline">
-              {{ document.scoring.points }}
-              <span
-                class="material-icons text-success"
-                v-if="document.scoring.final"
-                >check</span
-              >
-              <span class="material-icons text-danger" v-else>close</span>
-            </div>
-            <div v-else class="points-text text-danger d-inline">
-              Neobodovane
-            </div>
-          </div>
-          <p>
-            <b-badge
-              style="background: var(--cyan)"
-              class="badge badge-secondary mr-1"
-              >{{ document.kategoria }}</b-badge
-            >
-            
-          </p>
-        </div> -->
+        </div>
+        <div class="stopwatch">
+          <span>{{ stopwatchText }}</span><span class="material-icons">hourglass_empty</span>
+        </div>
       </div>
     </div>
     <div v-else>
@@ -181,6 +149,7 @@ export default class DocumentPreview extends Previewprops {
   tags: Tag[] = [];
   pdf: any;
   selected: boolean = false;
+  stopwatchText: string = "0:00"
 
   data() {
     return {
@@ -247,6 +216,21 @@ export default class DocumentPreview extends Previewprops {
       color: Color(a?.color).isLight() ? "black" : "white",
     };
   }
+  updateStopwatch(openedAt: number, timeOpened: number) {
+    console.log(timeOpened);
+    
+    const time = (Date.now() - openedAt) + timeOpened;
+    const date = new Date(time)
+    const f = function(func: ()=>number) {
+      const res = func();
+      if(res < 10){
+        return '0' + res.toString();
+      }
+      return res.toString();
+    }
+    this.stopwatchText = `${date.getHours()-1}:${f(()=>date.getMinutes())}:${f(()=>date.getSeconds())}`;
+    if(this.document) this.document.timeOpened = timeOpened;
+  }
 }
 </script>
 
@@ -276,7 +260,7 @@ export default class DocumentPreview extends Previewprops {
 }
 h5 {
   font-weight: 900;
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -296,5 +280,12 @@ h5 {
   background-color: #007bff;
   box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
 }
-
+.stopwatch {
+  position: absolute;
+  bottom: -8px;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 </style>

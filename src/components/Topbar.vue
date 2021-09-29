@@ -86,7 +86,7 @@
         />
       </b-modal>
       <b-button variant="success" v-b-modal.stats>Statistiky</b-button>
-      <b-modal id="stats" title="Statistiky" centered size="xl" ok-only
+      <b-modal id="stats" title="Statistiky" centered size="xl" ok-only scrollable
         ><stats ref="stat"></stats
       ></b-modal>
       <b-button variant="success" v-b-modal.preferences>Nastavenia</b-button>

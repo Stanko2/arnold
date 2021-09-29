@@ -31,6 +31,7 @@ import SearchBar from "./SearchBar.vue";
 import { Documents, getViewedDocument } from "@/DocumentManager";
 import { Document } from "@/@types";
 import { PDFdocument } from "./PDFdocument";
+import { Database } from "@/Db";
 
 const SidebarProps = Vue.extend({
   props: {
@@ -62,9 +63,11 @@ export default class Sidebar extends SidebarProps {
     previews: Element;
   };
   documentsShown!: boolean[];
-  selectedIndex: number = 0;
+  selectedIndex: number = -1;
   pdf!: PDFdocument;
   prefs: any;
+  openTime: number = 0;
+  timer!: NodeJS.Timer;
   mounted() {
     console.log(this.documents);
 
@@ -73,12 +76,14 @@ export default class Sidebar extends SidebarProps {
     this.$refs.searchBar.getTags();
     this.eventHub.$on("document:save", this.save);
     this.eventHub.$on("editor:search", this.search);
+    this.timer = setInterval(this.stopwatchUpdate, 1000);
   }
   init() {
     this.eventHub.$on(
       "editor:documentChanged",
       (doc: PDFdocument, metadata: Document) => {
         this.selectedIndex = metadata.index - 1;
+        this.openTime = Date.now();
         this.pdf = doc;
         if (this.$refs.documentList) {
           this.UpdateCurrentPreview();
@@ -119,7 +124,7 @@ export default class Sidebar extends SidebarProps {
     this.eventHub.$emit("editor:setDocument", i);
   }
   updateSelected(newIndex: number, scrolling: boolean) {
-    this.$router.push({name: 'Editor', params: {doc: newIndex.toString()}})
+    this.$router.push({name: 'Editor', params: {doc: newIndex.toString()}}).catch(()=>{});
     const previews = this.$refs.documentList;
     let height = 0;
     for (let i = 0; i < previews.length; i++) {
@@ -135,6 +140,16 @@ export default class Sidebar extends SidebarProps {
         left: 0,
         behavior: "smooth",
       });
+    if (this.selectedIndex != newIndex){
+      this.documents[this.selectedIndex].timeOpened += Date.now() - this.openTime;
+      console.log(this.documents[this.selectedIndex].timeOpened);
+      Database.updateDocument(this.documents[this.selectedIndex].id, this.documents[this.selectedIndex], false);
+    }
+  }
+  stopwatchUpdate() {
+    if(this.$refs.documentList && this.selectedIndex != -1){
+      this.$refs.documentList[this.selectedIndex].updateStopwatch(this.openTime, this.documents[this.selectedIndex].timeOpened);
+    }
   }
   async selectIndex(index: number) {
     if (this.prefs && this.prefs.autoSave) await this.save();
@@ -178,6 +193,9 @@ export default class Sidebar extends SidebarProps {
     setTimeout(() => {
       if (editing) editing.updatePreview();
     }, 500);
+  }
+  $destroy() {
+    clearInterval(this.timer);
   }
 }
 </script>

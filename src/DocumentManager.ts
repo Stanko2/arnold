@@ -75,6 +75,7 @@ export async function AddDocument(fileName: string, data: ArrayBuffer, index: nu
         changes: [],
         tags: [],
         opened: false,
+        timeOpened: 0
     });
     await Database.addDocument(metaDatas[metaDatas.length - 1]);
 }

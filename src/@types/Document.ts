@@ -3,6 +3,7 @@ export interface Document {
     kategoria: string;
     index: number;
     id: number;
+    timeOpened: number;
     scoring?: IScoring;
     pdfData: ArrayBuffer;
     initialPdf: ArrayBuffer;
