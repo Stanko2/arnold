@@ -274,6 +274,8 @@ input[type="number"]::-webkit-inner-spin-button {
 .bodovanie .bodovanie_okno {
   width: 300px;
   padding: 15px;
+  box-shadow: 0 0 20px rgb(0 0 0 / 50%);
+  border-radius: 0 0 0 10px;
 }
 .kriteria-body {
   text-align: right;

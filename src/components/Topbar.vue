@@ -206,8 +206,7 @@ export default class Topbar extends Vue {
   position: fixed;
   width: 100vw;
   bottom: 0;
-  transform-origin: bottom;
-  height: 3vw;
-  background: red;
+  height: 30px;
+  z-index: 10;
 }
 </style>

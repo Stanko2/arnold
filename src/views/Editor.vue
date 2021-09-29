@@ -162,6 +162,9 @@ export default class Editor extends Vue {
 </script>
 
 <style>
+.navbar {
+  height: 40px;
+}
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -169,7 +172,7 @@ export default class Editor extends Vue {
   text-align: center;
 }
 .main {
-  height: 94vh;
+  height: calc(100vh - 40px);
   width: 100vw;
   overflow-x: hidden;
 }
@@ -192,7 +195,7 @@ export default class Editor extends Vue {
   height: 93.5%;
 }
 .document-list {
-  height: 100% !important;
+  height: calc(100% - 50px);
 }
 
 .document-list-leave-active,
@@ -215,12 +218,32 @@ export default class Editor extends Vue {
 
 .sidebar-enter-to,
 .sidebar-leave {
-  /* transform: translate(0, 0); */
   right: 0;
 }
 .sidebar-leave-to,
 .sidebar-enter {
-  /* transform: translate(-100%, 0); */
   right: 25vw;
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888; 
+  border-radius: 5px;
+  transition: all 300ms linear;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555; 
 }
 </style>

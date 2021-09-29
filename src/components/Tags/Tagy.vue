@@ -19,6 +19,7 @@
               <b-badge
                 size="lg"
                 :style="{
+                  transition: 'all 250ms linear',
                   background: tag.color,
                   color: getContrastColor(tag.color),
                   opacity:
@@ -136,10 +137,14 @@ export default class Tags extends Vue {
   left: 0;
   margin-bottom: 0;
   padding-right: 28px;
+  z-index: 1;
 }
 .tags .tagy_okno {
   width: 200px;
   padding: 15px;
+  z-index: 2;
+  box-shadow: 0 0 20px rgb(0 0 0 / 30%);
+  border-radius: 10px 0 0 10px;
 }
 
 h6 {

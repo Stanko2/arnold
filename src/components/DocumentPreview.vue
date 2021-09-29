@@ -285,12 +285,16 @@ h5 {
   font-weight: normal;
 }
 .opened {
+  transition: box-shadow 100ms linear;
   background-color: rgb(243, 243, 243);
 }
-.opened:hover {
-  background-color: #b3bdc7;
+.opened:hover, .list-group-item-action:hover {
+  /* background-color: #b3bdc7; */
+  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.1);
 }
 .active.opened {
   background-color: #007bff;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
 }
+
 </style>

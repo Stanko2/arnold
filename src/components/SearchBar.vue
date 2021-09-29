@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-input-group style="z-index: 3">
+    <b-input-group style="z-index: 4">
       <b-form-input
         type="text"
         placeholder="Hladat v rieseniach"
@@ -27,7 +27,7 @@
       </b-input-group-append>
     </b-input-group>
     <transition name="slide">
-      <div v-if="expanded" style="z-index: 1">
+      <div v-if="expanded" class="search-menu">
         <b-input-group>
           <b-form-input
             @change="addtag"
@@ -45,7 +45,7 @@
             class="m-1 category-toggle"
             @click="toggleSearchCategory(tag)"
             size="lg"
-            style="background: var(--cyan)"
+            style=""
             :style="{
               opacity: categoriesVisible[i] ? 1 : 0.5,
             }"
@@ -172,13 +172,15 @@ export default class SearchBar extends Vue {
 <style scoped>
 .slide-leave-active,
 .slide-enter-active {
-  transition: 250ms ease-in-out;
+  transition: all 250ms ease-in-out;
 }
 .slide-enter {
   transform: translate(0, -100%);
+  box-shadow: 0 0 0 transparent;
 }
 .slide-leave-to {
   transform: translate(0, -100%);
+  box-shadow: 0 0 0 transparent;
 }
 .tags-leave-active {
   animation: bounce-in 500ms reverse;
@@ -201,5 +203,18 @@ export default class SearchBar extends Vue {
   cursor: pointer;
   user-select: none;
   font-size: 0.7rem;
+  background: var(--cyan);
+  transition: opacity 250ms linear;
+}
+.search-menu {
+  z-index: 3;
+  position: absolute;
+  left: 0;
+  right: 0;
+  background-color: var(--light);
+  padding: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 0.3rem;
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.5);
 }
 </style>
