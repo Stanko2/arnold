@@ -87,8 +87,6 @@ export class PathAnnotation extends Annotation {
         else {
             const options = object.options;
             options.hasControls = false;
-            options.originY = 'center';
-            options.originX = 'center';
             super(page, new fabric.Path(object.path, options), canvas, 'Path');
             this.object._controlsVisibility = { mtr: true };
         }

@@ -106,7 +106,12 @@ async function createZip() {
             delete pts[doc.id]?.annotName;
         }
     }
-    zip.file('/points.json', JSON.stringify(pts, null, '\t'));
+
+    const scoring ={
+        criteria: JSON.parse(localStorage.getItem('bodovanie') || '{}'),
+        scores: pts,
+    };
+    zip.file('/points.json', JSON.stringify(scoring, null, '\t'));
     const data = await zip.generateAsync({ type: "blob" }, (progress) => {
         eventHub.$emit('download:progress', progress.percent, progress.currentFile);
     });
@@ -114,5 +119,3 @@ async function createZip() {
     FileSaver.saveAs(file);
     eventHub.$emit('download:done');
 }
-
-

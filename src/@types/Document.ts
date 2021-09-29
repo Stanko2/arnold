@@ -14,7 +14,7 @@ export interface Document {
 
 export interface IScoring {
     points: number;
-    acceptedCriteria: boolean[];
+    acceptedCriteria: string[];
     final: boolean;
     annotName?: string;
     comments?: string[];

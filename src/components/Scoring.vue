@@ -182,7 +182,7 @@ export default class Scoring extends Vue {
     if (!this.doc) return;
     this.doc.scoring = {
       points: this.points || 0,
-      acceptedCriteria: this.acceptedCriteria,
+      acceptedCriteria: this.pointCriterias.filter((e, i)=>this.acceptedCriteria[i]).map((e)=>e.id),
       final: this.final,
       annotName: this.annotName,
     };
@@ -196,7 +196,7 @@ export default class Scoring extends Vue {
       this.final = false;
       return;
     }
-    this.acceptedCriteria = doc.scoring.acceptedCriteria;
+    this.acceptedCriteria = this.pointCriterias.map((e) => doc.scoring?.acceptedCriteria.includes(e.id) || false);
     this.points = doc.scoring.points;
     this.annotName = doc.scoring.annotName || "";
     this.final = false;
