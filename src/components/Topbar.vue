@@ -90,11 +90,6 @@
         ><stats ref="stat"></stats
       ></b-modal>
       <b-button variant="success" v-b-modal.preferences>Nastavenia</b-button>
-      <b-button
-        variant="success"
-        @click="eventHub.$emit('editor:sidebarToggle')"
-        >Skryt/ukazat listu</b-button
-      >
       <b-modal
         id="preferences"
         title="Nastavenia"

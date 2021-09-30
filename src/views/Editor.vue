@@ -14,6 +14,14 @@
           ref="sidebar"
         />
       </transition>
+      <div
+        class="toggle-button"
+        :class="{
+          visible: sidebarVisible,
+        }"
+        @click="eventHub.$emit('editor:sidebarToggle')"
+        ><span class="material-icons">arrow_forward_ios</span></div
+      >
       <div style="width: 100%">
         <toolbar :pdf="pdf" @refresh="refresh"></toolbar>
         <div class="viewportWrapper" v-if="pdf != null">
@@ -245,5 +253,41 @@ export default class Editor extends Vue {
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
   background: #555; 
+}
+
+.toggle-button.visible {
+  left: 20vw;
+}
+.toggle-button {
+  position: fixed;
+  z-index: 15;
+  left: 0;
+  bottom: 30px;
+  height: 40px;
+  width: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: right;
+  border-radius: 0 20px 20px 0;
+  background-color: var(--success);
+  cursor: pointer;
+  transition: all 250ms linear;
+  transform-origin: center center;
+  padding: 5px;
+  box-shadow: 2px 5px 14px rgb(0 0 0 / 50%);
+}
+.toggle-button:hover {
+  background: #218838;
+  width: 50px;
+}
+.toggle-button.visible:hover {
+  width: 30px;
+}
+
+.toggle-button.visible span {
+  transform: rotate(180deg);
+}
+.toggle-button span {
+  transition: all 250ms linear;
 }
 </style>

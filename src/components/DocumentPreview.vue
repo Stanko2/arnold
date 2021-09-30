@@ -217,8 +217,6 @@ export default class DocumentPreview extends Previewprops {
     };
   }
   updateStopwatch(openedAt: number, timeOpened: number) {
-    console.log(timeOpened);
-    
     const time = (Date.now() - openedAt) + timeOpened;
     const date = new Date(time)
     const f = function(func: ()=>number) {
