@@ -8,27 +8,44 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@types/fabric": "^4.2.3",
+    "@pdf-lib/fontkit": "^1.1.1",
+    "array-to-image": "^1.0.0",
     "bootstrap": "^4.6.0",
     "bootstrap-vue": "^2.21.2",
+    "chart.js": "^2.9.4",
     "color": "^3.1.3",
     "core-js": "^3.6.5",
-    "fabric": "^4.3.1",
+    "fabric": "^4.5.1",
+    "file-saver": "^2.0.5",
+    "fontfaceobserver": "^2.1.0",
+    "jszip": "^3.7.0",
+    "material-design-icons": "^3.0.1",
     "pdf-lib": "^1.16.0",
+    "pdfvuer": "^1.9.2",
+    "register-service-worker": "^1.7.1",
     "vue": "^2.6.11",
+    "vue-chartjs": "^3.5.1",
     "vue-class-component": "^7.2.3",
-    "vue-pdf": "^4.2.0",
+    "vue-context-menu": "^2.0.6",
+    "vue-preferences": "^3.0.0",
     "vue-property-decorator": "^9.1.2",
-    "vue-shortkey": "^3.1.7"
+    "vue-router": "^3.2.0",
+    "vue-shortkey": "^3.1.7",
+    "vue-swatches": "^2.1.1"
   },
   "devDependencies": {
     "@types/color": "^3.0.1",
+    "@types/fabric": "^4.2.6",
+    "@types/file-saver": "^2.0.2",
+    "@types/pdfjs-dist": "^2.7.5",
     "@typescript-eslint/eslint-plugin": "^2.33.0",
     "@typescript-eslint/parser": "^2.33.0",
-    "@vue/cli-plugin-babel": "~4.5.0",
-    "@vue/cli-plugin-eslint": "~4.5.0",
+    "@vue/cli-plugin-babel": "^4.5.13",
+    "@vue/cli-plugin-eslint": "^3.1.1",
+    "@vue/cli-plugin-pwa": "~4.5.0",
+    "@vue/cli-plugin-router": "~4.5.0",
     "@vue/cli-plugin-typescript": "~4.5.0",
-    "@vue/cli-service": "~4.5.0",
+    "@vue/cli-service": "^4.5.13",
     "@vue/eslint-config-typescript": "^5.0.2",
     "babel-eslint": "^10.1.0",
     "eslint": "^6.7.2",
@@ -49,7 +66,9 @@
     "parserOptions": {
       "parser": "@typescript-eslint/parser"
     },
-    "rules": {}
+    "rules": {
+      "no-unused-vars": "off"
+    }
   },
   "browserslist": [
     "> 1%",
