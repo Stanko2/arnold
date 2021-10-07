@@ -112,8 +112,9 @@
             >
           </transition-group>
         </div>
-        <div class="stopwatch">
-          <span>{{ stopwatchText }}</span><span class="material-icons">hourglass_empty</span>
+        <div class="stopwatch" v-if="showTimer">
+          <span>{{ stopwatchText }}</span
+          ><span class="material-icons">hourglass_empty</span>
         </div>
       </div>
     </div>
@@ -133,7 +134,7 @@ import Component from "vue-class-component";
 var pdf = require("pdfvuer");
 
 const Previewprops = Vue.extend({
-  props: ["documentID", "showPDFPreview"],
+  props: ["documentID", "showPDFPreview", "showTimer"],
 });
 
 @Component({
@@ -149,7 +150,7 @@ export default class DocumentPreview extends Previewprops {
   tags: Tag[] = [];
   pdf: any;
   selected: boolean = false;
-  stopwatchText: string = "0:00"
+  stopwatchText: string = "0:00";
 
   data() {
     return {
@@ -217,17 +218,19 @@ export default class DocumentPreview extends Previewprops {
     };
   }
   updateStopwatch(openedAt: number, timeOpened: number) {
-    const time = (Date.now() - openedAt) + timeOpened;
-    const date = new Date(time)
-    const f = function(func: ()=>number) {
+    const time = Date.now() - openedAt + timeOpened;
+    const date = new Date(time);
+    const f = function (func: () => number) {
       const res = func();
-      if(res < 10){
-        return '0' + res.toString();
+      if (res < 10) {
+        return "0" + res.toString();
       }
       return res.toString();
-    }
-    this.stopwatchText = `${date.getHours()-1}:${f(()=>date.getMinutes())}:${f(()=>date.getSeconds())}`;
-    if(this.document) this.document.timeOpened = timeOpened;
+    };
+    this.stopwatchText = `${date.getHours() - 1}:${f(() =>
+      date.getMinutes()
+    )}:${f(() => date.getSeconds())}`;
+    if (this.document) this.document.timeOpened = timeOpened;
   }
 }
 </script>
@@ -270,7 +273,8 @@ h5 {
   transition: box-shadow 100ms linear;
   background-color: rgb(243, 243, 243);
 }
-.opened:hover, .list-group-item-action:hover {
+.opened:hover,
+.list-group-item-action:hover {
   /* background-color: #b3bdc7; */
   box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.1);
 }

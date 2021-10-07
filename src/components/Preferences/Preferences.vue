@@ -142,6 +142,18 @@
             ></b-form-checkbox>
           </b-col>
         </b-row>
+        <hr />
+        <b-row>
+          <b-col>Ukazat timer</b-col>
+          <b-col>
+            <b-form-checkbox
+              class="float-right"
+              size="md"
+              v-model="selectedCategory.settings.showTimer"
+              switch
+            ></b-form-checkbox>
+          </b-col>
+        </b-row>
       </div>
       <div v-else-if="selectedCategory.name == 'shortcut'">
         <b-alert show variant="info" dismissible
@@ -251,6 +263,7 @@ export default class Preferences extends Vue {
         settings: {
           showPreviews: true,
           autoSave: true,
+          showTimer: false,
         },
         name: "other",
       },
