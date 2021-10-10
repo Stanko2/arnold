@@ -31,21 +31,35 @@
         placeholder="Vloz zip, v ktorom su vsetky riesenia"
         @input="fileAdded"
       />
-
-      <router-link
+      <b-list-group v-if="fileInput">
+        <b-list-group-item variant="primary">
+          Obsah {{ fileName }}
+        </b-list-group-item>
+        <b-list-group-item v-for="(category, i) in categories" :key="category">
+          <div>
+            <div>{{ category }}</div>
+            <div>{{ categoryCount[i] }}</div>
+          </div>
+        </b-list-group-item>
+      </b-list-group>
+      <b-button
         :disabled="!hasFile"
-        tag="button"
-        class="text btn btn-primary btn-lg btn-block"
-        to="/edit/0"
-        >Zacat opravovat</router-link
+        block
+        size="lg"
+        variant="primary"
+        class="text"
+        @click="openEditor()"
+        >Zacat pravovat {{ problem }}</b-button
       >
     </div>
     <div v-if="hasDocuments === true">
-      <router-link
-        tag="button"
-        class="text btn btn-primary btn-lg btn-block"
-        to="/edit/0"
-        >Pokracovat v opravovani {{ problem }}</router-link
+      <b-button
+        size="lg"
+        block
+        variant="primary"
+        class="text"
+        @click="openEditor()"
+        >Pokracovat v opravovani {{ problem }}</b-button
       >
     </div>
   </div>
@@ -55,6 +69,7 @@
 import { Database } from "@/Db";
 import Vue from "vue";
 import { loadFromDatabase } from "../DocumentManager";
+import { Document, DocumentParser } from "@/@types";
 
 export default Vue.extend({
   name: "Home",
@@ -66,15 +81,28 @@ export default Vue.extend({
       fileInput: null,
       hasDocuments: null,
       problem: "",
+      categories: Array<string>(),
+      categoryCount: Array<number>(),
     };
   },
   mounted() {
-    return new Promise<void>((resolve, reject) => {
-      Database.getAllDocuments().then((docs) => {
-        this.$data.hasDocuments = docs.length > 0;
-        this.problem = localStorage.getItem("uloha") || "";
-      });
+    Database.getAllDocuments().then((docs) => {
+      this.$data.hasDocuments = docs.length > 0;
+      this.problem = localStorage.getItem("uloha") || "";
     });
+    this.eventHub.$on(
+      "contentParsed",
+      (docs: Document[], parser: DocumentParser) => {
+        this.categories = parser.kategorie;
+        this.problem = parser.uloha;
+        for (let i = 0; i < parser.kategorie.length; i++) {
+          const category = parser.kategorie[i];
+          this.categoryCount.push(
+            docs.filter((e) => e.kategoria == category).length
+          );
+        }
+      }
+    );
   },
   methods: {
     fileAdded: function () {
@@ -88,17 +116,17 @@ export default Vue.extend({
     openEditor: function () {
       return new Promise<void>((resolve, reject) => {
         loadFromDatabase()
-          .catch((err) => reject(err))
-          .then(() => {
+          .then((docs) => {
             this.$router
               .push({
                 name: "Editor",
                 params: {
-                  doc: "0",
+                  doc: docs[0].id.toString(),
                 },
               })
               .then(() => resolve);
-          });
+          })
+          .catch((err) => reject(err));
       });
     },
   },

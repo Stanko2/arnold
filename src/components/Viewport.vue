@@ -132,7 +132,7 @@ export default class Viewport extends ViewportProps {
     setTimeout(() => {
       if (document.pageCanvases.length > 0) return;
 
-      const pages = this.$refs.page as Element[];
+      const pages = (this.$refs.page as Element[]) || [];
       const PDFpages = (this.$refs.pdf as Element).children;
       for (var i = 0; i < pages.length; i++) {
         const page = pages[i];

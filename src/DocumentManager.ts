@@ -20,23 +20,29 @@ export let activeParser: DocumentParser;
 export let Documents: Document[] = []
 let pdf: null | PDFdocument = null;
 let selectedDocumentIndex = -1;
-async function setPdf(index: number) {
+async function setPdf(id: number) {
     // if (!index) {
     //     setPdf(selectedDocumentIndex);
     //     return;
     // }
-    if (index < 0 || index >= Documents.length) return;
-    if (index == selectedDocumentIndex) return;
+    const index = Documents.findIndex(e => e.id === id);
+
+    if (index === -1) return;
+    if (index === selectedDocumentIndex) return;
+
     document.title = 'Arnold | ' + Documents[index].riesitel;
     selectedDocumentIndex = index;
-    var data = Documents[index];
-    data.opened = true;
+    const data = await Database.getDocument(id);
+    if (!data.opened) {
+        data.opened = true;
+        await Database.updateDocument(data.id, data, false);
+    }
     if (pdf?.pageCanvases) {
         pdf.pageCanvases.forEach((e) => e.Clear());
     }
     pdf = new PDFdocument(data.initialPdf, data.id);
 
-    eventHub.$emit('editor:documentChanged', pdf, Documents[index]);
+    eventHub.$emit('editor:documentChanged', pdf, data);
 }
 
 export function getViewedDocument() { return pdf }
@@ -63,6 +69,7 @@ export async function readZip(file: File) {
     });
     await Promise.all(promises);
     Documents = metaDatas;
+    eventHub.$emit('contentParsed', Documents, parser);
 }
 
 export async function AddDocument(fileName: string, data: ArrayBuffer, index: number = Documents.length, metaDatas: Document[] = Documents, parser: DocumentParser = activeParser) {
@@ -83,10 +90,13 @@ export async function AddDocument(fileName: string, data: ArrayBuffer, index: nu
 export async function loadFromDatabase() {
     const metaDatas: Document[] = []
     const docs = await Database.getAllDocuments();
-    docs.forEach(e => {
-        metaDatas.push(e);
-    })
-    metaDatas.sort((a: Document, b: Document) => a.index - b.index);
+    for (let i = 0; i < docs.length; i++) {
+        const document = docs[i];
+        document.initialPdf = new ArrayBuffer(0);
+        document.pdfData = new ArrayBuffer(0);
+        metaDatas.push(document);
+    }
+    metaDatas.sort((a: Document, b: Document) => b.index - a.index);
     Documents = metaDatas;
     activeParser = new PMatParser(localStorage.getItem('uloha') || '');
     setTimeout(() => {
