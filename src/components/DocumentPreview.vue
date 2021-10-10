@@ -35,11 +35,22 @@
         </div>
       </div>
       <div :class="{ 'col-7': showPDFPreview, 'w-100': !showPDFPreview }">
-        <div class="text-left overflow-hidden mw-100">
+        <div
+          class="text-left overflow-hidden mw-100"
+          :id="document.id + 'name'"
+        >
           <h5 class="d-inline pr-1 mr-2 border-right">
             {{ document.index }}
           </h5>
-          <h5 class="d-inline">{{ document.riesitel }}</h5>
+          <h5 class="d-inline">
+            {{ document.riesitel }}
+          </h5>
+          <b-popover
+            triggers="hover"
+            :target="document.id + 'name'"
+            placement="top"
+            >{{ document.riesitel }}</b-popover
+          >
         </div>
         <div class="p-3 grid">
           <b-row class="border-bottom">

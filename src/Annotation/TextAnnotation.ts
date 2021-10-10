@@ -33,7 +33,7 @@ export class TextAnnotation extends Annotation {
             <text xml:space="preserve" font-family="Helvetica" font-size="155" font-style="normal" font-weight="normal" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(28,160,133); fill-rule: nonzero; opacity: 1; white-space: pre;" ><tspan x="-146.52" y="-52.9" >text</tspan><tspan x="-146.52" y="150.28" >ahoj</tspan></text>
         </g> 
          */
-        const font = (this.object as fabric.Textbox).fontFamily || 'Helvetica';
+        const font = (this.object as fabric.Textbox).fontFamily || 'Open Sans';
         const doc = getViewedDocument();
         await EmbedFont(doc, font);
         console.log(doc?.embeddedResources[font]);

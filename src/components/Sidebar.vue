@@ -114,7 +114,13 @@ export default class Sidebar extends SidebarProps {
   }
   async save() {
     this.$refs.documentList[this.selectedIndex].documentBusy = true;
-    await this.pdf.save();
+    await this.pdf.save().catch((err) => {
+      this.$bvToast.toast(err, {
+        variant: "danger",
+        title: "Save failed",
+      });
+      this.$refs.documentList[this.selectedIndex].documentBusy = false;
+    });
     this.UpdateCurrentPreview();
   }
   async selectDir(dir: number) {
@@ -167,7 +173,7 @@ export default class Sidebar extends SidebarProps {
     }
   }
   async selectIndex(index: number) {
-    if (this.prefs && this.prefs.autoSave) await this.save();
+    if (this.autoSave) await this.save();
     this.updateSelected(index, false);
     this.eventHub.$emit("editor:setDocument", index);
   }

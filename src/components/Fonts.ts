@@ -4,17 +4,20 @@ declare let FontFace: any;
 
 
 export const FontsAvailable: Record<string, any> = {
-    'Helvetica': {
-        pdf: StandardFonts.Helvetica,
-        viewport: 'Helvetica',
+    'Open Sans': {
+        url: 'https://fonts.googleapis.com/css2?family=Open+Sans&display=swap',
+        pdf: '/fonts/OpenSans.otf',
+        viewport: 'Open Sans',
     },
-    'Times New Roman': {
-        pdf: StandardFonts.TimesRoman,
-        viewport: 'Times New Roman',
+    'Ubuntu': {
+        url: 'https://fonts.googleapis.com/css2?family=Ubuntu&display=swap',
+        pdf: '/fonts/Ubuntu.otf',
+        viewport: 'Ubuntu',
     },
-    'Courier New': {
-        pdf: StandardFonts.Courier,
-        viewport: 'Courier New',
+    'Noto Sans Mono': {
+        url: 'https://fonts.googleapis.com/css2?family=Noto+Sans+Mono&display=swap',
+        pdf: '/fonts/NotoSansMono.otf',
+        viewport: 'Noto Sans Mono',
     },
     'Gloria Hallelujah': {
         url: 'https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap',
@@ -61,6 +64,7 @@ export async function EmbedFont(pdf: PDFdocument | null, font: string) {
         console.log('Document not yet initialized');
         return;
     }
+    console.log(font);
     if (!(font in FontsAvailable)) {
         console.log('Trying to embed unavailable font');
         return;
