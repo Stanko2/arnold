@@ -31,7 +31,8 @@
     "vue-property-decorator": "^9.1.2",
     "vue-router": "^3.2.0",
     "vue-shortkey": "^3.1.7",
-    "vue-swatches": "^2.1.1"
+    "vue-swatches": "^2.1.1",
+    "vuex": "^3.6.2"
   },
   "devDependencies": {
     "@types/color": "^3.0.1",

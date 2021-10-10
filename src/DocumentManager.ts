@@ -3,7 +3,7 @@ import JSZip from "jszip";
 import { Database } from "./Db";
 import FileSaver from "file-saver";
 import { PMatParser } from "./DocumentParser";
-import eventHub from "./EventHub";
+import eventHub from "./Mixins/EventHub";
 import type { IScoring, Document, DocumentParser } from "./@types";
 
 
@@ -27,7 +27,7 @@ async function setPdf(index: number) {
     // }
     if (index < 0 || index >= Documents.length) return;
     if (index == selectedDocumentIndex) return;
-
+    document.title = 'Arnold | ' + Documents[index].riesitel;
     selectedDocumentIndex = index;
     var data = Documents[index];
     data.opened = true;
@@ -100,15 +100,15 @@ async function createZip() {
     const zip = new JSZip();
     const pts: Record<string, IScoring> = {};
     for (const doc of documents) {
-        zip.file(doc.originalName, doc.pdfData);
         if (doc.scoring) {
+            zip.file(doc.originalName, doc.pdfData);
             doc.scoring.comments = doc.changes.filter(c => c.type === 'Text').map(c => c.data.text);
             pts[doc.id] = doc.scoring;
             delete pts[doc.id]?.annotName;
         }
     }
 
-    const scoring ={
+    const scoring = {
         criteria: JSON.parse(localStorage.getItem('bodovanie') || '{}'),
         scores: pts,
     };

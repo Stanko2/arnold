@@ -1,25 +1,53 @@
 <template>
   <div class="container">
-    <img alt="Vue logo" src="../assets/logo.png" />
-    <p>Vitaj v opravovacej appke</p>
-    <label for="mainInput" class="inputWrapper"> </label>
-    <p>{{ fileName }}</p>
-    <b-form-file
-      v-model="fileInput"
-      accept=".zip"
-      id="mainInput"
-      size="lg"
-      placeholder="Vloz zip, v ktorom su vsetky riesenia"
-      @input="fileAdded"
-    />
-
-    <router-link
-      :disabled="!hasFile"
-      tag="button"
-      class="text btn btn-primary btn-lg btn-block"
-      to="/edit/0"
-      >Zacat opravovat</router-link
+    <b-jumbotron
+      bg-variant="success"
+      text-variant="white"
+      border-variant="dark"
     >
+      <template #header>Vitaj v Arnoldovi</template>
+
+      <template #lead>
+        Arnold je jednoduchá aplikácia na pomoc pri opravovaní riešení v
+        korešpodenčných seminároch Pikomat a Pikofyz.
+      </template>
+
+      <hr class="my-4" />
+
+      <p>
+        <strong>Chceš opravovať?</strong>
+        Stiahni zip s riešeniami z interných, vlož ho sem a môžme sa do toho
+        hneď pustiť 😎.
+      </p>
+    </b-jumbotron>
+    <label for="mainInput" class="inputWrapper"> </label>
+    <div v-if="hasDocuments === false">
+      <p>{{ fileName }}</p>
+      <b-form-file
+        v-model="fileInput"
+        accept=".zip"
+        id="mainInput"
+        size="lg"
+        placeholder="Vloz zip, v ktorom su vsetky riesenia"
+        @input="fileAdded"
+      />
+
+      <router-link
+        :disabled="!hasFile"
+        tag="button"
+        class="text btn btn-primary btn-lg btn-block"
+        to="/edit/0"
+        >Zacat opravovat</router-link
+      >
+    </div>
+    <div v-if="hasDocuments === true">
+      <router-link
+        tag="button"
+        class="text btn btn-primary btn-lg btn-block"
+        to="/edit/0"
+        >Pokracovat v opravovani {{ problem }}</router-link
+      >
+    </div>
   </div>
 </template>
 
@@ -36,24 +64,15 @@ export default Vue.extend({
       fileName: "Vloz Zip s PDFkami na opravovanie",
       hasFile: false,
       fileInput: null,
+      hasDocuments: null,
+      problem: "",
     };
   },
   mounted() {
     return new Promise<void>((resolve, reject) => {
       Database.getAllDocuments().then((docs) => {
-        if (docs.length > 0) {
-          loadFromDatabase()
-            .catch((err) => reject(err))
-            .then(() => {
-              this.$router.push({
-                name: "Editor",
-                params: {
-                  doc: '0'
-                }
-              });
-              resolve();
-            });
-        }
+        this.$data.hasDocuments = docs.length > 0;
+        this.problem = localStorage.getItem("uloha") || "";
       });
     });
   },
@@ -62,9 +81,25 @@ export default Vue.extend({
       var file = this.fileInput;
       if (file != null) {
         this.eventHub.$emit("editor:parseDocuments", file);
-        this.$data.fileName = file["name"];
-        this.$data.hasFile = true;
+        this.fileName = file["name"];
+        this.hasFile = true;
       }
+    },
+    openEditor: function () {
+      return new Promise<void>((resolve, reject) => {
+        loadFromDatabase()
+          .catch((err) => reject(err))
+          .then(() => {
+            this.$router
+              .push({
+                name: "Editor",
+                params: {
+                  doc: "0",
+                },
+              })
+              .then(() => resolve);
+          });
+      });
     },
   },
 });

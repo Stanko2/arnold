@@ -6,7 +6,7 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import router from './router'
 import './registerServiceWorker'
-import './EventHub'
+import './Mixins/EventHub'
 
 const shortkey = require('vue-shortkey');
 const ctxMenu = require('vue-context-menu');

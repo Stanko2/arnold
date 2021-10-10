@@ -29,7 +29,7 @@ export class PMatParser implements DocumentParser {
             id: parseInt(fileName[fileName.length - 1].substring(0, 4)),
             kategoria: this.kategorieMapper[fileName[1]],
             riesitel: fileName.slice(2, fileName.length - 1).map(e => e[0].toUpperCase() + e.slice(1)).join(' '),
-            originalName: name
+            originalName: name.split('/')[1] || name,
         }
     }
 
