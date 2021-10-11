@@ -38,7 +38,9 @@ async function setPdf(id: number) {
         await Database.updateDocument(data.id, data, false);
     }
     if (pdf?.pageCanvases) {
-        pdf.pageCanvases.forEach((e) => e.Clear());
+        pdf.pageCanvases.forEach((e) => {
+            e.Clear();
+        });
     }
     pdf = new PDFdocument(data.initialPdf, data.id);
 
@@ -90,13 +92,17 @@ export async function AddDocument(fileName: string, data: ArrayBuffer, index: nu
 export async function loadFromDatabase() {
     const metaDatas: Document[] = []
     const docs = await Database.getAllDocuments();
+    const categoriesData = localStorage.getItem('categories');
+    if (!categoriesData) throw new Error('No categories');
+    const categories = JSON.parse(categoriesData);
     for (let i = 0; i < docs.length; i++) {
         const document = docs[i];
         document.initialPdf = new ArrayBuffer(0);
         document.pdfData = new ArrayBuffer(0);
-        metaDatas.push(document);
+        if (categories.includes(document.kategoria))
+            metaDatas.push(document);
     }
-    metaDatas.sort((a: Document, b: Document) => b.index - a.index);
+    metaDatas.sort((a: Document, b: Document) => a.index - b.index);
     Documents = metaDatas;
     activeParser = new PMatParser(localStorage.getItem('uloha') || '');
     setTimeout(() => {

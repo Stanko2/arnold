@@ -1,7 +1,7 @@
 import { Database } from '@/Db';
 import { degrees, PageSizes, PDFDocument } from 'pdf-lib';
 //@ts-ignore
-import { getDocument, OPS, SVGGraphics } from 'pdfjs-dist';
+import { getDocument, SVGGraphics } from 'pdfjs-dist';
 
 export interface PDFImage {
     width: number;
@@ -26,7 +26,7 @@ export async function ExtractImages(pdfbytes: ArrayBuffer): Promise<PDFImage[]> 
         const operators = await page.getOperatorList();
         // @ts-ignore
         const svgGfx = new SVGGraphics(page.commonObjs, page.objs);
-        const viewport = page.getViewport({scale: 1});
+        const viewport = page.getViewport({ scale: 1 });
 
         const svg = {
             w: viewport.width,
@@ -35,7 +35,7 @@ export async function ExtractImages(pdfbytes: ArrayBuffer): Promise<PDFImage[]> 
         };
         (window as any).svg = svg;
         console.log(svg.doc.querySelector('image'));
-        svg.doc.querySelectorAll('image').forEach(e=>{
+        svg.doc.querySelectorAll('image').forEach(e => {
             images.push({
                 width: viewport.width,
                 height: viewport.height,
@@ -45,17 +45,17 @@ export async function ExtractImages(pdfbytes: ArrayBuffer): Promise<PDFImage[]> 
             })
             count++;
         })
-    }    
+    }
     return images;
 }
 
-export async function GeneratePDF(images:PDFImage[], emptyPage:boolean, id:number) {
+export async function GeneratePDF(images: PDFImage[], emptyPage: boolean, id: number) {
     const doc = await PDFDocument.create();
     for (let i = 0; i < images.length; i++) {
         const img = images[i];
         const image = await (await fetch(img.url)).arrayBuffer();
         const dims: [number, number] = img.rotation % 2 == 0 ? [img.width, img.height] : [img.height, img.width];
-        const positions = [{x: 0, y: 0}, {x: 0, y: dims[1]}, {x: dims[0], y: dims[1]}, {x: dims[0], y: 0}];
+        const positions = [{ x: 0, y: 0 }, { x: 0, y: dims[1] }, { x: dims[0], y: dims[1] }, { x: dims[0], y: 0 }];
         const page = doc.addPage(dims);
         const PdfImg = await doc.embedPng(image);
         page.drawImage(PdfImg, {
@@ -63,10 +63,10 @@ export async function GeneratePDF(images:PDFImage[], emptyPage:boolean, id:numbe
             y: positions[img.rotation % 4].y,
             width: img.width,
             height: img.height,
-            rotate: degrees(90*(img.rotation % 4)+ 180 * (img.rotation % 2))
+            rotate: degrees(90 * (img.rotation % 4) + 180 * (img.rotation % 2))
         });
     }
-    if(emptyPage) {
+    if (emptyPage) {
         doc.addPage(PageSizes.A4);
     }
 

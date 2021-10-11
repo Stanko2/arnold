@@ -21,6 +21,11 @@
       </p>
     </b-jumbotron>
     <label for="mainInput" class="inputWrapper"> </label>
+    <b-alert :show="getDocumentCount() > 120" dismissible variant="warning">
+      Pri takychto vysokych poctoch rieseni som nestabilny a spomaleny. Prosim
+      otvor radsej menej kategorii naraz a potom sa mozes prepnut cez tuto
+      stranku.
+    </b-alert>
     <div v-if="hasDocuments === false">
       <p>{{ fileName }}</p>
       <b-form-file
@@ -31,37 +36,39 @@
         placeholder="Vloz zip, v ktorom su vsetky riesenia"
         @input="fileAdded"
       />
-      <b-list-group v-if="fileInput">
-        <b-list-group-item variant="primary">
-          Obsah {{ fileName }}
-        </b-list-group-item>
-        <b-list-group-item v-for="(category, i) in categories" :key="category">
-          <div>
-            <div>{{ category }}</div>
-            <div>{{ categoryCount[i] }}</div>
-          </div>
-        </b-list-group-item>
-      </b-list-group>
-      <b-button
-        :disabled="!hasFile"
-        block
-        size="lg"
-        variant="primary"
-        class="text"
-        @click="openEditor()"
-        >Zacat pravovat {{ problem }}</b-button
-      >
     </div>
-    <div v-if="hasDocuments === true">
-      <b-button
-        size="lg"
-        block
-        variant="primary"
-        class="text"
-        @click="openEditor()"
-        >Pokracovat v opravovani {{ problem }}</b-button
+    <b-button
+      :disabled="getDocumentCount() == 0"
+      size="lg"
+      block
+      variant="primary"
+      class="text"
+      @click="openEditor()"
+      >Opravovat {{ problem }}</b-button
+    >
+    <hr />
+    <b-list-group>
+      <b-list-group-item variant="primary">
+        <h3>Vyber si kategórie, ktoré ideš opravovať</h3>
+      </b-list-group-item>
+      <b-list-group-item
+        :active="category.enabled"
+        v-for="category in categories.filter((e) => e.count > 0)"
+        :key="category.name"
+        @click="category.enabled = !category.enabled"
       >
-    </div>
+        <div class="categoryEntry">
+          <div>{{ category.name }}</div>
+          <div>{{ category.count }} riešení</div>
+        </div>
+      </b-list-group-item>
+    </b-list-group>
+    <p>
+      Vybrate {{ categories.filter((e) => e.enabled).length }} kategorie, dokopy
+      {{ getDocumentCount() }}
+      riešení
+    </p>
+    <hr />
   </div>
 </template>
 
@@ -70,6 +77,13 @@ import { Database } from "@/Db";
 import Vue from "vue";
 import { loadFromDatabase } from "../DocumentManager";
 import { Document, DocumentParser } from "@/@types";
+import { PMatParser } from "@/DocumentParser";
+
+interface Category {
+  name: string;
+  count: number;
+  enabled: boolean;
+}
 
 export default Vue.extend({
   name: "Home",
@@ -81,30 +95,40 @@ export default Vue.extend({
       fileInput: null,
       hasDocuments: null,
       problem: "",
-      categories: Array<string>(),
-      categoryCount: Array<number>(),
+      categories: Array<Category>(),
     };
   },
   mounted() {
     Database.getAllDocuments().then((docs) => {
       this.$data.hasDocuments = docs.length > 0;
       this.problem = localStorage.getItem("uloha") || "";
+      const parser = new PMatParser(this.problem);
+      this.getCategories(docs, parser);
     });
     this.eventHub.$on(
       "contentParsed",
       (docs: Document[], parser: DocumentParser) => {
-        this.categories = parser.kategorie;
-        this.problem = parser.uloha;
-        for (let i = 0; i < parser.kategorie.length; i++) {
-          const category = parser.kategorie[i];
-          this.categoryCount.push(
-            docs.filter((e) => e.kategoria == category).length
-          );
-        }
+        this.getCategories(docs, parser);
+        console.log(docs);
       }
     );
   },
   methods: {
+    getCategories(docs: Document[], parser: DocumentParser) {
+      this.categories = parser.kategorie.map((e) => {
+        return {
+          name: e,
+          enabled: false,
+          count: 0,
+        };
+      });
+      for (let i = 0; i < parser.kategorie.length; i++) {
+        const category = this.categories[i];
+        category.count = docs.filter(
+          (e) => e.kategoria == category.name
+        ).length;
+      }
+    },
     fileAdded: function () {
       var file = this.fileInput;
       if (file != null) {
@@ -114,6 +138,10 @@ export default Vue.extend({
       }
     },
     openEditor: function () {
+      const categoriesEnabled = this.categories
+        .filter((e) => e.enabled)
+        .map((e) => e.name);
+      localStorage.setItem("categories", JSON.stringify(categoriesEnabled));
       return new Promise<void>((resolve, reject) => {
         loadFromDatabase()
           .then((docs) => {
@@ -128,6 +156,15 @@ export default Vue.extend({
           })
           .catch((err) => reject(err));
       });
+    },
+    getDocumentCount() {
+      let count = 0;
+      for (const cat of this.categories) {
+        if (cat.enabled) {
+          count += cat.count;
+        }
+      }
+      return count;
     },
   },
 });
@@ -144,6 +181,11 @@ img {
 }
 input[type="file"] {
   display: none;
+}
+.categoryEntry {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 /* .inputWrapper {
   width: 100%;

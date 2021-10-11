@@ -4,7 +4,7 @@ import { EmbedFont } from "@/components/Fonts";
 import { getViewedDocument } from "@/DocumentManager";
 import Color from "color";
 import { fabric } from "fabric";
-import { concatTransformationMatrix, degrees, PDFFont, PDFPage, PDFPageDrawTextOptions, popGraphicsState, pushGraphicsState, rgb, rotateDegrees, scale, translate } from "pdf-lib";
+import { concatTransformationMatrix, degrees, PDFFont, PDFPage, PDFPageDrawTextOptions, popGraphicsState, pushGraphicsState, rgb, rotateDegrees, scale, toHexStringOfMinLength, translate } from "pdf-lib";
 
 export class TextAnnotation extends Annotation {
     static toolOptions: any;

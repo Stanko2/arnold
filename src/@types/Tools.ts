@@ -15,7 +15,7 @@ export interface Tool {
     shortcut: string,
 }
 
-interface ToolOptions {
+export interface ToolOptions {
     hasText: boolean,
     hasStroke: boolean,
     hasStrokeWidth: boolean,

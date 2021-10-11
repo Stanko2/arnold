@@ -17,20 +17,21 @@
       <div class="col-5" v-if="showPDFPreview">
         <div class="card">
           <div
-            v-if="pdf == undefined"
+            v-if="pdfUrl == null"
             class="d-flex align-items-center justify-content-center"
           >
             Nacitavam preview
           </div>
           <div v-else>
-            <pdf
+            <!-- <pdf
               :key="pdfKey"
               :src="pdf"
               :page="1"
               :text="false"
               :resize="true"
               style="display: inline-block; width: 100%"
-            ></pdf>
+            ></pdf> -->
+            <img :src="pdfUrl" alt="preview" />
           </div>
         </div>
       </div>
@@ -139,7 +140,8 @@ import Color from "color";
 import Vue from "vue";
 import type { Document, Tag } from "@/@types";
 import Component from "vue-class-component";
-var pdf = require("pdfvuer");
+// var pdf = require("pdfvuer");
+import { getDocument } from "pdfjs-dist";
 
 const Previewprops = Vue.extend({
   props: ["documentID", "showPDFPreview", "showTimer"],
@@ -147,7 +149,7 @@ const Previewprops = Vue.extend({
 
 @Component({
   components: {
-    pdf: pdf.default,
+    // pdf: pdf.default,
   },
 })
 export default class DocumentPreview extends Previewprops {
@@ -157,8 +159,9 @@ export default class DocumentPreview extends Previewprops {
   pdfKey: boolean = false;
   tags: Tag[] = [];
   pdf: any;
+  pdfUrl: string | null = null;
   selected: boolean = false;
-  stopwatchText: string = "0:00";
+  stopwatchText: string = "0:00:00";
 
   data() {
     return {
@@ -188,10 +191,11 @@ export default class DocumentPreview extends Previewprops {
         (f) => f.type === "Text" && !f.data.text.match(/[0-9]*(\.[0-9])?B/)
       );
       setTimeout(() => {
-        this.pdf = pdf.createLoadingTask({
-          data: new Uint8Array(doc.pdfData),
-        });
-      }, 500 * doc.index);
+        // this.pdf = pdf.createLoadingTask({
+        //   data: new Uint8Array(doc.pdfData),
+        // });
+        this.generatePreview(doc.pdfData);
+      }, 1000 * doc.index);
     });
     this.eventHub.$on("tags:documentTag", (id: number, tags: any) => {
       if (!this.document || this.documentID != id) return;
@@ -211,9 +215,10 @@ export default class DocumentPreview extends Previewprops {
       this.document.opened = doc.opened;
       this.document.scoring = doc.scoring;
       setTimeout(() => {
-        this.pdf = pdf.createLoadingTask({
-          data: new Uint8Array(doc.pdfData),
-        });
+        // this.pdf = pdf.createLoadingTask({
+        //   data: new Uint8Array(doc.pdfData),
+        // });
+        this.generatePreview(doc.pdfData);
         this.pdfKey = !this.pdfKey;
       }, 30);
     });
@@ -239,6 +244,24 @@ export default class DocumentPreview extends Previewprops {
       date.getMinutes()
     )}:${f(() => date.getSeconds())}`;
     if (this.document) this.document.timeOpened = timeOpened;
+  }
+
+  async generatePreview(data: ArrayBuffer) {
+    const doc = await getDocument({ data: new Uint8Array(data) }).promise;
+    const page = await doc.getPage(1);
+    const vp = page.getViewport({ scale: 1 });
+    const canvas = document.createElement("canvas");
+    canvas.width = 100;
+    canvas.height = (vp.height / vp.width) * 100;
+    const scale = Math.min(canvas.width / vp.width, canvas.height / vp.height);
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      await page.render({
+        canvasContext: ctx,
+        viewport: page.getViewport({ scale }),
+      }).promise;
+      this.pdfUrl = canvas.toDataURL();
+    }
   }
 }
 </script>
