@@ -27,6 +27,9 @@ export const store = new Store<State>({
         },
         applySettings(state, settings: Settings) {
             state.settings = settings;
+        },
+        loadDocuments(state, documents: Document[]) {
+            state.documents = documents;
         }
     }
 });

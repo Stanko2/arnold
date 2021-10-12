@@ -61,9 +61,9 @@ export const tools: Tool[] = [
         icon: 'A',
         tooltip: 'Text',
         defaultOptions: <fabric.ITextboxOptions>{
-            width: 0,
+            width: 200,
             height: 0,
-            fontFamily: 'Helvetica',
+            fontFamily: 'Open Sans',
             fill: '#000000',
             fontSize: 12
         },

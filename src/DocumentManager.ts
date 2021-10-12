@@ -5,6 +5,7 @@ import FileSaver from "file-saver";
 import { PMatParser } from "./DocumentParser";
 import eventHub from "./Mixins/EventHub";
 import type { IScoring, Document, DocumentParser } from "./@types";
+import { store } from "./Store";
 
 
 eventHub.$on('editor:setDocument', setPdf);
@@ -108,6 +109,7 @@ export async function loadFromDatabase() {
     setTimeout(() => {
         eventHub.$emit('editor:loaded', activeParser, Documents);
     }, 50);
+    store.commit('loadDocuments', metaDatas);
     return metaDatas;
 }
 

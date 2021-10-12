@@ -70,6 +70,7 @@ export class SignAnnotation extends Annotation {
     constructor(page: number, object: fabric.Group | any, canvas: Canvas) {
         if (object instanceof fabric.Group) {
             super(page, object, canvas, 'Sign', false);
+
         }
         else {
             const paths: fabric.Path[] = [];
@@ -88,6 +89,12 @@ export class SignAnnotation extends Annotation {
             }
 
             super(page, new fabric.Group(paths, object, false), canvas, 'Sign');
+            (this.object as fabric.Group).getObjects().forEach((o, i) => {
+                o.set({
+                    left: object.paths[i].left,
+                    top: object.paths[i].top,
+                })
+            });
             this.object.set({
                 left: position.x,
                 top: position.y,
@@ -95,5 +102,6 @@ export class SignAnnotation extends Annotation {
                 originY: 'top'
             })
         }
+        console.log(this.object.toJSON());
     }
 }

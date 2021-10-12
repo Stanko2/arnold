@@ -35,10 +35,20 @@
             placeholder="Zadaj tagy ... "
             :state="tagValid"
             @update="checkValidity(currTag)"
+            list="taglist"
           >
           </b-form-input>
+          <datalist id="tagList">
+            <option
+              v-for="tag in availableTags"
+              :key="tag.id"
+              :value="tag.meno"
+            >
+              {{ tag.meno }}
+            </option>
+          </datalist>
         </b-input-group>
-        <h6>
+        <h6 v-if="categories.length > 1">
           <b-badge
             v-for="(tag, i) in categories"
             :key="tag"
@@ -98,10 +108,8 @@ export default class SearchBar extends Vue {
   mounted() {
     this.getTags();
     this.eventHub.$on("tags:update", this.getTags);
-    this.eventHub.$on("editor:loaded", (activeParser: DocumentParser) => {
-      this.categories = activeParser.kategorie;
-      this.categoriesVisible = activeParser.kategorie.map(() => true);
-    });
+    this.categories = JSON.parse(localStorage.getItem("categories") || "[]");
+    this.categoriesVisible = this.categories.map(() => true);
   }
   data() {
     return {
@@ -142,8 +150,8 @@ export default class SearchBar extends Vue {
     this.search();
   }
   getTags() {
-    const tags = JSON.parse(localStorage.getItem("tags") || "[]");
-    this.availableTags = tags;
+    // const tags = JSON.parse(localStorage.getItem("tags") || "[]");
+    this.availableTags = this.$store.state.tags;
   }
   checkValidity(tag: string) {
     if (

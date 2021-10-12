@@ -56,6 +56,7 @@ export default class Stats extends Vue {
     hotovo: number;
   };
   scoringChartData: any = undefined;
+
   mounted() {
     this.update();
   }
@@ -71,30 +72,28 @@ export default class Stats extends Vue {
     };
   }
   update() {
-    Database.getAllDocuments().then((Documents) => {
-      this.stats = {
-        celkovo: Documents.length,
-        otvorene: this.count(Documents, (e: Document) => e.opened),
-        komentar: this.count(Documents, (e: Document) => {
-          return e.changes.some(
+    const Documents = this.$store.state.documents;
+    this.stats = {
+      celkovo: Documents.length,
+      otvorene: this.count(Documents, (e: Document) => e.opened),
+      komentar: this.count(Documents, (e: Document) => {
+        return e.changes.some(
+          (f) => f.type === "Text" && !f.data.text.match(/[0-9]*(\.[0-9])?B/)
+        );
+      }),
+      obodovane: this.count(Documents, (e: Document) => {
+        return e.scoring != null;
+      }),
+      hotovo: this.count(Documents, (e: Document) => {
+        return (
+          (e.scoring?.final || false) &&
+          e.changes.some(
             (f) => f.type === "Text" && !f.data.text.match(/[0-9]*(\.[0-9])?B/)
-          );
-        }),
-        obodovane: this.count(Documents, (e: Document) => {
-          return e.scoring != null;
-        }),
-        hotovo: this.count(Documents, (e: Document) => {
-          return (
-            (e.scoring?.final || false) &&
-            e.changes.some(
-              (f) =>
-                f.type === "Text" && !f.data.text.match(/[0-9]*(\.[0-9])?B/)
-            )
-          );
-        }),
-      };
-      this.generateScoringChartData(Documents);
-    });
+          )
+        );
+      }),
+    };
+    this.generateScoringChartData(Documents);
   }
   generateScoringChartData(Documents: Document[]) {
     const scores: Record<string, number> = {};
