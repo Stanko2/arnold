@@ -5,7 +5,8 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "deploy": "node scripts/gh-pages-deploy.js"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",
@@ -31,7 +32,8 @@
     "vue-property-decorator": "^9.1.2",
     "vue-router": "^3.2.0",
     "vue-shortkey": "^3.1.7",
-    "vue-swatches": "^2.1.1"
+    "vue-swatches": "^2.1.1",
+    "vuex": "^3.6.2"
   },
   "devDependencies": {
     "@types/color": "^3.0.1",
@@ -50,6 +52,7 @@
     "babel-eslint": "^10.1.0",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^6.2.2",
+    "execa": "^5.1.1",
     "typescript": "~3.9.3",
     "vue-template-compiler": "^2.6.11"
   },

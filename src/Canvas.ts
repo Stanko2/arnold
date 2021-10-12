@@ -3,7 +3,7 @@ import { PDFdocument } from "./components/PDFdocument";
 import { tools } from "./components/Tools/Tool";
 import { fabric } from "fabric";
 import { PathAnnotation, SignAnnotation } from "@/Annotation";
-import eventHub from "./EventHub";
+import eventHub from "./Mixins/EventHub";
 import { Tool } from "./@types";
 export class Canvas extends fabric.Canvas {
     Clear(): void {

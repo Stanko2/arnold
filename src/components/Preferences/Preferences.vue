@@ -142,6 +142,18 @@
             ></b-form-checkbox>
           </b-col>
         </b-row>
+        <hr />
+        <b-row>
+          <b-col>Ukazat timer</b-col>
+          <b-col>
+            <b-form-checkbox
+              class="float-right"
+              size="md"
+              v-model="selectedCategory.settings.showTimer"
+              switch
+            ></b-form-checkbox>
+          </b-col>
+        </b-row>
       </div>
       <div v-else-if="selectedCategory.name == 'shortcut'">
         <b-alert show variant="info" dismissible
@@ -173,6 +185,13 @@ import { FontsAvailable } from "../Fonts";
 import ColorPicker from "../ColorPicker.vue";
 import Component from "vue-class-component";
 import ShortcutHelpModal from "./ShortcutHelpModal.vue";
+import {
+  OthersCategory,
+  SettingsCategory,
+  ShortcutCategory,
+  ToolsCategory,
+} from "@/@types";
+import { Settings } from "@/@types/Preferences";
 
 @Component({
   components: {
@@ -212,7 +231,7 @@ export default class Preferences extends Vue {
         shortcut: "b",
       },
     ];
-    let categories = [
+    let categories: SettingsCategory[] = [
       {
         text: "Nastroje",
         settings: {
@@ -230,7 +249,7 @@ export default class Preferences extends Vue {
           tools: toolsCopy,
         },
         name: "tools",
-      },
+      } as ToolsCategory,
       {
         text: "Klavesove skratky",
         settings: [
@@ -245,15 +264,16 @@ export default class Preferences extends Vue {
           { name: "zoomOut", shortcut: "ctrl+-" },
         ],
         name: "shortcut",
-      },
+      } as ShortcutCategory,
       {
         text: "Ostatne",
         settings: {
           showPreviews: true,
           autoSave: true,
+          showTimer: false,
         },
         name: "other",
-      },
+      } as OthersCategory,
     ];
 
     return {
@@ -266,7 +286,7 @@ export default class Preferences extends Vue {
   mounted() {
     const data = localStorage.getItem("preferences");
     if (data) {
-      const prefs = JSON.parse(data);
+      const prefs: Settings = this.$store.state.settings;
       this.categories[0].settings.defaultTool.value =
         prefs.tools.settings.defaultTool.value;
       this.categories[2] = prefs.other;
@@ -293,6 +313,7 @@ export default class Preferences extends Vue {
       preferences[category.name] = category;
     }
     localStorage.setItem("preferences", JSON.stringify(preferences));
+    this.$store.commit("applySettings", preferences);
     this.eventHub.$emit("tools:init");
   }
 }

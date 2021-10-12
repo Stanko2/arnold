@@ -1,10 +1,10 @@
 import { fabric } from "fabric";
-import { Annotation, EllipseAnnotation, LineAnnotation, PathAnnotation, RectAnnotation, TextAnnotation } from "@/Annotation";
+import { EllipseAnnotation, LineAnnotation, RectAnnotation, TextAnnotation } from "@/Annotation";
 import { PDFdocument } from "../PDFdocument";
 import { getViewedDocument } from '@/DocumentManager';
 import Vue from "vue";
 import { Database } from "@/Db";
-import eventHub from "@/EventHub";
+import eventHub from "@/Mixins/EventHub";
 import type { Tool } from "@/@types";
 
 var vue: Vue | null = null;
@@ -61,9 +61,9 @@ export const tools: Tool[] = [
         icon: 'A',
         tooltip: 'Text',
         defaultOptions: <fabric.ITextboxOptions>{
-            width: 0,
+            width: 200,
             height: 0,
-            fontFamily: 'Helvetica',
+            fontFamily: 'Open Sans',
             fill: '#000000',
             fontSize: 12
         },

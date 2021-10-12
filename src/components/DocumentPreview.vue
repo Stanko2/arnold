@@ -17,29 +17,38 @@
       <div class="col-5" v-if="showPDFPreview">
         <div class="card">
           <div
-            v-if="pdf == undefined"
+            v-if="pdfUrl == null"
             class="d-flex align-items-center justify-content-center"
           >
             Nacitavam preview
           </div>
           <div v-else>
-            <pdf
+            <!-- <pdf
               :key="pdfKey"
               :src="pdf"
               :page="1"
               :text="false"
               :resize="true"
               style="display: inline-block; width: 100%"
-            ></pdf>
+            ></pdf> -->
+            <img :src="pdfUrl" alt="preview" />
           </div>
         </div>
       </div>
       <div :class="{ 'col-7': showPDFPreview, 'w-100': !showPDFPreview }">
-        <div class="text-left overflow-hidden mw-100">
+        <div class="text-left overflow-hidden mw-100" :id="documentID + 'name'">
           <h5 class="d-inline pr-1 mr-2 border-right">
             {{ document.index }}
           </h5>
-          <h5 class="d-inline">{{ document.riesitel }}</h5>
+          <h5 class="d-inline">
+            {{ document.riesitel }}
+          </h5>
+          <b-popover
+            triggers="hover"
+            :target="documentID + 'name'"
+            placement="top"
+            >{{ document.riesitel }}</b-popover
+          >
         </div>
         <div class="p-3 grid">
           <b-row class="border-bottom">
@@ -112,8 +121,9 @@
             >
           </transition-group>
         </div>
-        <div class="stopwatch">
-          <span>{{ stopwatchText }}</span><span class="material-icons">hourglass_empty</span>
+        <div class="stopwatch" v-if="showTimer">
+          <span>{{ stopwatchText }}</span
+          ><span class="material-icons">hourglass_empty</span>
         </div>
       </div>
     </div>
@@ -130,15 +140,16 @@ import Color from "color";
 import Vue from "vue";
 import type { Document, Tag } from "@/@types";
 import Component from "vue-class-component";
-var pdf = require("pdfvuer");
+// var pdf = require("pdfvuer");
+import { getDocument } from "pdfjs-dist";
 
 const Previewprops = Vue.extend({
-  props: ["documentID", "showPDFPreview"],
+  props: ["documentID", "showPDFPreview", "showTimer"],
 });
 
 @Component({
   components: {
-    pdf: pdf.default,
+    // pdf: pdf.default,
   },
 })
 export default class DocumentPreview extends Previewprops {
@@ -148,8 +159,9 @@ export default class DocumentPreview extends Previewprops {
   pdfKey: boolean = false;
   tags: Tag[] = [];
   pdf: any;
+  pdfUrl: string | null = null;
   selected: boolean = false;
-  stopwatchText: string = "0:00"
+  stopwatchText: string = "0:00:00";
 
   data() {
     return {
@@ -179,10 +191,11 @@ export default class DocumentPreview extends Previewprops {
         (f) => f.type === "Text" && !f.data.text.match(/[0-9]*(\.[0-9])?B/)
       );
       setTimeout(() => {
-        this.pdf = pdf.createLoadingTask({
-          data: new Uint8Array(doc.pdfData),
-        });
-      }, 500 * doc.index);
+        // this.pdf = pdf.createLoadingTask({
+        //   data: new Uint8Array(doc.pdfData),
+        // });
+        this.generatePreview(doc.pdfData);
+      }, 1000 * doc.index);
     });
     this.eventHub.$on("tags:documentTag", (id: number, tags: any) => {
       if (!this.document || this.documentID != id) return;
@@ -202,9 +215,10 @@ export default class DocumentPreview extends Previewprops {
       this.document.opened = doc.opened;
       this.document.scoring = doc.scoring;
       setTimeout(() => {
-        this.pdf = pdf.createLoadingTask({
-          data: new Uint8Array(doc.pdfData),
-        });
+        // this.pdf = pdf.createLoadingTask({
+        //   data: new Uint8Array(doc.pdfData),
+        // });
+        this.generatePreview(doc.pdfData);
         this.pdfKey = !this.pdfKey;
       }, 30);
     });
@@ -217,17 +231,37 @@ export default class DocumentPreview extends Previewprops {
     };
   }
   updateStopwatch(openedAt: number, timeOpened: number) {
-    const time = (Date.now() - openedAt) + timeOpened;
-    const date = new Date(time)
-    const f = function(func: ()=>number) {
+    const time = Date.now() - openedAt + timeOpened;
+    const date = new Date(time);
+    const f = function (func: () => number) {
       const res = func();
-      if(res < 10){
-        return '0' + res.toString();
+      if (res < 10) {
+        return "0" + res.toString();
       }
       return res.toString();
+    };
+    this.stopwatchText = `${date.getHours() - 1}:${f(() =>
+      date.getMinutes()
+    )}:${f(() => date.getSeconds())}`;
+    if (this.document) this.document.timeOpened = timeOpened;
+  }
+
+  async generatePreview(data: ArrayBuffer) {
+    const doc = await getDocument({ data: new Uint8Array(data) }).promise;
+    const page = await doc.getPage(1);
+    const vp = page.getViewport({ scale: 1 });
+    const canvas = document.createElement("canvas");
+    canvas.width = 100;
+    canvas.height = (vp.height / vp.width) * 100;
+    const scale = Math.min(canvas.width / vp.width, canvas.height / vp.height);
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      await page.render({
+        canvasContext: ctx,
+        viewport: page.getViewport({ scale }),
+      }).promise;
+      this.pdfUrl = canvas.toDataURL();
     }
-    this.stopwatchText = `${date.getHours()-1}:${f(()=>date.getMinutes())}:${f(()=>date.getSeconds())}`;
-    if(this.document) this.document.timeOpened = timeOpened;
   }
 }
 </script>
@@ -270,7 +304,8 @@ h5 {
   transition: box-shadow 100ms linear;
   background-color: rgb(243, 243, 243);
 }
-.opened:hover, .list-group-item-action:hover {
+.opened:hover,
+.list-group-item-action:hover {
   /* background-color: #b3bdc7; */
   box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.1);
 }

@@ -1,25 +1,74 @@
 <template>
   <div class="container">
-    <img alt="Vue logo" src="../assets/logo.png" />
-    <p>Vitaj v opravovacej appke</p>
-    <label for="mainInput" class="inputWrapper"> </label>
-    <p>{{ fileName }}</p>
-    <b-form-file
-      v-model="fileInput"
-      accept=".zip"
-      id="mainInput"
-      size="lg"
-      placeholder="Vloz zip, v ktorom su vsetky riesenia"
-      @input="fileAdded"
-    />
-
-    <router-link
-      :disabled="!hasFile"
-      tag="button"
-      class="text btn btn-primary btn-lg btn-block"
-      to="/edit/0"
-      >Zacat opravovat</router-link
+    <b-jumbotron
+      bg-variant="success"
+      text-variant="white"
+      border-variant="dark"
     >
+      <template #header>Vitaj v Arnoldovi</template>
+
+      <template #lead>
+        Arnold je jednoduchá aplikácia na pomoc pri opravovaní riešení v
+        korešpodenčných seminároch Pikomat a Pikofyz.
+      </template>
+
+      <hr class="my-4" />
+
+      <p>
+        <strong>Chceš opravovať?</strong>
+        Stiahni zip s riešeniami z interných, vlož ho sem a môžme sa do toho
+        hneď pustiť 😎.
+      </p>
+    </b-jumbotron>
+    <label for="mainInput" class="inputWrapper"> </label>
+    <b-alert :show="getDocumentCount() > 120" dismissible variant="warning">
+      Pri takychto vysokych poctoch rieseni som nestabilny a spomaleny. Prosim
+      otvor radsej menej kategorii naraz a potom sa mozes prepnut cez tuto
+      stranku.
+    </b-alert>
+    <div v-if="hasDocuments === false">
+      <p>{{ fileName }}</p>
+      <b-form-file
+        v-model="fileInput"
+        accept=".zip"
+        id="mainInput"
+        size="lg"
+        placeholder="Vloz zip, v ktorom su vsetky riesenia"
+        @input="fileAdded"
+      />
+    </div>
+    <b-button
+      :disabled="getDocumentCount() == 0"
+      size="lg"
+      block
+      variant="primary"
+      class="text"
+      @click="openEditor()"
+      >Opravovat {{ problem }}</b-button
+    >
+    <hr />
+    <b-list-group>
+      <b-list-group-item variant="primary">
+        <h3>Vyber si kategórie, ktoré ideš opravovať</h3>
+      </b-list-group-item>
+      <b-list-group-item
+        :active="category.enabled"
+        v-for="category in categories.filter((e) => e.count > 0)"
+        :key="category.name"
+        @click="category.enabled = !category.enabled"
+      >
+        <div class="categoryEntry">
+          <div>{{ category.name }}</div>
+          <div>{{ category.count }} riešení</div>
+        </div>
+      </b-list-group-item>
+    </b-list-group>
+    <p>
+      Vybrate {{ categories.filter((e) => e.enabled).length }} kategorie, dokopy
+      {{ getDocumentCount() }}
+      riešení
+    </p>
+    <hr />
   </div>
 </template>
 
@@ -27,6 +76,14 @@
 import { Database } from "@/Db";
 import Vue from "vue";
 import { loadFromDatabase } from "../DocumentManager";
+import { Document, DocumentParser } from "@/@types";
+import { PMatParser } from "@/DocumentParser";
+
+interface Category {
+  name: string;
+  count: number;
+  enabled: boolean;
+}
 
 export default Vue.extend({
   name: "Home",
@@ -36,35 +93,78 @@ export default Vue.extend({
       fileName: "Vloz Zip s PDFkami na opravovanie",
       hasFile: false,
       fileInput: null,
+      hasDocuments: null,
+      problem: "",
+      categories: Array<Category>(),
     };
   },
   mounted() {
-    return new Promise<void>((resolve, reject) => {
-      Database.getAllDocuments().then((docs) => {
-        if (docs.length > 0) {
-          loadFromDatabase()
-            .catch((err) => reject(err))
-            .then(() => {
-              this.$router.push({
-                name: "Editor",
-                params: {
-                  doc: '0'
-                }
-              });
-              resolve();
-            });
-        }
-      });
+    Database.getAllDocuments().then((docs) => {
+      this.$data.hasDocuments = docs.length > 0;
+      this.problem = localStorage.getItem("uloha") || "";
+      const parser = new PMatParser(this.problem);
+      this.getCategories(docs, parser);
     });
+    this.eventHub.$on(
+      "contentParsed",
+      (docs: Document[], parser: DocumentParser) => {
+        this.getCategories(docs, parser);
+        console.log(docs);
+      }
+    );
   },
   methods: {
+    getCategories(docs: Document[], parser: DocumentParser) {
+      this.categories = parser.kategorie.map((e) => {
+        return {
+          name: e,
+          enabled: false,
+          count: 0,
+        };
+      });
+      for (let i = 0; i < parser.kategorie.length; i++) {
+        const category = this.categories[i];
+        category.count = docs.filter(
+          (e) => e.kategoria == category.name
+        ).length;
+      }
+    },
     fileAdded: function () {
       var file = this.fileInput;
       if (file != null) {
         this.eventHub.$emit("editor:parseDocuments", file);
-        this.$data.fileName = file["name"];
-        this.$data.hasFile = true;
+        this.fileName = file["name"];
+        this.hasFile = true;
       }
+    },
+    openEditor: function () {
+      const categoriesEnabled = this.categories
+        .filter((e) => e.enabled)
+        .map((e) => e.name);
+      localStorage.setItem("categories", JSON.stringify(categoriesEnabled));
+      return new Promise<void>((resolve, reject) => {
+        loadFromDatabase()
+          .then((docs) => {
+            this.$router
+              .push({
+                name: "Editor",
+                params: {
+                  doc: docs[0].id.toString(),
+                },
+              })
+              .then(() => resolve);
+          })
+          .catch((err) => reject(err));
+      });
+    },
+    getDocumentCount() {
+      let count = 0;
+      for (const cat of this.categories) {
+        if (cat.enabled) {
+          count += cat.count;
+        }
+      }
+      return count;
     },
   },
 });
@@ -81,6 +181,11 @@ img {
 }
 input[type="file"] {
   display: none;
+}
+.categoryEntry {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 /* .inputWrapper {
   width: 100%;

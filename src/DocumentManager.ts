@@ -3,8 +3,9 @@ import JSZip from "jszip";
 import { Database } from "./Db";
 import FileSaver from "file-saver";
 import { PMatParser } from "./DocumentParser";
-import eventHub from "./EventHub";
+import eventHub from "./Mixins/EventHub";
 import type { IScoring, Document, DocumentParser } from "./@types";
+import { store } from "./Store";
 
 
 eventHub.$on('editor:setDocument', setPdf);
@@ -20,23 +21,31 @@ export let activeParser: DocumentParser;
 export let Documents: Document[] = []
 let pdf: null | PDFdocument = null;
 let selectedDocumentIndex = -1;
-async function setPdf(index: number) {
+async function setPdf(id: number) {
     // if (!index) {
     //     setPdf(selectedDocumentIndex);
     //     return;
     // }
-    if (index < 0 || index >= Documents.length) return;
-    if (index == selectedDocumentIndex) return;
+    const index = Documents.findIndex(e => e.id === id);
 
+    if (index === -1) return;
+    if (index === selectedDocumentIndex) return;
+
+    document.title = 'Arnold | ' + Documents[index].riesitel;
     selectedDocumentIndex = index;
-    var data = Documents[index];
-    data.opened = true;
+    const data = await Database.getDocument(id);
+    if (!data.opened) {
+        data.opened = true;
+        await Database.updateDocument(data.id, data, false);
+    }
     if (pdf?.pageCanvases) {
-        pdf.pageCanvases.forEach((e) => e.Clear());
+        pdf.pageCanvases.forEach((e) => {
+            e.Clear();
+        });
     }
     pdf = new PDFdocument(data.initialPdf, data.id);
 
-    eventHub.$emit('editor:documentChanged', pdf, Documents[index]);
+    eventHub.$emit('editor:documentChanged', pdf, data);
 }
 
 export function getViewedDocument() { return pdf }
@@ -63,6 +72,7 @@ export async function readZip(file: File) {
     });
     await Promise.all(promises);
     Documents = metaDatas;
+    eventHub.$emit('contentParsed', Documents, parser);
 }
 
 export async function AddDocument(fileName: string, data: ArrayBuffer, index: number = Documents.length, metaDatas: Document[] = Documents, parser: DocumentParser = activeParser) {
@@ -83,15 +93,23 @@ export async function AddDocument(fileName: string, data: ArrayBuffer, index: nu
 export async function loadFromDatabase() {
     const metaDatas: Document[] = []
     const docs = await Database.getAllDocuments();
-    docs.forEach(e => {
-        metaDatas.push(e);
-    })
+    const categoriesData = localStorage.getItem('categories');
+    if (!categoriesData) throw new Error('No categories');
+    const categories = JSON.parse(categoriesData);
+    for (let i = 0; i < docs.length; i++) {
+        const document = docs[i];
+        document.initialPdf = new ArrayBuffer(0);
+        document.pdfData = new ArrayBuffer(0);
+        if (categories.includes(document.kategoria))
+            metaDatas.push(document);
+    }
     metaDatas.sort((a: Document, b: Document) => a.index - b.index);
     Documents = metaDatas;
     activeParser = new PMatParser(localStorage.getItem('uloha') || '');
     setTimeout(() => {
         eventHub.$emit('editor:loaded', activeParser, Documents);
     }, 50);
+    store.commit('loadDocuments', metaDatas);
     return metaDatas;
 }
 
@@ -100,15 +118,15 @@ async function createZip() {
     const zip = new JSZip();
     const pts: Record<string, IScoring> = {};
     for (const doc of documents) {
-        zip.file(doc.originalName, doc.pdfData);
         if (doc.scoring) {
+            zip.file(doc.originalName, doc.pdfData);
             doc.scoring.comments = doc.changes.filter(c => c.type === 'Text').map(c => c.data.text);
             pts[doc.id] = doc.scoring;
             delete pts[doc.id]?.annotName;
         }
     }
 
-    const scoring ={
+    const scoring = {
         criteria: JSON.parse(localStorage.getItem('bodovanie') || '{}'),
         scores: pts,
     };
