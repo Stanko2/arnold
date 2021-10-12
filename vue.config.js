@@ -9,6 +9,9 @@ module.exports = {
             navigateFallback: 'index.html',
         }
     },
+    publicPath: process.env.NODE_ENV === 'production'
+        ? '/arnold'
+        : '/',
     chainWebpack: config => {
         config
             .plugin('html')
