@@ -63,7 +63,6 @@ export class PDFdocument {
 
     private LoadPdfToViewport(pdfbytes: ArrayBuffer) {
         this.viewref = pdf.createLoadingTask({ data: new Uint8Array(pdfbytes) });
-        var progressUpdated = false;
         setTimeout(() => {
             PDFdocument.initDocument.call(PDFdocument.viewport, this.viewref, this);
         }, 500);
@@ -90,6 +89,7 @@ export class PDFdocument {
         const pdfBytes = await this.modifyRef?.save();
         if (pdfBytes == null) return;
         var currDoc = await Database.getDocument(this.id);
+        const changes = currDoc.changes;
         currDoc.changes = [];
         currDoc.pdfData = pdfBytes;
         for (let i = 0; i < this.annotations.length; i++) {
@@ -97,6 +97,9 @@ export class PDFdocument {
             currDoc.changes.push(annot.serializeToJSON());
         }
         Database.updateDocument(this.id, currDoc);
+        if (currDoc.changes.length == 0) {
+            currDoc.changes = changes;
+        }
         await this.InitModifyRef();
     }
 

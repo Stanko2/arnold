@@ -116,13 +116,16 @@ export default class Editor extends Vue {
       }
     });
     if (Documents.length == 0) {
-      loadFromDatabase().then((Documents) => {
-        this.Documents = Documents;
-        this.loadedDocuments = true;
-        this.$nextTick(() => init());
-      });
+      loadFromDatabase()
+        .then((Documents) => {
+          this.Documents = Documents;
+          this.loadedDocuments = true;
+          this.$nextTick(() => init());
+        })
+        .catch((e) => console.log(e));
     } else this.$nextTick(() => init());
     const init = () => {
+      this.loadedDocuments = true;
       this.eventHub.$on("editor:documentChanged", (doc: PDFdocument) => {
         this.pdf = doc;
       });

@@ -52,13 +52,14 @@ export function getViewedDocument() { return pdf }
 
 
 export async function readZip(file: File) {
-    const metaDatas: Document[] = []
+    let metaDatas: Document[] = []
     const buffer = await file.arrayBuffer();
     const zipReader = new JSZip();
     const zipFile = await zipReader.loadAsync(buffer);
     let index = 0;
     let parser: DocumentParser | undefined = undefined;
-    const promises: Promise<void>[] = [];
+    const promises: Promise<Document>[] = [];
+    console.log("hello");
     zipFile.forEach(async (_path, entry) => {
         if (parser == undefined) {
             localStorage.setItem('uloha', entry.name.split('/')[0])
@@ -70,9 +71,9 @@ export async function readZip(file: File) {
         index++;
         promises.push(AddDocument(entry.name, data, index, metaDatas, parser));
     });
-    await Promise.all(promises);
+    metaDatas = await Promise.all(promises);
     Documents = metaDatas;
-    eventHub.$emit('contentParsed', Documents, parser);
+    eventHub.$emit('contentParsed', metaDatas, parser);
 }
 
 export async function AddDocument(fileName: string, data: ArrayBuffer, index: number = Documents.length, metaDatas: Document[] = Documents, parser: DocumentParser = activeParser) {
@@ -88,6 +89,7 @@ export async function AddDocument(fileName: string, data: ArrayBuffer, index: nu
         timeOpened: 0
     });
     await Database.addDocument(metaDatas[metaDatas.length - 1]);
+    return metaDatas[metaDatas.length - 1];
 }
 
 export async function loadFromDatabase() {

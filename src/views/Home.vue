@@ -37,6 +37,33 @@
         @input="fileAdded"
       />
     </div>
+
+    <hr />
+    <div v-if="hasDocuments">
+      <b-list-group v-if="hasDocuments">
+        <b-list-group-item variant="primary">
+          <h3>Vyber si kategórie, ktoré ideš opravovať</h3>
+        </b-list-group-item>
+        <b-list-group-item
+          :active="category.enabled"
+          v-for="category in categories.filter((e) => e.count > 0)"
+          :key="category.name"
+          @click="category.enabled = !category.enabled"
+        >
+          <div class="categoryEntry">
+            <div>{{ category.name }}</div>
+            <div>{{ category.count }} riešení</div>
+          </div>
+        </b-list-group-item>
+      </b-list-group>
+      <p>
+        Vybrate {{ categories.filter((e) => e.enabled).length }} kategorie,
+        dokopy
+        {{ getDocumentCount() }}
+        riešení
+      </p>
+    </div>
+    <hr />
     <b-button
       :disabled="getDocumentCount() == 0"
       size="lg"
@@ -46,29 +73,6 @@
       @click="openEditor()"
       >Opravovat {{ problem }}</b-button
     >
-    <hr />
-    <b-list-group>
-      <b-list-group-item variant="primary">
-        <h3>Vyber si kategórie, ktoré ideš opravovať</h3>
-      </b-list-group-item>
-      <b-list-group-item
-        :active="category.enabled"
-        v-for="category in categories.filter((e) => e.count > 0)"
-        :key="category.name"
-        @click="category.enabled = !category.enabled"
-      >
-        <div class="categoryEntry">
-          <div>{{ category.name }}</div>
-          <div>{{ category.count }} riešení</div>
-        </div>
-      </b-list-group-item>
-    </b-list-group>
-    <p>
-      Vybrate {{ categories.filter((e) => e.enabled).length }} kategorie, dokopy
-      {{ getDocumentCount() }}
-      riešení
-    </p>
-    <hr />
   </div>
 </template>
 
@@ -99,19 +103,22 @@ export default Vue.extend({
     };
   },
   mounted() {
+    this.eventHub.$on(
+      "contentParsed",
+      (docs: Document[], parser: DocumentParser) => {
+        this.$data.hasDocuments = docs.length > 0;
+        this.problem = localStorage.getItem("uloha") || "";
+        this.getCategories(docs, parser);
+        console.log(docs);
+        // location.reload();
+      }
+    );
     Database.getAllDocuments().then((docs) => {
       this.$data.hasDocuments = docs.length > 0;
       this.problem = localStorage.getItem("uloha") || "";
       const parser = new PMatParser(this.problem);
       this.getCategories(docs, parser);
     });
-    this.eventHub.$on(
-      "contentParsed",
-      (docs: Document[], parser: DocumentParser) => {
-        this.getCategories(docs, parser);
-        console.log(docs);
-      }
-    );
   },
   methods: {
     getCategories(docs: Document[], parser: DocumentParser) {
@@ -127,7 +134,9 @@ export default Vue.extend({
         category.count = docs.filter(
           (e) => e.kategoria == category.name
         ).length;
+        this.categories[i] = category;
       }
+      console.log(this.categories);
     },
     fileAdded: function () {
       var file = this.fileInput;
@@ -145,14 +154,16 @@ export default Vue.extend({
       return new Promise<void>((resolve, reject) => {
         loadFromDatabase()
           .then((docs) => {
-            this.$router
-              .push({
-                name: "Editor",
-                params: {
-                  doc: docs[0].id.toString(),
-                },
-              })
-              .then(() => resolve);
+            setTimeout(() => {
+              this.$router
+                .push({
+                  name: "Editor",
+                  params: {
+                    doc: docs[0].id.toString(),
+                  },
+                })
+                .then(() => resolve);
+            }, 500);
           })
           .catch((err) => reject(err));
       });
