@@ -26,7 +26,7 @@ export class PMatParser implements DocumentParser {
             fileName = name.split('-')
         }
         return {
-            id: parseInt(fileName[fileName.length - 1].substring(0, 4)),
+            id: parseInt(fileName[fileName.length - 1].substring(0, fileName[fileName.length - 1].length - 3)),
             kategoria: this.kategorieMapper[fileName[1]],
             riesitel: fileName.slice(2, fileName.length - 1).map(e => e[0].toUpperCase() + e.slice(1)).join(' '),
             originalName: name.split('/')[1] || name,

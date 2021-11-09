@@ -41,7 +41,9 @@ class DB {
             const riesenia = this.db?.transaction('riesenia', 'readwrite').objectStore('riesenia');
             const res = riesenia?.add(doc);
             if (res) {
-                res.onerror = (e) => reject(e);
+                res.onerror = (e) => {
+                    reject(e); console.log(doc.id);
+                };
                 res.onsuccess = () => resolve();
             }
             else reject();
