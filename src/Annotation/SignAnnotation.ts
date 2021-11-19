@@ -3,6 +3,8 @@ import { Annotation } from "./Annotation";
 import Color from "color";
 import { fabric } from "fabric";
 import { PDFPage, LineCapStyle, rgb } from "pdf-lib";
+import { Database } from "@/Db";
+import { ITemplate } from "@/@types";
 
 export class SignAnnotation extends Annotation {
     public bake(page: PDFPage): void {
@@ -13,6 +15,8 @@ export class SignAnnotation extends Annotation {
         const parser = new DOMParser();
         const a = parser.parseFromString(grp.toSVG(), "image/svg+xml");
         const translationMatrix = a.firstElementChild?.getAttribute('transform')?.match(/-?[0-9]+(\.[0-9]*)?/gm)?.map(e => parseFloat(e));
+        console.log(this.object.stroke);
+
         const color = Color((this.object.stroke as string).substring(0, 7)).object();
         if (translationMatrix == null) return;
 
@@ -54,54 +58,61 @@ export class SignAnnotation extends Annotation {
             left: grp.left,
             scaleX: grp.scaleX,
             scaleY: grp.scaleY,
-            paths: grp.getObjects().map(e => {
-                const parser = new DOMParser();
-                const a = parser.parseFromString(e.toSVG(), "image/svg+xml");
-                const path = a.querySelector('path')?.getAttribute('d') || '';
-                return {
-                    path: path,
-                    top: e.top,
-                    left: e.left
-                }
-            })
+            sign: (grp as any).sign,
+            // paths: grp.getObjects().map(e => {
+            //     const parser = new DOMParser();
+            //     const a = parser.parseFromString(e.toSVG(), "image/svg+xml");
+            //     const path = a.querySelector('path')?.getAttribute('d') || '';
+            //     return {
+            //         path: path,
+            //         top: e.top,
+            //         left: e.left
+            //     }
+            // })
         };
     }
 
     constructor(page: number, object: fabric.Group | any, canvas: Canvas) {
         if (object instanceof fabric.Group) {
             super(page, object, canvas, 'Sign', false);
-
         }
         else {
             const paths: fabric.Path[] = [];
-            const options = Object.assign({}, object);
-            delete options.paths;
-            options.scaleX = 1, options.scaleY = 1;
-            options.originX = 'center', options.originY = 'center';
+            // const options = Object.assign({}, object);
+            // delete options.paths;
+            // options.scaleX = 1, options.scaleY = 1;
+            // options.originX = 'center', options.originY = 'center';
             const position = new fabric.Point(object.left, object.top);
-            delete object.top, object.left;
-            for (const path of object.paths) {
-                options.left = path.left;
-                options.top = path.top;
-                const p = new fabric.Path(path.path, options)
-                paths.push(p);
-                // canvas.add(p);
-            }
+            // delete object.top, object.left;
+            // for (const path of object.paths) {
+            //     options.left = path.left;
+            //     options.top = path.top;
+            //     const p = new fabric.Path(path.path, options)
+            //     paths.push(p);
+            //     // canvas.add(p);
+            // }
+            console.log(object.sign);
 
-            super(page, new fabric.Group(paths, object, false), canvas, 'Sign');
-            (this.object as fabric.Group).getObjects().forEach((o, i) => {
-                o.set({
-                    left: object.paths[i].left,
-                    top: object.paths[i].top,
-                })
+            (object.sign as ITemplate).data.objects.forEach((e: any) => {
+                e.stroke = object.stroke;
+                e.strokeWidth = object.strokeWidth;
+                const path = new fabric.Path(e.path, e);
+                paths.push(path);
             });
+            const grp = new fabric.Group(paths, { left: position.x, top: position.y, scaleX: object.scaleX, scaleY: object.scaleY });
+            (grp as any).sign = object.sign;
+            super(page, grp, canvas, 'Sign');
+
+            // this.object.setCoords();
             this.object.set({
                 left: position.x,
                 top: position.y,
                 originX: 'left',
-                originY: 'top'
+                originY: 'top',
+                stroke: object.stroke,
+                fill: object.fill,
+                strokeWidth: object.strokeWidth
             })
         }
-        console.log(this.object.toJSON());
     }
 }

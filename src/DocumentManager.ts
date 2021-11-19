@@ -116,7 +116,7 @@ export async function loadFromDatabase() {
 }
 
 async function createZip() {
-    const documents = await loadFromDatabase();
+    const documents = await Database.getAllDocuments();
     const zip = new JSZip();
     const pts: Record<string, IScoring> = {};
     for (const doc of documents) {

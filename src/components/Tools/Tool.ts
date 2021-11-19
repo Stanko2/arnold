@@ -201,7 +201,8 @@ export const tools: Tool[] = [
         shortcut: 'u',
         defaultOptions: {},
         click: (pdf: PDFdocument, page: number, position: { x: number, y: number }) => {
-            Database.getTemplate((selectedTool.defaultOptions as any).sign).then((sign) => {
+            const sign = (selectedTool.defaultOptions as any).sign
+            Database.getTemplate(sign).then((sign) => {
                 const cnv = pdf.pageCanvases[page]
                 const paths: fabric.Path[] = [];
                 sign.data.objects.forEach((e: any) => {
@@ -212,8 +213,12 @@ export const tools: Tool[] = [
                     // cnv.add(path);
                     // console.log(position);
                 });
+                const options = selectedTool.defaultOptions;
+                const grp = new fabric.Group(paths, { left: position.x, top: position.y, ...options });
+                (grp as any).sign = sign;
+                console.log(grp);
 
-                cnv.add(new fabric.Group(paths, { left: position.x, top: position.y }))
+                cnv.add(grp);
             });
         },
         options: {
