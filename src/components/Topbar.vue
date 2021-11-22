@@ -191,7 +191,16 @@ export default class Topbar extends Vue {
           riesenie.arrayBuffer().then((buffer) => {
             AddDocument(riesenie.name, buffer, baseLength + index + 1)
               .then(() => resolve())
-              .catch((err) => reject(err));
+              .catch((err) => this.$bvModal.msgBoxConfirm(`Riešenie ${riesenie.name} už existuje, chceš ho nahradiť novým?`, { okTitle: 'Áno', cancelTitle: 'Nie' }).then(val => {
+                if (val) {
+                  const id = activeParser.parse(riesenie.name).id
+                  Database.removeDocument(id).then(() => {
+                    AddDocument(riesenie.name, buffer, baseLength + index + 1)
+                      .then(() => resolve())
+                  })
+                }
+                else resolve()
+              }));
           });
         })
       );

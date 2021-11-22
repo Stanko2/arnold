@@ -65,6 +65,22 @@ class DB {
         });
     }
 
+    async removeDocument(id: number): Promise<void> {
+        var req = this.db?.transaction('riesenia', 'readwrite').objectStore('riesenia');
+        return new Promise<void>((resolve, reject) => {
+            var doc = req?.delete(id);
+            if (doc == null) {
+                reject('no docs found');
+                return;
+            }
+            else {
+                doc.onsuccess = () => {
+                    resolve();
+                }
+            }
+        });
+    }
+
     async updateDocument(id: number, doc: Document, updatePDFchanges: boolean = true): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             const req = this.db?.transaction('riesenia', 'readwrite').objectStore('riesenia');

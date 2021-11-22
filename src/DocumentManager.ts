@@ -88,7 +88,9 @@ export async function AddDocument(fileName: string, data: ArrayBuffer, index: nu
         opened: false,
         timeOpened: 0
     });
-    await Database.addDocument(metaDatas[metaDatas.length - 1]);
+    await Database.addDocument(metaDatas[metaDatas.length - 1]).catch(() => {
+        throw new Error('Document Already Added');
+    });
     return metaDatas[metaDatas.length - 1];
 }
 
