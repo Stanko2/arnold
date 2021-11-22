@@ -188,7 +188,7 @@ export default class DocumentPreview extends Previewprops {
         this.tags.find((f: { id: any }) => f.id == e)
       );
       this.hasComment = doc.changes.some(
-        (f) => f.type === "Text" && !f.data.text.match(/[0-9]*(\.[0-9])?B/)
+        (f) => f.type === "Text" && f.data.hasControls
       );
       setTimeout(() => {
         // this.pdf = pdf.createLoadingTask({
@@ -210,7 +210,7 @@ export default class DocumentPreview extends Previewprops {
         this.tags.find((f: { id: any }) => f.id == e)
       );
       this.hasComment = doc.changes.some(
-        (f) => f.type === "Text" && !f.data.text.match(/[0-9]*(\.[0-9])?B/)
+        (f) => f.type === "Text" && f.data.hasControls
       );
       this.document.opened = doc.opened;
       this.document.scoring = doc.scoring;

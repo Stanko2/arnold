@@ -17,7 +17,7 @@ export class TextAnnotation extends Annotation {
         return this.object as fabric.Textbox;
     }
     constructor(page: number, options: fabric.ITextboxOptions, canvas: Canvas) {
-        options.fontWeight = 'bold';
+        // options.fontWeight = 'bold';
         super(page, new fabric.Textbox(options.text || 'text', options), canvas, 'Text');
         (this.object as any).tool = TextAnnotation.toolOptions;
         canvas.setActiveObject(this.object);

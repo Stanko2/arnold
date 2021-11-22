@@ -78,7 +78,7 @@ export default class Stats extends Vue {
       otvorene: this.count(Documents, (e: Document) => e.opened),
       komentar: this.count(Documents, (e: Document) => {
         return e.changes.some(
-          (f) => f.type === "Text" && !f.data.text.match(/[0-9]*(\.[0-9])?B/)
+          (f) => f.type === "Text" && f.data.hasControls
         );
       }),
       obodovane: this.count(Documents, (e: Document) => {
@@ -88,7 +88,7 @@ export default class Stats extends Vue {
         return (
           (e.scoring?.final || false) &&
           e.changes.some(
-            (f) => f.type === "Text" && !f.data.text.match(/[0-9]*(\.[0-9])?B/)
+            (f) => f.type === "Text" && f.data.hasControls
           )
         );
       }),
