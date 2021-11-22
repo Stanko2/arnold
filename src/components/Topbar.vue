@@ -1,8 +1,11 @@
 <template>
   <div class="d-flex justify-content-between w-100">
     <div>
+      <b-button variant="success" @click="$router.push({ path: '/' })"
+        >Domov</b-button
+      >
       <b-button variant="danger" v-b-modal.sessionDestroy
-        >Uzavriet opravovanie</b-button
+        >Uzavrieť Opravovanie</b-button
       >
       <b-modal
         id="sessionDestroy"
@@ -12,21 +15,21 @@
         centered
         @ok="destroySession"
       >
-        <p>Pri uzavreti opravovania sa zmazu nasledovne veci</p>
+        <p>Pri uzavretí opravovania sa zmažú nasledovné veci</p>
         <ul>
           <li>
-            Riesenia a vsetko co s nimi suvisi - ak si ich chces nechat musis
-            ich stiahnut na svoj pocitac
+            Riešenia a všetko čo s nimi súvisí - ak si ich chceš nechať musíš
+            ich stiahnuť na svoj počítač
           </li>
-          <li>Bodovacie kriteria</li>
+          <li>Bodovacie kritéria</li>
         </ul>
-        Ak to potvrdis, svoje stiahnute opravene riesenia uz nebudes vediet
-        menit
+        Ak to potvrdíš, svoje stiahnuté opravené riešenia už nebudeš vedieť
+        meniť
 
         <template #modal-footer="{ ok, cancel }">
           <div class="float-left">
             <b-button class="m-1" variant="primary" @click="cancel()">
-              Close
+              Zavrieť
             </b-button>
             <b-button
               variant="success"
@@ -41,18 +44,18 @@
                   v-if="downloading"
                   small
                 ></b-spinner>
-                Compressing
+                Komprimujem
               </div>
-              <div v-else>Download all</div>
+              <div v-else>Stiahnuť všetky</div>
             </b-button>
             <b-button variant="danger" @click="ok()" class="m-1">
-              Uzavriet opravovanie
+              Uzavrieť opravovanie
             </b-button>
           </div>
         </template>
       </b-modal>
       <button class="btn btn-success" @click="eventHub.$emit('document:save')">
-        Save
+        Uložiť
       </button>
       <b-button variant="success" :disabled="downloading" @click="downloadAll">
         <div v-if="downloading">
@@ -62,18 +65,18 @@
             v-if="downloading"
             small
           ></b-spinner>
-          Compressing
+          Komprimujem
         </div>
         <div v-else>Download all</div>
       </b-button>
       <button class="btn btn-success" @click="download">Download</button>
       <b-button variant="success" v-b-modal.noveRiesenie
-        >Pridat dalsie riesenie</b-button
+        >Pridať ďalšie riešenie</b-button
       >
       <b-modal
         id="noveRiesenie"
         size="lg"
-        title="Pridat nove riesenie"
+        title="Pridat nové riešenie"
         @ok="pridajRiesenia"
         :ok-disabled="noveRiesenia.length == 0"
       >
@@ -85,8 +88,14 @@
           :file-name-formatter="formatNames"
         />
       </b-modal>
-      <b-button variant="success" v-b-modal.stats>Statistiky</b-button>
-      <b-modal id="stats" title="Statistiky" centered size="xl" ok-only scrollable
+      <b-button variant="success" v-b-modal.stats>Štatistiky</b-button>
+      <b-modal
+        id="stats"
+        title="Statistiky"
+        centered
+        size="xl"
+        ok-only
+        scrollable
         ><stats ref="stat"></stats
       ></b-modal>
       <b-button variant="success" v-b-modal.preferences>Nastavenia</b-button>
@@ -98,12 +107,15 @@
         @ok="$refs.preferences.save()"
         ><preferences ref="preferences"></preferences
       ></b-modal>
+      <b-button variant="success" @click="$router.push({ path: '/help' })"
+        >Pomoc</b-button
+      >
     </div>
     <div class="bottom-progress-bar" v-if="downloading">
       <b-progress max="100" show-progress animated class="h-100 w-100">
         <b-progress-bar :value="progress" animated>
           <span v-if="progress > 50"
-            >Progress: {{ progress.toFixed(2) }}% | File: {{ file }}</span
+            >Progress: {{ progress.toFixed(2) }}% | Súbor: {{ file }}</span
           >
         </b-progress-bar>
       </b-progress>

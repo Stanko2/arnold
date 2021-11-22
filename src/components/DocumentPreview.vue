@@ -73,7 +73,7 @@
                   :target="'commentNotDone' + document.id"
                   triggers="hover"
                 >
-                  Toto riesenie este nema komentar
+                  Toto riesenie ešte nemá komentár
                 </b-tooltip>
               </div>
               <div v-else>
@@ -84,7 +84,7 @@
                   :target="'commentDone' + document.id"
                   triggers="hover"
                 >
-                  Toto riesenie uz ma napisany komentar
+                  Toto riesenie už má napísaný komentár
                 </b-tooltip>
               </div>
             </b-col>
@@ -128,8 +128,8 @@
       </div>
     </div>
     <div v-else>
-      <b-spinner variant="primary" label="loading..."></b-spinner>
-      <p>Loading...</p>
+      <b-spinner variant="primary" label="Načítavam..."></b-spinner>
+      <p>Načítavam...</p>
     </div>
   </li>
 </template>

@@ -19,12 +19,16 @@
         Stiahni zip s riešeniami z interných, vlož ho sem a môžme sa do toho
         hneď pustiť 😎.
       </p>
+      <p>
+        Potrebuješ s niečím pomôcť? Klikni
+        <router-link to="Help">sem</router-link>
+      </p>
     </b-jumbotron>
     <label for="mainInput" class="inputWrapper"> </label>
     <b-alert :show="getDocumentCount() > 120" dismissible variant="warning">
-      Pri takychto vysokych poctoch rieseni som nestabilny a spomaleny. Prosim
-      otvor radsej menej kategorii naraz a potom sa mozes prepnut cez tuto
-      stranku.
+      Pri takychto vysokych počtoch riešení som nestabilný a spomalený. Prosím
+      otvor radšej menej kategórii naraz a potom sa možeš prepnúť cez túto
+      stránku.
     </b-alert>
     <div v-if="hasDocuments === false">
       <p>{{ fileName }}</p>
@@ -57,7 +61,7 @@
         </b-list-group-item>
       </b-list-group>
       <p>
-        Vybrate {{ categories.filter((e) => e.enabled).length }} kategorie,
+        Vybrate {{ categories.filter((e) => e.enabled).length }} kategórie,
         dokopy
         {{ getDocumentCount() }}
         riešení
@@ -71,7 +75,7 @@
       variant="primary"
       class="text"
       @click="openEditor()"
-      >Opravovat {{ problem }}</b-button
+      >Opravovať {{ problem }}</b-button
     >
   </div>
 </template>

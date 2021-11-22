@@ -4,19 +4,19 @@
       :max="stats.celkovo"
       :value="stats.otvorene"
       :color="color('#264653')"
-      label="Otvorenych"
+      label="Otvorených"
     />
     <stats-entry
       :max="stats.celkovo"
       :value="stats.komentar"
       :color="color('#F4A261')"
-      label="Komentar"
+      label="Komentár"
     />
     <stats-entry
       :max="stats.celkovo"
       :value="stats.obodovane"
       :color="color('#E9C46A')"
-      label="Obodovane"
+      label="Obodované"
       ><pie-chart
         v-if="scoringChartData"
         class="pie-chart"

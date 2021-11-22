@@ -1,9 +1,9 @@
 <template>
   <b-modal ok-only ref="modal">
     <p>
-      Shortcut vies nastaivt tak, ze do textoveho pola napises patricne klavesy,
-      co chces zmacknut. Viacero klavesov naraz vies oddelovat "+" (ctrl+b).
-      Tabulka mapovania je tu:
+      Skratku vieš nastaviť tak, že do textového poľa napíšeš patričné klávesy,
+      čo chceš zmačknúť. Viacero klávesov naraz vieš oddelovať "+" (ctrl+b).
+      Tabuľka mapovania je tu:
     </p>
     <table class="table">
       <thead>

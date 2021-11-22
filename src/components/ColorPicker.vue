@@ -11,7 +11,7 @@
       <template #title>{{ label }}</template>
       <v-swatches v-model="color" inline @input="submit"></v-swatches>
       <div class="d-flex align-items-center justify-content-between">
-        <p class="d-flex align-items-center">Transparency</p>
+        <p class="d-flex align-items-center">Priehľadnosť</p>
         <b-form-input
           min="30"
           style="width: 100px"

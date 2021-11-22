@@ -30,7 +30,7 @@
       </b-dropdown>
     </div>
     <div class="form-inline" v-if="selectedOptions.hasText">
-      <p class="d-flex align-items-center">Font Size</p>
+      <p class="d-flex align-items-center">Veľkosť Písma</p>
       <input
         class="form-control"
         min="0"
@@ -40,7 +40,7 @@
       />
     </div>
     <div class="form-inline" v-if="selectedOptions.hasStrokeWidth">
-      <p class="d-flex align-items-center">Stroke Width</p>
+      <p class="d-flex">Hrúbka čiary</p>
       <input
         class=""
         min="1"
@@ -52,7 +52,7 @@
       {{ selectedTool.defaultOptions.strokeWidth }}
     </div>
     <div v-if="selectedOptions.hasFill" class="d-flex align-items-center">
-      <p style="margin: 5px">Fill</p>
+      <p style="margin: 5px">Výplň</p>
       <color-picker
         name="fill"
         v-model="selectedTool.defaultOptions.fill"
@@ -60,7 +60,7 @@
       />
     </div>
     <div v-if="selectedOptions.hasStroke" class="d-flex align-items-center">
-      <p style="margin: 5px">Stroke</p>
+      <p style="margin: 5px">Farba čiary</p>
       <color-picker
         name="stroke"
         v-model="selectedTool.defaultOptions.stroke"
@@ -69,12 +69,12 @@
     </div>
     <div v-if="selectedTool.name == 'Photo'">
       <b-button variant="primary" @click="openImageModal"
-        >Open Image Menu</b-button
+        >Otvoriť obrázkové menu</b-button
       >
     </div>
     <div v-if="selectedTool.name == 'Sign'">
       <b-button variant="primary" @click="openSignModal"
-        >Open Sign Menu</b-button
+        >Otvoriť menu s podpismi</b-button
       >
       <b-dropdown :text="getSignDropdownText()">
         <b-dropdown-item
@@ -85,13 +85,13 @@
         >
       </b-dropdown>
     </div>
-    <b-modal ref="imageMenu" centered title="Organize Images" size="lg">
+    <b-modal ref="imageMenu" centered title="Obrázky" size="lg">
       <image-modal></image-modal>
     </b-modal>
     <b-modal
       ref="signMenu"
       centered
-      title="Organize signatures"
+      title="Podpisy"
       size="lg"
       @ok="signModalAccepted"
     >
@@ -124,10 +124,10 @@
         <span class="material-icons">build</span>
       </b-button>
       <pdf-repairer ref="repairTool" />
-      <b-tooltip target="zoomOutButton" triggers="hover"> Oddialit </b-tooltip>
-      <b-tooltip target="zoomInButton" triggers="hover"> Priblizit </b-tooltip>
+      <b-tooltip target="zoomOutButton" triggers="hover"> Oddialiť </b-tooltip>
+      <b-tooltip target="zoomInButton" triggers="hover"> Priblížiť </b-tooltip>
       <b-tooltip target="repairButton" triggers="hover">
-        Opravit zle nahrate PDFko (pridat stranu a otocit obrazky)
+        Opraviť zle nahraté PDFko (pridať prázdnu stranu a otočiť obrázky)
       </b-tooltip>
       <!-- <b-tooltip target="rotateButton" triggers="hover"> Otocit </b-tooltip> -->
     </div>

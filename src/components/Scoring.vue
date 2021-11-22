@@ -50,11 +50,11 @@
               >Zfinalizuj hodnotenie</b-button
             >
             <b-button variant="danger" @click="finalScoringChange()" v-else
-              >Zrus hodnotenie</b-button
+              >Zruš hodnotenie</b-button
             >
           </div>
           <br />
-          <b-button v-b-modal.bodovanie size="sm">Upravit Bodovanie</b-button>
+          <b-button v-b-modal.bodovanie size="sm">Upraviť Bodovanie</b-button>
           <b-modal
             title="Bodovanie"
             id="bodovanie"
@@ -98,7 +98,7 @@
               </li>
             </ul>
             <button @click="pridajBodovanie" class="btn btn-primary btn-block">
-              Pridat dalsie kriterium
+              Pridať ďalšie kritérium
             </button>
           </b-modal>
         </div>
@@ -182,7 +182,7 @@ export default class Scoring extends Vue {
     if (!this.doc) return;
     this.doc.scoring = {
       points: this.points || 0,
-      acceptedCriteria: this.pointCriterias.filter((e, i)=>this.acceptedCriteria[i]).map((e)=>e.id),
+      acceptedCriteria: this.pointCriterias.filter((e, i) => this.acceptedCriteria[i]).map((e) => e.id),
       final: this.final,
       annotName: this.annotName,
     };

@@ -16,7 +16,7 @@
       <hr />
       <div v-if="selectedCategory.name == 'tools'">
         <b-row class="setting">
-          <b-col>Prvy selectnuty nastroj</b-col>
+          <b-col>Prvý selectnutý nástroj</b-col>
           <b-col>
             <b-select
               :options="selectedCategory.settings.defaultTool.options"
@@ -26,7 +26,9 @@
           </b-col>
         </b-row>
         <hr />
-        <h2 class="text-center m-2">Defaultne nastavenia pre nastroje</h2>
+        <h2 class="text-center m-2">
+          Defaultné nastavenia pre jednotlivé nástroje
+        </h2>
         <b-card
           v-for="tool in selectedCategory.settings.tools.filter((e) =>
             hasSettings(e)
@@ -61,7 +63,7 @@
                 </b-col>
               </b-row>
               <b-row v-if="tool.options.hasText" class="setting">
-                <b-col align-self="center"> Velkost Pisma </b-col>
+                <b-col align-self="center"> Veľkosť Písma </b-col>
                 <b-col align-self="center">
                   <input
                     class="form-control float-right"
@@ -73,7 +75,7 @@
                 </b-col>
               </b-row>
               <b-row v-if="tool.options.hasStrokeWidth" class="setting">
-                <b-col align-self="center">Hrubka ciary</b-col>
+                <b-col align-self="center">Hrúbka čiary</b-col>
                 <b-col align-self="center">
                   <div class="float-right">
                     <input
@@ -90,7 +92,7 @@
               </b-row>
 
               <b-row v-if="tool.options.hasStroke" class="setting">
-                <b-col align-self="center">Farba ciary</b-col>
+                <b-col align-self="center">Farba čiary</b-col>
                 <b-col align-self="center">
                   <color-picker
                     class="float-right"
@@ -101,7 +103,7 @@
                 </b-col>
               </b-row>
               <b-row v-if="tool.options.hasFill" class="setting">
-                <b-col align-self="center">Farba</b-col>
+                <b-col align-self="center">Výplň</b-col>
                 <b-col align-self="center">
                   <color-picker
                     class="float-right"
@@ -116,11 +118,8 @@
         </b-card>
       </div>
       <div v-else-if="selectedCategory.name == 'other'">
-        <b-alert show dismissible variant="warning"
-          >Tieto nastavenia sa prejavia az po reloadnuti stranky</b-alert
-        >
         <b-row>
-          <b-col>Ukazat preview rieseni v lavej liste</b-col>
+          <b-col>Ukázať preview riešení v ľavej lište</b-col>
           <b-col>
             <b-form-checkbox
               class="float-right"
@@ -132,7 +131,7 @@
         </b-row>
         <hr />
         <b-row>
-          <b-col>Auto-save rieseni pri prepnuti</b-col>
+          <b-col>Auto-save riešenia pri prepnutí</b-col>
           <b-col>
             <b-form-checkbox
               class="float-right"
@@ -144,7 +143,7 @@
         </b-row>
         <hr />
         <b-row>
-          <b-col>Ukazat timer</b-col>
+          <b-col>Ukázať časovač</b-col>
           <b-col>
             <b-form-checkbox
               class="float-right"
@@ -157,7 +156,7 @@
       </div>
       <div v-else-if="selectedCategory.name == 'shortcut'">
         <b-alert show variant="info" dismissible
-          >Chces vediet ako nastavit svoje skratky? klikni
+          >Chceš vedieť ako nastaviť svoje skratky? klikni
           <a @click="$refs.shortcutHelp.show()" class="link-primary">sem</a>
           <shortcut-help-modal ref="shortcutHelp" />
         </b-alert>
@@ -233,7 +232,7 @@ export default class Preferences extends Vue {
     ];
     let categories: SettingsCategory[] = [
       {
-        text: "Nastroje",
+        text: "Nástroje",
         settings: {
           defaultTool: {
             options: [
@@ -251,7 +250,7 @@ export default class Preferences extends Vue {
         name: "tools",
       } as ToolsCategory,
       {
-        text: "Klavesove skratky",
+        text: "Klavesové skratky",
         settings: [
           ...toolsCopy.map((e) => {
             return { name: e.name, shortcut: e.shortcut };
@@ -266,7 +265,7 @@ export default class Preferences extends Vue {
         name: "shortcut",
       } as ShortcutCategory,
       {
-        text: "Ostatne",
+        text: "Ostatné",
         settings: {
           showPreviews: true,
           autoSave: true,

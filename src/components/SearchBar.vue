@@ -3,7 +3,7 @@
     <b-input-group style="z-index: 4">
       <b-form-input
         type="text"
-        placeholder="Hladat v rieseniach"
+        placeholder="Hľadať v riešeniach"
         v-model="searchStr"
         size="lg"
       />
@@ -22,7 +22,7 @@
           }}</span>
         </b-button>
         <b-tooltip target="expand" triggers="hover"
-          >Dalsie moznosti hladania</b-tooltip
+          >Dalšie možnosti hľadania</b-tooltip
         >
       </b-input-group-append>
     </b-input-group>

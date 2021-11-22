@@ -35,7 +35,7 @@
             variant="secondary"
             @click="$bvModal.show('tag-modal')"
             size="sm"
-            >Upravit tagy</b-button
+            >Upraviť tagy</b-button
           >
         </div>
       </transition>
@@ -145,6 +145,7 @@ export default class Tags extends Vue {
   z-index: 2;
   box-shadow: 0 0 20px rgb(0 0 0 / 30%);
   border-radius: 10px 0 0 10px;
+  min-height: 120px;
 }
 
 h6 {

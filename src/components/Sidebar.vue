@@ -18,7 +18,7 @@
         ></document-preview>
       </transition>
       <li v-if="!documentsShown.some((e) => e)">
-        <p class="text-danger">No matching documents</p>
+        <p class="text-danger">Nenašli sa žiadne riešenia</p>
       </li>
     </ul>
   </div>

@@ -3,7 +3,7 @@
     <div class="loadingOverlay" v-if="!loaded">
       <div>
         <b-spinner variant="primary" label="loading..."></b-spinner>
-        <p>Loading...</p>
+        <p>Načítavam...</p>
       </div>
     </div>
 
@@ -15,13 +15,13 @@
         style="user-select: none"
       >
         <li class="list-group-item-action p-1" @click="deleteSelected">
-          Zmazat
+          Zmazať
         </li>
         <li class="list-group-item-action p-1" @click="moveToFront">
-          Presunut dopredu
+          Presunúť dopredu
         </li>
         <li class="list-group-item-action p-1" @click="moveToBack">
-          Presunut dozadu
+          Presunúť dozadu
         </li>
       </context-menu>
       <div class="pdf" ref="pdf">

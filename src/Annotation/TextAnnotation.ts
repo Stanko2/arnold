@@ -6,6 +6,10 @@ import Color from "color";
 import { fabric } from "fabric";
 import { concatTransformationMatrix, degrees, PDFFont, PDFPage, PDFPageDrawTextOptions, popGraphicsState, pushGraphicsState, rgb, rotateDegrees, scale, toHexStringOfMinLength, translate } from "pdf-lib";
 
+export interface TextStyle {
+
+}
+
 export class TextAnnotation extends Annotation {
     static toolOptions: any;
     static font: PDFFont;
@@ -13,6 +17,7 @@ export class TextAnnotation extends Annotation {
         return this.object as fabric.Textbox;
     }
     constructor(page: number, options: fabric.ITextboxOptions, canvas: Canvas) {
+        options.fontWeight = 'bold';
         super(page, new fabric.Textbox(options.text || 'text', options), canvas, 'Text');
         (this.object as any).tool = TextAnnotation.toolOptions;
         canvas.setActiveObject(this.object);
