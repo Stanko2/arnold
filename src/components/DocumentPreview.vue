@@ -175,6 +175,11 @@ export default class DocumentPreview extends Previewprops {
     };
   }
   mounted() {
+    this.$store.subscribe((mutation) => {
+      if (mutation.type === 'updateDocument' && mutation.payload.id == this.documentID) {
+        this.updatePreview();
+      }
+    })
     this.eventHub.$on("tags:update", (tags: any) => {
       this.tags = tags;
       if (!this.document) return;

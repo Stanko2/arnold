@@ -33,6 +33,7 @@ import { Documents, getViewedDocument } from "@/DocumentManager";
 import { Document } from "@/@types";
 import { PDFdocument } from "./PDFdocument";
 import { Database } from "@/Db";
+import Editor from "@/views/Editor.vue";
 
 const SidebarProps = Vue.extend({
   props: {
@@ -112,7 +113,9 @@ export default class Sidebar extends SidebarProps {
   }
   async save() {
     this.$refs.documentList[this.selectedIndex].documentBusy = true;
-    await this.pdf.save()
+    console.log('saving');
+    const doc = await this.pdf.save();
+    console.log('saved');
     // .catch((err) => {
     //   this.$bvToast.toast(err, {
     //     variant: "danger",
@@ -120,9 +123,11 @@ export default class Sidebar extends SidebarProps {
     //   });
     //   this.$refs.documentList[this.selectedIndex].documentBusy = false;
     // });
-    this.UpdateCurrentPreview();
+    this.$store.commit('updateDocument', doc);
+    // this.UpdateCurrentPreview();
   }
   async selectDir(dir: number) {
+    if (!(this.$parent as Editor).$refs.viewport.loaded) return;
     if (this.autoSave) await this.save();
     const curr = Documents.findIndex((e) => e.id == this.pdf.id);
     let i = curr + dir;
@@ -172,6 +177,7 @@ export default class Sidebar extends SidebarProps {
     }
   }
   async selectIndex(id: number) {
+    if (!(this.$parent as Editor).$refs.viewport.loaded) return;
     if (this.autoSave) await this.save();
     this.updateSelected(id, false);
     this.eventHub.$emit("editor:setDocument", id);

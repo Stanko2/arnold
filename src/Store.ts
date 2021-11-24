@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import Vuex, { Store } from 'vuex';
-import { Settings, Tag } from './@types';
+import { Settings, Tag, Document } from './@types';
 
 import defaultSettings from './components/Preferences/DefaultSettings';
 interface State {
@@ -30,6 +30,10 @@ export const store = new Store<State>({
         },
         loadDocuments(state, documents: Document[]) {
             state.documents = documents;
+        },
+        updateDocument(state, payload) {
+            const idx = state.documents.findIndex(doc => doc.id === payload.id);
+            state.documents[idx] = payload;
         }
     }
 });

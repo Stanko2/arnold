@@ -222,7 +222,7 @@ export default {
             }
             PDFdocument.activeObject.set(this.selectedTool.defaultOptions);
             try {
-              PDFdocument.activeObject.canvas?.requestRenderAll();
+              PDFdocument.activeObject.canvas?.renderAll();
             } catch (e) {
               return;
             }

@@ -30,6 +30,7 @@ async function setPdf(id: number) {
 
     if (index === -1) return;
     if (index === selectedDocumentIndex) return;
+    if (pdf && !pdf?.initialized) throw new Error("trying to load new document while current isn't initialized");
 
     document.title = 'Arnold | ' + Documents[index].riesitel;
     selectedDocumentIndex = index;

@@ -20,6 +20,7 @@ export class Canvas extends fabric.Canvas {
     pageIndex = 0;
     drawnShapes: fabric.Path[] = [];
     static selectedTool: Tool | undefined = undefined;
+    initialized = false;
     constructor(el: any, private pdf: PDFdocument, private page: number) {
         super(el);
         this.selection = false;
@@ -28,7 +29,7 @@ export class Canvas extends fabric.Canvas {
 
 
     setScale(viewportSize: { width: number, height: number }) {
-        if (this.pdf.modifyRef) {
+        if (this.pdf.modifyRef && this.initialized) {
             const { width, height } = this.pdf.modifyRef?.getPage(this.page).getSize();
             this.setZoom(viewportSize.width / width);
         }
@@ -137,6 +138,7 @@ export class Canvas extends fabric.Canvas {
                     this.pdf.addAnnotation(new SignAnnotation(this.page, obj as any, this));
                 }
             })
+            this.initialized = true;
             this.discardActiveObject();
         }, 100);
     }

@@ -2,9 +2,9 @@ import Vue from "vue";
 import { Canvas } from "@/Canvas";
 import { Database } from "@/Db";
 import { fabric } from "fabric";
-import { BlendMode, decodeFromBase64DataUri, degrees, LineCapStyle, LineJoinStyle, PageSizes, PDFDocument, PDFFont, PDFPage, StandardFonts } from "pdf-lib";
+import { degrees, PageSizes, PDFDocument, PDFFont, PDFPage, StandardFonts } from "pdf-lib";
 import { Annotation, EllipseAnnotation, LineAnnotation, PathAnnotation, RectAnnotation, SignAnnotation, TextAnnotation } from "@/Annotation";
-import type { Tool } from "@/@types";
+import type { Tool, Document } from "@/@types";
 import fontKit from '@pdf-lib/fontkit';
 
 var pdf = require('pdfvuer');
@@ -17,6 +17,7 @@ export class PDFdocument {
     static activeObject: fabric.Object;
     modifyRef: PDFDocument | undefined;
     viewref: any;
+    initialized = false;
     pages: PDFPage[] = [];
     annotations: Annotation[] = [];
     pageCanvases: Canvas[] = [];
@@ -73,7 +74,7 @@ export class PDFdocument {
         await annotation.bake(page);
     }
 
-    async save() {
+    async save(): Promise<Document> {
         await this.InitModifyRef();
 
         for (const annotation of this.annotations) {
@@ -87,7 +88,7 @@ export class PDFdocument {
         //     }
         // }
         const pdfBytes = await this.modifyRef?.save();
-        if (pdfBytes == null) return;
+        if (pdfBytes == null) throw new Error('Document not loaded');
         var currDoc = await Database.getDocument(this.id);
         const changes = currDoc.changes;
         currDoc.changes = [];
@@ -101,6 +102,7 @@ export class PDFdocument {
             currDoc.changes = changes;
         }
         await this.InitModifyRef();
+        return currDoc;
     }
 
 
@@ -137,7 +139,11 @@ export class PDFdocument {
                 if (annotation != null) this.addAnnotation(annotation);
             }
         });
-        this.pageCanvases.forEach(c => c.discardActiveObject());
+        this.pageCanvases.forEach(c => {
+            c.discardActiveObject();
+            c.renderAll();
+        });
+        this.initialized = true;
     }
 
     addAnnotation(annotation: Annotation) {

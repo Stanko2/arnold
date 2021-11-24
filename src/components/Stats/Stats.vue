@@ -15,10 +15,10 @@
     <stats-entry
       :max="stats.celkovo"
       :value="stats.obodovane"
+      v-if="scoringChartData"
       :color="color('#E9C46A')"
       label="Obodované"
       ><pie-chart
-        v-if="scoringChartData"
         class="pie-chart"
         :data="scoringChartData.chartData"
         :options="scoringChartData.chartOptions"
@@ -58,6 +58,11 @@ export default class Stats extends Vue {
   scoringChartData: any = undefined;
 
   mounted() {
+    this.$store.subscribe((mutation) => {
+      if (mutation.type === 'updateDocument') {
+        this.update();
+      }
+    })
     this.update();
   }
   data() {

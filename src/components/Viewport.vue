@@ -29,6 +29,7 @@
           v-for="i in pageCount"
           :key="i"
           class="page-wrapper"
+          ref="pages"
           v-b-visible="(visible) => changeActivePage(i, visible)"
         >
           <pdf
@@ -39,11 +40,12 @@
             :rotate="(rotation[i - 1] || 0) * 90"
             :text="false"
             class="card page-data"
+            ref="pagePDFs"
             @error="err"
             @loading="documentLoaded"
           ></pdf>
           <div class="pageAnnot">
-            <canvas ref="page"></canvas>
+            <canvas ref="canvases"></canvas>
           </div>
         </div>
       </div>
@@ -74,46 +76,58 @@ const ViewportProps = Vue.extend({
 })
 export default class Viewport extends ViewportProps {
   loaded: boolean = false;
+  // set loaded(val: boolean) {
+  //   console.trace(`${getViewedDocument()?.id}: setting loaded to ${val}`);
+  //   this._loaded = val;
+  // }
+  // get loaded(): boolean { return this._loaded; }
   src: any;
   pageCount: number = 0;
   rotation: number[] = [];
   activePage: number = 0;
   scale: number = 1;
+  id: number = -1;
 
-  data() {
+  $refs!: {
+    pages: HTMLElement[];
+    pagePDFs: Vue[];
+    canvases: HTMLCanvasElement[];
+    ctxMenu: typeof contextMenu;
+  }
+
+  init() {
     pdfDocument = getViewedDocument();
-    return {
-      src: pdfDocument?.viewref,
-      pageCount: pdfDocument?.pageCount,
-      id: pdfDocument?.id,
-      pagesLoaded: 0,
-      loaded: false,
-      scale: 1,
-      rotation: Array<number>(pdfDocument?.pageCount || 0).map(() => 0),
-      activePage: 0,
-    };
+    this.src = pdfDocument?.viewref;
+    this.pageCount = pdfDocument?.pageCount || 0;
+    this.id = pdfDocument?.id || 0;
+    this.rotation = Array<number>(pdfDocument?.pageCount || 0).map(() => 0);
   }
   activated() {
     const doc = getViewedDocument();
-    if (doc) {
+    if (doc && doc.pageCanvases.length === 0) {
       this.createCanvases(doc);
     }
   }
   deactivated() {
     const doc = getViewedDocument();
     doc?.pageCanvases.forEach((e) => e.dispose());
+    if (doc)
+      doc.pageCanvases = [];
   }
   mounted() {
+    this.init();
     this.eventHub.$on("viewport:scale", this.setScale);
     this.eventHub.$on("viewport:rotate", this.rotate);
     window.addEventListener("resize", this.resize);
     PDFdocument.initDocument = (task: any) => {
+      if (this.loaded) return;
       this.loaded = false;
+      console.log('setting loaded to false');
+
       if (task) this.src = task;
       this.src.then((pdf: any) => {
         this.pageCount = pdf.numPages;
         this.rotation = Array<number>(pdf.numPages).fill(0);
-        // console.log(this.rotation);
       });
     };
     PDFdocument.viewport = this;
@@ -126,23 +140,22 @@ export default class Viewport extends ViewportProps {
     this.activePage = i - 1;
   }
   createCanvases(document: PDFdocument) {
+    if (this.pageCount === 0) return;
     const pageCanvases: Canvas[] = [];
-    // setTimeout musi byt, lebo z nejakych dovodov sa to pdfko resizne na co canvas nevie reagovat
-    // nepodarilo sa mi vyriesit lepsie
-    setTimeout(() => {
-      if (document.pageCanvases.length > 0) return;
 
-      const pages = this.$refs.page as Element[];
-      const PDFpages = (this.$refs.pdf as Element).children;
-      for (var i = 0; i < pages.length; i++) {
-        const page = pages[i];
+    this.$nextTick().then(() => {
+      if (document.pageCanvases.length > 0) return;
+      const PDFpages = this.$refs.pagePDFs;
+      console.log(this.pageCount);
+
+      for (var i = 0; i < this.pageCount; i++) {
+        const page = this.$refs.canvases[i];
         const canvas = new Canvas(page, document, i);
-        const pagePDF = PDFpages[i].querySelector(".page") as HTMLElement;
+        const pagePDF = PDFpages[i];
         const dimensions = {
-          width: parseInt(pagePDF.style.width),
-          height: parseInt(pagePDF.style.height),
+          width: pagePDF.$el.clientWidth,
+          height: pagePDF.$el.clientHeight,
         };
-        (PDFpages[i] as HTMLElement).style.width = dimensions.width + "px";
         canvas.setHeight(dimensions?.height);
         canvas.setWidth(dimensions?.width);
         canvas.setScale(dimensions);
@@ -153,8 +166,9 @@ export default class Viewport extends ViewportProps {
       document.pageCanvases = pageCanvases;
       document.initCanvases();
       this.loaded = true;
+      console.log('setting loaded to true');
       this.eventHub.$emit("tool:initCurrent");
-    }, 50);
+    });
   }
   deleteSelected() {
     const doc = getViewedDocument();
@@ -186,7 +200,6 @@ export default class Viewport extends ViewportProps {
     }
   }
   documentLoaded(loading: boolean) {
-    this.loaded = !loading;
     if (!loading) {
       const document = getViewedDocument();
       if (document) this.createCanvases(document);
@@ -195,7 +208,7 @@ export default class Viewport extends ViewportProps {
   openCtxMenu(e: Event) {
     const doc = getViewedDocument();
     if (doc?.pageCanvases.some((f) => f.canOpenCtxMenu(e))) {
-      (this.$refs.ctxMenu as any).open();
+      this.$refs.ctxMenu.open();
     }
     e.preventDefault();
   }
@@ -214,11 +227,10 @@ export default class Viewport extends ViewportProps {
   resize() {
     setTimeout(() => {
       try {
-        const pdf = this.$refs.pdf as HTMLElement;
-        const pages = pdf.children;
+        const pages = this.$refs.pages;
 
         for (let i = 0; i < pages.length; i++) {
-          const page = pages[i].querySelector(".page") as HTMLElement;
+          const page = pages[i];
           // console.log(page);
           const dimensions = {
             width: parseInt(page.style.width),
