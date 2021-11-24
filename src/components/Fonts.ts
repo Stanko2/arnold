@@ -64,7 +64,6 @@ export async function EmbedFont(pdf: PDFdocument | null, font: string) {
         console.log('Document not yet initialized');
         return;
     }
-    console.log(font);
     if (!(font in FontsAvailable)) {
         console.log('Trying to embed unavailable font');
         return;

@@ -104,7 +104,6 @@ export default class Editor extends Vue {
   };
   mounted() {
     this.$store.subscribe((mutation) => {
-      console.log(mutation);
       if (mutation.type == "applySettings") {
         const settings = mutation.payload as Settings;
         this.prefs = settings;

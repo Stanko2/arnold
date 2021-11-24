@@ -122,8 +122,6 @@ export default class Viewport extends ViewportProps {
     PDFdocument.initDocument = (task: any) => {
       if (this.loaded) return;
       this.loaded = false;
-      console.log('setting loaded to false');
-
       if (task) this.src = task;
       this.src.then((pdf: any) => {
         this.pageCount = pdf.numPages;
@@ -146,7 +144,6 @@ export default class Viewport extends ViewportProps {
     this.$nextTick().then(() => {
       if (document.pageCanvases.length > 0) return;
       const PDFpages = this.$refs.pagePDFs;
-      console.log(this.pageCount);
 
       for (var i = 0; i < this.pageCount; i++) {
         const page = this.$refs.canvases[i];
@@ -166,7 +163,6 @@ export default class Viewport extends ViewportProps {
       document.pageCanvases = pageCanvases;
       document.initCanvases();
       this.loaded = true;
-      console.log('setting loaded to true');
       this.eventHub.$emit("tool:initCurrent");
     });
   }
@@ -231,12 +227,10 @@ export default class Viewport extends ViewportProps {
 
         for (let i = 0; i < pages.length; i++) {
           const page = pages[i];
-          // console.log(page);
           const dimensions = {
             width: parseInt(page.style.width),
             height: parseInt(page.style.height),
           };
-          // console.log(dimensions);
           (pages[i] as HTMLElement).style.width = dimensions.width + "px";
           if (page) {
             var canvas: Canvas = getViewedDocument()?.pageCanvases[i] as Canvas;
@@ -261,8 +255,6 @@ export default class Viewport extends ViewportProps {
     doc?.rotatePage(this.activePage);
     this.$destroy();
     // this.eventHub.$emit("editor:setDocument");
-    // console.log(this.rotation);
-    // console.log(this.activePage);
     // this.rotation[this.activePage]++;
     // const canvas = doc?.pageCanvases[this.activePage];
     // canvas?.Rotate(90);

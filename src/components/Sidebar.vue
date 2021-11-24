@@ -113,9 +113,7 @@ export default class Sidebar extends SidebarProps {
   }
   async save() {
     this.$refs.documentList[this.selectedIndex].documentBusy = true;
-    console.log('saving');
     const doc = await this.pdf.save();
-    console.log('saved');
     // .catch((err) => {
     //   this.$bvToast.toast(err, {
     //     variant: "danger",

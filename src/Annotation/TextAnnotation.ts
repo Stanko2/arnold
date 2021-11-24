@@ -41,7 +41,6 @@ export class TextAnnotation extends Annotation {
         const font = (this.object as fabric.Textbox).fontFamily || 'Open Sans';
         const doc = getViewedDocument();
         await EmbedFont(doc, font);
-        console.log(doc?.embeddedResources[font]);
 
         const height = page.getHeight();
         if (this.object == null || this.object.top == null || this.object.left == null || this.textbox.fontSize == null) return;
@@ -50,7 +49,6 @@ export class TextAnnotation extends Annotation {
         const parser = new DOMParser(),
             data = parser.parseFromString(this.object.toSVG(), "image/svg+xml"),
             transform = data.querySelector('g')?.getAttribute('transform')?.match(/-?[0-9]+(\.[0-9]*)?/gm)?.map(e => parseFloat(e)) || [1, 0, 0, 0, 1, 0];
-        // console.log(transform);
 
         page.pushOperators(
             pushGraphicsState(),
