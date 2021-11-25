@@ -130,7 +130,7 @@ class DB {
         });
     }
 
-    async getTemplate(id: number): Promise<ITemplate> {
+    async getTemplate(id: string): Promise<ITemplate> {
         const req = this.db?.transaction('templates', 'readonly').objectStore('templates');
         return new Promise<ITemplate>((resolve, reject) => {
             const doc = req?.get(id);

@@ -71,6 +71,14 @@
       <b-button variant="primary" @click="openImageModal"
         >Otvoriť obrázkové menu</b-button
       >
+      <b-dropdown :text="getImageDropdownText()">
+        <b-dropdown-item
+          v-for="image in images"
+          :key="image.id"
+          @click.native="selectedTool.defaultOptions.image = image.id"
+          >{{ image.name }}</b-dropdown-item
+        >
+      </b-dropdown>
     </div>
     <div v-if="selectedTool.name == 'Sign'">
       <b-button variant="primary" @click="openSignModal"
@@ -85,8 +93,14 @@
         >
       </b-dropdown>
     </div>
-    <b-modal ref="imageMenu" centered title="Obrázky" size="lg">
-      <image-modal></image-modal>
+    <b-modal
+      ref="imageMenu"
+      centered
+      title="Obrázky"
+      size="lg"
+      @ok="imageModalAccepted"
+    >
+      <image-modal ref="imageModal"></image-modal>
     </b-modal>
     <b-modal
       ref="signMenu"
@@ -134,7 +148,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { tools } from "./Tool";
 import { PDFdocument } from "../PDFdocument";
 import { FontsAvailable } from "../Fonts";
@@ -146,100 +160,139 @@ import ImageModal from "./ImageModal.vue";
 import ColorPicker from "../ColorPicker.vue";
 import PdfRepairer from "./PdfRepairer/PdfRepairer.vue";
 import { Database } from "@/Db";
+import { Component, Watch } from "vue-property-decorator";
+import { BModal } from "bootstrap-vue";
+import Vue from "vue";
+import { ITemplate, Tool } from "@/@types";
 
-export default {
+@Component({
   components: {
     ColorPicker,
     SignModal,
     ImageModal,
     PdfRepairer,
   },
-  data() {
-    return {
-      tools: tools,
-      selectedTool: tools[0],
-      selectedOptions: tools[0].options,
-      fill: "#ffffff",
-      stroke: "#000000",
-      fonts: FontsAvailable,
-      signatures: [],
-    };
-  },
+})
+export default class Toolbar extends Vue {
+  tools = tools;
+  selectedTool = tools[0];
+  selectedOptions = tools[0].options;
+  fill = "#ffffff";
+  stroke = "#000000";
+  fonts = FontsAvailable;
+  signatures: ITemplate[] = [];
+  images: ITemplate[] = [];
+
+  $refs!: {
+    signMenu: BModal;
+    imageMenu: BModal;
+    signModal: SignModal;
+    imageModal: ImageModal;
+  }
+
   mounted() {
     this.eventHub.$emit("tool:init", this);
     Canvas.toolbarRef = this;
     this.getSigns().then((signs) => {
-      this.$data.signatures = signs;
+      this.signatures = signs;
     });
-  },
-  methods: {
-    select(tool) {
-      this.$data.selectedTool = tool;
-      this.eventHub.$emit("tool:select", tool);
-    },
-    openSignModal() {
-      this.$refs.signMenu.show();
-    },
-    openImageModal() {
-      this.$refs.imageMenu.show();
-    },
-    getSigns() {
-      return new Promise((resolve, reject) => {
-        Database.getAllTemplates()
-          .then((templates) => {
-            resolve(templates.filter((e) => e.type === "Sign"));
-          })
-          .catch((err) => reject(err));
-      });
-    },
-    signModalAccepted() {
-      this.$refs.signModal.signModalAccepted();
-      this.getSigns().then((signs) => {
-        this.signatures = signs;
-      });
-    },
-    getSignDropdownText() {
-      return (
-        this.signatures.find(
-          (e) => e.id == this.selectedTool.defaultOptions.sign
-        )?.name || "Select signature"
-      );
-    },
-  },
-  created() {
-    this.$watch(
-      "selectedTool.defaultOptions",
-      () => {
-        if (
-          this.selectedTool.name == "Select" &&
-          this.selectedTool.defaultOptions
-        ) {
-          if (PDFdocument.activeObject != null) {
-            if (PDFdocument.activeObject.type == "group") {
-              PDFdocument.activeObject.getObjects().forEach((obj) => {
-                obj.set(this.selectedTool.defaultOptions);
-              });
-            }
-            PDFdocument.activeObject.set(this.selectedTool.defaultOptions);
-            try {
-              PDFdocument.activeObject.canvas?.renderAll();
-            } catch (e) {
-              return;
-            }
-          }
-        } else if (this.selectedTool.name == "Draw") {
-          getViewedDocument()?.pageCanvases.forEach((e) => {
-            e.freeDrawingBrush.color =
-              this.selectedTool.defaultOptions.stroke || "#000000";
-            e.freeDrawingBrush.width =
-              this.selectedTool.defaultOptions.strokeWidth || 10;
+    this.getImages().then((images) => {
+      this.images = images;
+    });
+  }
+
+  select(tool: Tool) {
+    this.selectedTool = tool;
+    this.eventHub.$emit("tool:select", tool);
+  }
+
+  openSignModal() {
+    this.$refs.signMenu.show();
+  }
+
+  openImageModal() {
+    this.$refs.imageMenu.show();
+  }
+
+  getSigns() {
+    return new Promise<ITemplate[]>((resolve, reject) => {
+      Database.getAllTemplates()
+        .then((templates) => {
+          resolve(templates.filter((e) => e.type === "Sign"));
+        })
+        .catch((err) => reject(err));
+    });
+  }
+
+  getImages() {
+    return new Promise<ITemplate[]>((resolve, reject) => {
+      Database.getAllTemplates()
+        .then((templates) => {
+          resolve(templates.filter((e) => e.type === "Image"));
+        })
+        .catch((err) => reject(err));
+    });
+  }
+
+  signModalAccepted() {
+    this.$refs.signModal.signModalAccepted();
+    this.getSigns().then((signs) => {
+      this.signatures = signs;
+    });
+  }
+
+  imageModalAccepted() {
+    this.$refs.imageModal.imageModalAccepted();
+    this.getImages().then((images) => {
+      this.images = images;
+    });
+  }
+
+  getSignDropdownText() {
+    return (
+      this.signatures.find(
+        (e) => e.id == (this.selectedTool.defaultOptions as any).sign
+      )?.name || "Vyber Podpis"
+    );
+  }
+
+  getImageDropdownText() {
+    return (
+      this.images.find(
+        (e) => e.id == (this.selectedTool.defaultOptions as any).image
+      )?.name || "Vyber obrázok"
+    );
+  }
+
+  @Watch('selectedTool.defaultOptions', { deep: true })
+  onOptionsChanged() {
+    if (
+      this.selectedTool.name == "Select" &&
+      this.selectedTool.defaultOptions
+    ) {
+      if (PDFdocument.activeObject != null) {
+        if (PDFdocument.activeObject.type == "group") {
+          (PDFdocument.activeObject as fabric.Group).getObjects().forEach((obj) => {
+            obj.set(this.selectedTool.defaultOptions);
           });
         }
-      },
-      { deep: true }
-    );
-  },
-};
+        PDFdocument.activeObject.set(this.selectedTool.defaultOptions);
+        try {
+          PDFdocument.activeObject.canvas?.renderAll();
+        } catch (e) {
+          return;
+        }
+      }
+    } else if (this.selectedTool.name == "Draw") {
+      getViewedDocument()?.pageCanvases.forEach((e) => {
+        e.freeDrawingBrush.color =
+          this.selectedTool.defaultOptions.stroke || "#000000";
+        e.freeDrawingBrush.width =
+          this.selectedTool.defaultOptions.strokeWidth || 10;
+      });
+    }
+  }
+}
 </script>
 
 <style scoped>

@@ -2,7 +2,7 @@
 import { PDFdocument } from "./components/PDFdocument";
 import { tools } from "./components/Tools/Tool";
 import { fabric } from "fabric";
-import { PathAnnotation, SignAnnotation } from "@/Annotation";
+import { ImageAnnotation, PathAnnotation, SignAnnotation } from "@/Annotation";
 import eventHub from "./Mixins/EventHub";
 import { Tool } from "./@types";
 export class Canvas extends fabric.Canvas {
@@ -59,9 +59,11 @@ export class Canvas extends fabric.Canvas {
                 }
                 else {
                     this.creating = Canvas.selectedTool.click?.(this.pdf, this.page, pointerPos);
-                    this.setActiveObject(this.creating);
-                    this.requestRenderAll();
-                    eventHub.$emit('tool:select', tools[7]);
+                    if (this.creating) {
+                        this.setActiveObject(this.creating);
+                        this.requestRenderAll();
+                        eventHub.$emit('tool:select', tools[7]);
+                    }
                 }
             }
 
@@ -96,7 +98,7 @@ export class Canvas extends fabric.Canvas {
             }
         });
         this.on('object:scaled', (e) => {
-            if (e.target != null && e.target.type != 'group' && e.target.type != 'ellipse') {
+            if (e.target != null && e.target.type != 'group' && e.target.type != 'ellipse' && e.target.type != 'image') {
                 const obj: fabric.Object = e.target,
                     w = (obj.width || 0) * (obj.scaleX || 0),
                     h = (obj.height || 0) * (obj.scaleY || 0);
@@ -136,6 +138,9 @@ export class Canvas extends fabric.Canvas {
                     console.log((obj as any).sign);
 
                     this.pdf.addAnnotation(new SignAnnotation(this.page, obj as any, this));
+                }
+                if (obj instanceof fabric.Image) {
+                    this.pdf.addAnnotation(new ImageAnnotation(this.page, obj, this))
                 }
             })
             this.initialized = true;

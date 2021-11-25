@@ -171,7 +171,6 @@ export default class SignModal extends SignModalProps {
         data: e.canvas.toJSON(),
         name: e.name,
       };
-      console.log(data);
       Database.updateTemplate(data as ITemplate);
     });
     this.deleted.forEach((e: string) => {

@@ -1,5 +1,5 @@
 import { fabric } from "fabric";
-import { EllipseAnnotation, LineAnnotation, RectAnnotation, TextAnnotation } from "@/Annotation";
+import { EllipseAnnotation, ImageAnnotation, LineAnnotation, RectAnnotation, TextAnnotation } from "@/Annotation";
 import { PDFdocument } from "../PDFdocument";
 import { getViewedDocument } from '@/DocumentManager';
 import Vue from "vue";
@@ -111,7 +111,20 @@ export const tools: Tool[] = [
         icon: 'add_photo_alternate',
         tooltip: 'Pridat peciatku',
         shortcut: 'e',
+        defaultOptions: { name: '' },
         // TODO: add photo modal, photo embedding to pdf & photo support for canvas
+        click: (pdf: PDFdocument, page: number, position: { x: number, y: number }) => {
+            const options = Object.assign({}, selectedTool.defaultOptions);
+            console.log(selectedTool.defaultOptions);
+
+            Database.getTemplate((options as any).image).then((template) => {
+                const img = new Image();
+                img.src = template.data.img;
+                (options as any).image = template.data.img;
+                const fabricImg = new fabric.Image(img, options);
+                pdf.pageCanvases[page].add(fabricImg);
+            })
+        },
         options: {
             hasFill: false,
             hasStroke: false,
