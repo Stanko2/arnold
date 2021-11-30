@@ -24,6 +24,7 @@
               >
               <b-nav-item class="ml-3 my-1" href="#Draw">Kreslenie</b-nav-item>
               <b-nav-item class="ml-3 my-1" href="#Arrow">Šípka</b-nav-item>
+              <b-nav-item class="ml-3 my-1" href="#Image">Obrázok</b-nav-item>
             </b-nav>
             <b-nav-item href="#Settings">Nastavenia</b-nav-item>
             <b-nav pills vertical>
@@ -147,6 +148,13 @@
           <p>
             Dragnutím myši vytvorím šípku, potom viem ešte prípadne poposúvať
             konce.
+          </p>
+          <h5 id="Arrow" style="">Obrázok</h5>
+          <p>
+            Obrázky fungujú podobne ako podpisy. Otvorím si menu s obrázkami a
+            môžem si tam pridať obrázok aký chcem. Formát obrázka ale musí byť 
+            PNG, inak nebude fungovať. Potom viem rovnako ako pri podpisoch 
+            kliknúť na stránku a pridať obrázok do riešenia.
           </p>
           <h4 id="Settings" style="">Nastavenia</h4>
           <img src="@/assets/Help/Settings.png" class="img" />
