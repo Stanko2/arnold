@@ -122,7 +122,7 @@ export const tools: Tool[] = [
                 img.src = template.data.img;
                 (options as any).image = template.data.img;
                 const fabricImg = new fabric.Image(img, options);
-                pdf.pageCanvases[page].add(fabricImg);
+                pdf.addAnnotation(new ImageAnnotation(page, { ...fabricImg, image: img.src }, pdf.pageCanvases[page]))
             })
         },
         options: {

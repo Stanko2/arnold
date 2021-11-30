@@ -29,7 +29,7 @@ export class Canvas extends fabric.Canvas {
 
 
     setScale(viewportSize: { width: number, height: number }) {
-        if (this.pdf.modifyRef && this.initialized) {
+        if (this.pdf.modifyRef) {
             const { width, height } = this.pdf.modifyRef?.getPage(this.page).getSize();
             this.setZoom(viewportSize.width / width);
         }
@@ -59,11 +59,9 @@ export class Canvas extends fabric.Canvas {
                 }
                 else {
                     this.creating = Canvas.selectedTool.click?.(this.pdf, this.page, pointerPos);
-                    if (this.creating) {
-                        this.setActiveObject(this.creating);
-                        this.requestRenderAll();
-                        eventHub.$emit('tool:select', tools[7]);
-                    }
+                    this.setActiveObject(this.creating);
+                    this.requestRenderAll();
+                    eventHub.$emit('tool:select', tools[7]);
                 }
             }
 
@@ -138,9 +136,6 @@ export class Canvas extends fabric.Canvas {
                     console.log((obj as any).sign);
 
                     this.pdf.addAnnotation(new SignAnnotation(this.page, obj as any, this));
-                }
-                if (obj instanceof fabric.Image) {
-                    this.pdf.addAnnotation(new ImageAnnotation(this.page, obj, this))
                 }
             })
             this.initialized = true;

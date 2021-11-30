@@ -168,7 +168,7 @@ export default class Sidebar extends SidebarProps {
   }
   stopwatchUpdate() {
     if (this.$refs.documentList && this.selectedIndex != -1) {
-      this.$refs.documentList[this.selectedIndex].updateStopwatch(
+      this.$refs.documentList[this.selectedIndex]?.updateStopwatch(
         this.openTime,
         this.documents[this.selectedIndex].timeOpened
       );

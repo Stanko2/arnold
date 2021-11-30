@@ -3,7 +3,7 @@ import { Canvas } from "@/Canvas";
 import { Database } from "@/Db";
 import { fabric } from "fabric";
 import { degrees, PageSizes, PDFDocument, PDFFont, PDFPage, StandardFonts } from "pdf-lib";
-import { Annotation, EllipseAnnotation, LineAnnotation, PathAnnotation, RectAnnotation, SignAnnotation, TextAnnotation } from "@/Annotation";
+import { Annotation, EllipseAnnotation, ImageAnnotation, LineAnnotation, PathAnnotation, RectAnnotation, SignAnnotation, TextAnnotation } from "@/Annotation";
 import type { Tool, Document } from "@/@types";
 import fontKit from '@pdf-lib/fontkit';
 
@@ -132,6 +132,9 @@ export class PDFdocument {
                         break;
                     case 'Ellipse':
                         annotation = new EllipseAnnotation(data.page, data.data, this.pageCanvases[data.page]);
+                        break;
+                    case 'Image':
+                        annotation = new ImageAnnotation(data.page, data.data, this.pageCanvases[data.page]);
                         break;
                     default:
                         break;
