@@ -30,8 +30,13 @@ export class Canvas extends fabric.Canvas {
 
     setScale(viewportSize: { width: number, height: number }) {
         if (this.pdf.modifyRef) {
-            const { width, height } = this.pdf.modifyRef?.getPage(this.page).getSize();
+            const { width } = this.pdf.modifyRef.getPage(this.page).getSize();
             this.setZoom(viewportSize.width / width);
+        }
+        else {
+            setTimeout(() => {
+                this.setScale(viewportSize);
+            }, 10);
         }
     }
 

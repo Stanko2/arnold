@@ -109,16 +109,15 @@
 
 <script lang="ts">
 import { Database } from "@/Db";
-import type { Document } from "@/@types";
+import type { Document, ScoringCriteria } from "@/@types";
 import Vue from "vue";
 import { TextAnnotation } from "@/Annotation";
 import { PDFdocument } from "./PDFdocument";
 import Component from "vue-class-component";
-import { Prop } from "vue-property-decorator";
 
 @Component({})
 export default class Scoring extends Vue {
-  pointCriterias: any[] = [];
+  pointCriterias: ScoringCriteria[] = [];
   acceptedCriteria: boolean[] = [];
   final: boolean = false;
   pdf: PDFdocument | undefined = undefined;
@@ -144,22 +143,15 @@ export default class Scoring extends Vue {
       }
     );
   }
-  data() {
-    return {
-      showScoringPanel: false,
-      acceptedCriteria: [],
-      pointCriterias: [],
-      points: undefined,
-      final: undefined,
-      annotName: undefined,
-    };
-  }
+
   toggle() {
     this.showScoringPanel = !this.showScoringPanel;
   }
+
   updatepointCriterias() {
-    localStorage.setItem("bodovanie", JSON.stringify(this.pointCriterias));
+    this.$store.commit('setScoring', this.pointCriterias);
   }
+
   pridajBodovanie() {
     this.pointCriterias.push({
       id: Math.random().toString(36).substr(2, 9),
@@ -167,6 +159,7 @@ export default class Scoring extends Vue {
       from: "",
     });
   }
+
   calculatePoints() {
     let points = 0;
     for (let i = 0; i < this.pointCriterias.length; i++) {
@@ -178,6 +171,7 @@ export default class Scoring extends Vue {
     this.points = points;
     this.saveScoring();
   }
+
   saveScoring() {
     if (!this.doc) return;
     this.doc.scoring = {
@@ -188,6 +182,7 @@ export default class Scoring extends Vue {
     };
     Database.updateDocument(this.doc.id, this.doc);
   }
+
   getScoring(doc: Document) {
     this.doc = doc;
     if (!doc.scoring) {
@@ -208,6 +203,7 @@ export default class Scoring extends Vue {
       }
     }
   }
+
   finalScoringChange() {
     if (!this.pdf) return;
     const pdf: PDFdocument = this.pdf;
@@ -241,6 +237,7 @@ export default class Scoring extends Vue {
     }
     this.saveScoring();
   }
+
   deleteCriteria(id: number) {
     const index = this.pointCriterias.findIndex((e: any) => e.id == id);
     this.pointCriterias.splice(index, 1);

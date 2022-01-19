@@ -23,6 +23,10 @@
         Potrebuješ s niečím pomôcť? Klikni
         <router-link to="Help">sem</router-link>
       </p>
+      <p>
+        Pri zapnutí po dlhšom čase ma nezabudni
+        <b-link @click="reload()">aktualizovať</b-link>
+      </p>
     </b-jumbotron>
     <label for="mainInput" class="inputWrapper"> </label>
     <b-alert :show="getDocumentCount() > 120" dismissible variant="warning">
@@ -38,8 +42,15 @@
         id="mainInput"
         size="lg"
         placeholder="Vloz zip, v ktorom su vsetky riesenia"
-        @input="fileAdded"
       />
+      <b-form-file
+        v-model="backupInput"
+        accept=".json"
+        id="backupInput"
+        size="md"
+        placeholder="Backup súbor (Backup_xxxxxxx.json)"
+      />
+      <b-button @click="start">Načítaj</b-button>
     </div>
 
     <hr />
@@ -83,9 +94,10 @@
 <script lang="ts">
 import { Database } from "@/Db";
 import Vue from "vue";
-import { loadFromDatabase } from "../DocumentManager";
+import { loadFromDatabase, readZip } from "../DocumentManager";
 import { Document, DocumentParser } from "@/@types";
 import { PMatParser } from "@/DocumentParser";
+import Component from "vue-class-component";
 
 interface Category {
   name: string;
@@ -93,96 +105,108 @@ interface Category {
   enabled: boolean;
 }
 
-export default Vue.extend({
-  name: "Home",
-  components: {},
-  data() {
-    return {
-      fileName: "Vloz Zip s PDFkami na opravovanie",
-      hasFile: false,
-      fileInput: null,
-      hasDocuments: null,
-      problem: "",
-      categories: Array<Category>(),
-    };
-  },
+@Component
+export default class Home extends Vue {
+  fileName: string = "Vloz Zip s PDFkami na opravovanie";
+  hasFile = false;
+  fileInput: File | undefined = undefined;
+  backupInput: File | undefined = undefined;
+  hasDocuments: boolean = false;
+  problem: string = "";
+  categories: Array<Category> = [];
+
   mounted() {
-    this.eventHub.$on(
-      "contentParsed",
-      (docs: Document[], parser: DocumentParser) => {
-        this.$data.hasDocuments = docs.length > 0;
-        this.problem = localStorage.getItem("uloha") || "";
-        this.getCategories(docs, parser);
-        console.log(docs);
-        // location.reload();
-      }
-    );
+    this.requestStorage();
     Database.getAllDocuments().then((docs) => {
-      this.$data.hasDocuments = docs.length > 0;
-      this.problem = localStorage.getItem("uloha") || "";
-      const parser = new PMatParser(this.problem);
-      this.getCategories(docs, parser);
+      this.hasDocuments = docs.length > 0;
+      if (this.hasDocuments) {
+        this.problem = localStorage.getItem("uloha") || "";
+        const parser = new PMatParser(this.problem);
+        this.getCategories(docs, parser);
+      }
     });
-  },
-  methods: {
-    getCategories(docs: Document[], parser: DocumentParser) {
-      this.categories = parser.kategorie.map((e) => {
-        return {
-          name: e,
-          enabled: false,
-          count: 0,
-        };
-      });
-      for (let i = 0; i < parser.kategorie.length; i++) {
-        const category = this.categories[i];
-        category.count = docs.filter(
-          (e) => e.kategoria == category.name
-        ).length;
-        this.categories[i] = category;
+  }
+  getCategories(docs: Document[], parser: DocumentParser) {
+    this.categories = parser.kategorie.map((e) => {
+      return {
+        name: e,
+        enabled: false,
+        count: 0,
+      };
+    });
+    for (let i = 0; i < parser.kategorie.length; i++) {
+      const category = this.categories[i];
+      category.count = docs.filter(
+        (e) => e.kategoria == category.name
+      ).length;
+      this.categories[i] = category;
+    }
+    console.log(this.categories);
+  }
+  start() {
+    const file = this.fileInput;
+    if (file != null) {
+      this.fileName = file["name"];
+      this.hasFile = true;
+      readZip(file, this.backupInput).then((val) => {
+        this.hasDocuments = val.docs.length > 0;
+        this.problem = localStorage.getItem("uloha") || "";
+        this.getCategories(val.docs, val.parser);
+      })
+    }
+  }
+  openEditor() {
+    const categoriesEnabled = this.categories
+      .filter((e) => e.enabled)
+      .map((e) => e.name);
+    localStorage.setItem("categories", JSON.stringify(categoriesEnabled));
+    return new Promise<void>((resolve, reject) => {
+      loadFromDatabase()
+        .then((docs) => {
+          setTimeout(() => {
+            this.$router
+              .push({
+                name: "Editor",
+                params: {
+                  doc: docs[0].id.toString(),
+                },
+              })
+              .then(() => resolve);
+          }, 500);
+        })
+        .catch((err) => reject(err));
+    });
+  }
+  getDocumentCount() {
+    let count = 0;
+    for (const cat of this.categories) {
+      if (cat.enabled) {
+        count += cat.count;
       }
-      console.log(this.categories);
-    },
-    fileAdded: function () {
-      var file = this.fileInput;
-      if (file != null) {
-        this.eventHub.$emit("editor:parseDocuments", file);
-        this.fileName = file["name"];
-        this.hasFile = true;
-      }
-    },
-    openEditor: function () {
-      const categoriesEnabled = this.categories
-        .filter((e) => e.enabled)
-        .map((e) => e.name);
-      localStorage.setItem("categories", JSON.stringify(categoriesEnabled));
-      return new Promise<void>((resolve, reject) => {
-        loadFromDatabase()
-          .then((docs) => {
-            setTimeout(() => {
-              this.$router
-                .push({
-                  name: "Editor",
-                  params: {
-                    doc: docs[0].id.toString(),
-                  },
-                })
-                .then(() => resolve);
-            }, 500);
-          })
-          .catch((err) => reject(err));
-      });
-    },
-    getDocumentCount() {
-      let count = 0;
-      for (const cat of this.categories) {
-        if (cat.enabled) {
-          count += cat.count;
+    }
+    return count;
+  }
+  reload() {
+    (window.location as any).reload(true);
+  }
+  requestStorage() {
+    if (navigator.storage) {
+      navigator.storage.persisted().then((isPersisted) => {
+        if (!isPersisted) {
+          this.$bvModal.msgBoxOk(`Nepodarilo sa mi dostať povolenie na persistentné ukladanie riešení na disku. 
+            V prípade málo miesta môžu byť rozopravované riešenia zmazané bez upozornenia. 
+            Ak si v chrome, uisti sa, že som nainštalovaný, mám povolené notifikácie a som pridaný do bookmarkov. 
+            Ak si vo Firefoxe, tak si mi nepovolil persistent storage.`, {
+            okVariant: 'warning'
+          });
         }
-      }
-      return count;
-    },
-  },
-});
+      });
+    }
+    else {
+      this.$bvModal.msgBoxOk(`Nemám Storage, nebudem vedieť nič ukladať`, {});
+    }
+  }
+}
 </script>
 
 scrip

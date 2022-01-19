@@ -31,18 +31,19 @@
           class="page-wrapper"
           ref="pages"
           v-b-visible="(visible) => changeActivePage(i, visible)"
+          :style="getPageStyle(i - 1)"
         >
           <pdf
             :key="i.toString() + id.toString()"
             :src="src"
             :page="i"
-            :scale.sync="scale"
             :rotate="(rotation[i - 1] || 0) * 90"
             :text="false"
             class="card page-data"
+            :style="{ transform: `translate(-50%, -50%) scale(${scale})` }"
             ref="pagePDFs"
             @error="err"
-            @loading="documentLoaded"
+            @loading="(loading) => documentLoaded(!loading, i - 1)"
           ></pdf>
           <div class="pageAnnot">
             <canvas ref="canvases"></canvas>
@@ -75,18 +76,14 @@ const ViewportProps = Vue.extend({
   },
 })
 export default class Viewport extends ViewportProps {
-  loaded: boolean = false;
-  // set loaded(val: boolean) {
-  //   console.trace(`${getViewedDocument()?.id}: setting loaded to ${val}`);
-  //   this._loaded = val;
-  // }
-  // get loaded(): boolean { return this._loaded; }
+  loaded: boolean[] = [];
   src: any;
   pageCount: number = 0;
   rotation: number[] = [];
   activePage: number = 0;
   scale: number = 1;
   id: number = -1;
+  pageDimensions: { width: number, height: number }[] = []
 
   $refs!: {
     pages: HTMLElement[];
@@ -95,21 +92,27 @@ export default class Viewport extends ViewportProps {
     ctxMenu: typeof contextMenu;
   }
 
+  get allPagesLoaded(): boolean {
+    return this.loaded.every(e => e) && this.loaded.length > 0;
+  }
+
   init() {
     pdfDocument = getViewedDocument();
     this.src = pdfDocument?.viewref;
     this.pageCount = pdfDocument?.pageCount || 0;
+    this.loaded = Array<boolean>(this.pageCount).fill(false);
     this.id = pdfDocument?.id || 0;
-    this.rotation = Array<number>(pdfDocument?.pageCount || 0).map(() => 0);
+    this.rotation = Array<number>(pdfDocument?.pageCount || 0).fill(0);
   }
   activated() {
     const doc = getViewedDocument();
-    if (doc && doc.pageCanvases.length === 0) {
+    if (doc && doc.pageCanvases.length === 0 && this.allPagesLoaded) {
       this.createCanvases(doc);
     }
   }
   deactivated() {
     const doc = getViewedDocument();
+    this.pageDimensions = [];
     doc?.pageCanvases.forEach((e) => e.dispose());
     if (doc)
       doc.pageCanvases = [];
@@ -120,11 +123,11 @@ export default class Viewport extends ViewportProps {
     this.eventHub.$on("viewport:rotate", this.rotate);
     window.addEventListener("resize", this.resize);
     PDFdocument.initDocument = (task: any) => {
-      if (this.loaded) return;
-      this.loaded = false;
+      if (this.allPagesLoaded) return;
       if (task) this.src = task;
       this.src.then((pdf: any) => {
         this.pageCount = pdf.numPages;
+        this.loaded = Array<boolean>(this.pageCount).fill(false);
         this.rotation = Array<number>(pdf.numPages).fill(0);
       });
     };
@@ -139,32 +142,35 @@ export default class Viewport extends ViewportProps {
   }
   createCanvases(document: PDFdocument) {
     if (this.pageCount === 0) return;
+    if (document.pageCanvases.length > 0) return;
+
     const pageCanvases: Canvas[] = [];
+    this.pageDimensions = [];
+    const PDFpages = this.$refs.pagePDFs;
+    // TODO: loading scaled canvases not working properly
+    for (var i = 0; i < this.pageCount; i++) {
+      const page = this.$refs.canvases[i];
+      const canvas = new Canvas(page, document, i);
+      const pagePDF = PDFpages[i];
+      const dimensions = {
+        width: pagePDF.$el.clientWidth,
+        height: pagePDF.$el.clientHeight,
+      };
+      if (!dimensions) continue;
+      this.pageDimensions.push(dimensions);
+      canvas.setHeight(dimensions.height);
+      canvas.setWidth(dimensions.width);
+      canvas.setScale(dimensions);
+      canvas.pageIndex = i;
+      pageCanvases.push(canvas);
+    }
 
-    this.$nextTick().then(() => {
-      if (document.pageCanvases.length > 0) return;
-      const PDFpages = this.$refs.pagePDFs;
-
-      for (var i = 0; i < this.pageCount; i++) {
-        const page = this.$refs.canvases[i];
-        const canvas = new Canvas(page, document, i);
-        const pagePDF = PDFpages[i];
-        const dimensions = {
-          width: pagePDF.$el.clientWidth,
-          height: pagePDF.$el.clientHeight,
-        };
-        canvas.setHeight(dimensions?.height);
-        canvas.setWidth(dimensions?.width);
-        canvas.setScale(dimensions);
-        canvas.pageIndex = i;
-        pageCanvases.push(canvas);
-      }
-
-      document.pageCanvases = pageCanvases;
-      document.initCanvases();
-      this.loaded = true;
-      this.eventHub.$emit("tool:initCurrent");
-    });
+    document.pageCanvases = pageCanvases;
+    document.initCanvases();
+    this.eventHub.$emit("tool:initCurrent");
+    if (this.scale !== 1) {
+      this.resize();
+    }
   }
   deleteSelected() {
     const doc = getViewedDocument();
@@ -195,8 +201,11 @@ export default class Viewport extends ViewportProps {
       data.unshift(data.splice(index, 1)[0]);
     }
   }
-  documentLoaded(loading: boolean) {
-    if (!loading) {
+  documentLoaded(loading: boolean, idx: number) {
+    console.log({ loading, idx });
+    this.loaded[idx] = loading;
+    console.log(this.loaded.every(e => e) && this.loaded.length > 0);
+    if (this.loaded.every(e => e) && this.loaded.length > 0) {
       const document = getViewedDocument();
       if (document) this.createCanvases(document);
     }
@@ -218,31 +227,34 @@ export default class Viewport extends ViewportProps {
   }
   setScale(mult: number) {
     this.scale += mult;
-    this.resize();
+    this.$nextTick().then(() => {
+      this.resize();
+    })
   }
   resize() {
-    setTimeout(() => {
-      try {
-        const pages = this.$refs.pages;
+    try {
+      const pages = this.$refs.pages;
 
-        for (let i = 0; i < pages.length; i++) {
-          const page = pages[i];
-          const dimensions = {
-            width: parseInt(page.style.width),
-            height: parseInt(page.style.height),
-          };
-          (pages[i] as HTMLElement).style.width = dimensions.width + "px";
-          if (page) {
-            var canvas: Canvas = getViewedDocument()?.pageCanvases[i] as Canvas;
-            canvas.setWidth(dimensions.width);
-            canvas.setHeight(dimensions.height);
-            canvas.setScale(dimensions);
-          }
+      for (let i = 0; i < pages.length; i++) {
+        const page = this.$refs.pages[i];
+        const dimensions = {
+          width: page.clientWidth,
+          height: page.clientHeight
+        };
+        if (dimensions.width === 0 || dimensions.height === 0) return;
+        console.log(dimensions);
+        (pages[i] as HTMLElement).style.width = dimensions.width + "px";
+        if (page) {
+          var canvas: Canvas = getViewedDocument()?.pageCanvases[i] as Canvas;
+          canvas.setWidth(dimensions.width);
+          canvas.setHeight(dimensions.height);
+          canvas.setScale(dimensions);
         }
-      } catch (e) {
-        return;
       }
-    }, 20);
+    } catch (e) {
+      console.error(e);
+      return;
+    }
   }
   async refresh() {
     const viewedDoc = getViewedDocument();
@@ -264,32 +276,45 @@ export default class Viewport extends ViewportProps {
     // });
     // this.$forceUpdate();
   }
+
+  getPageStyle(idx: number) {
+    if (this.pageDimensions.length === this.pageCount) {
+      return {
+        width: (this.pageDimensions[idx].width * this.scale).toString() + 'px',
+        height: (this.pageDimensions[idx].height * this.scale).toString() + 'px'
+      }
+    }
+    return {}
+  }
 }
 </script>
 <style scoped>
 .pageAnnot {
+  position: absolute;
   width: 100%;
   height: 100%;
   top: 0;
   left: 0;
-  grid-row: 1;
-  grid-column: 1;
 }
 .page-wrapper {
-  display: grid;
+  position: relative;
   margin: 10px;
   transform-origin: center center;
   box-shadow: 0 0 20px rgb(0 0 0 / 50%);
+  overflow: hidden;
 }
 .page-data {
-  grid-row: 1;
-  grid-column: 1;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1.1);
 }
 .viewport {
   position: absolute;
-  overflow-y: scroll;
+  overflow-y: auto;
   width: 100%;
   max-height: 100%;
+  height: 100%;
   background: silver;
 }
 .pdf {

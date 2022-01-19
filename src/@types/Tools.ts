@@ -21,3 +21,9 @@ export interface ToolOptions {
     hasStrokeWidth: boolean,
     hasFill: boolean,
 }
+
+export interface ScoringCriteria {
+    id: string;
+    points: number;
+    from: string;
+}

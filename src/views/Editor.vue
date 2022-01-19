@@ -27,14 +27,14 @@
       <div style="width: 100%">
         <toolbar :pdf="pdf" @refresh="refresh"></toolbar>
         <div class="viewportWrapper" v-if="pdf != null">
-          <keep-alive>
+          <keep-alive :max="10">
             <Viewport :pdf="pdf" :key="pdf.id" ref="viewport"></Viewport>
           </keep-alive>
         </div>
       </div>
     </div>
     <scoring />
-    <tagy />
+    <tags />
     <div v-if="shortcutsUpdate">
       <div
         v-shortkey.once="getShortcut('selectPrev')"
@@ -72,7 +72,7 @@ import { Documents, loadFromDatabase } from "../DocumentManager";
 import type { PDFdocument } from "@/components/PDFdocument";
 import Scoring from "@/components/Scoring.vue";
 import { loadFonts } from "@/components/Fonts";
-import Tagy from "@/components/Tags/Tagy.vue";
+import Tags from "@/components/Tags/Tagy.vue";
 import Component from "vue-class-component";
 import Sidebar from "@/components/Sidebar.vue";
 
@@ -82,7 +82,7 @@ import Sidebar from "@/components/Sidebar.vue";
     Topbar,
     Toolbar,
     Scoring,
-    Tagy,
+    Tags,
     Sidebar,
   },
 })

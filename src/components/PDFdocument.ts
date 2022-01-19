@@ -55,11 +55,6 @@ export class PDFdocument {
         this.font = await this.modifyRef.embedFont(StandardFonts.Helvetica);
         TextAnnotation.font = this.font;
         this.pages = this.modifyRef.getPages();
-        this.embeddedResources = {
-            'Courier New': await this.modifyRef.embedFont(StandardFonts.Courier),
-            'Times New Roman': await this.modifyRef.embedFont(StandardFonts.TimesRoman),
-            'Helvetica': await this.modifyRef.embedFont(StandardFonts.Helvetica),
-        }
     }
 
     private LoadPdfToViewport(pdfbytes: ArrayBuffer) {

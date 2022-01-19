@@ -4,14 +4,15 @@ import { Database } from "./Db";
 import FileSaver from "file-saver";
 import { PMatParser } from "./DocumentParser";
 import eventHub from "./Mixins/EventHub";
-import type { IScoring, Document, DocumentParser } from "./@types";
-import { store } from "./Store";
+import Vue from "vue";
+import type { IScoring, Document, DocumentParser, Tag, ScoringCriteria } from "./@types";
+import store from "./Store";
 
 
 eventHub.$on('editor:setDocument', setPdf);
-eventHub.$on('editor:parseDocuments', readZip);
 eventHub.$on('editor:downloadZip', createZip);
 eventHub.$on('editor:download', download);
+eventHub.$on('editor:backup', createBackup);
 
 async function download(id: number) {
     const curr = await Database.getDocument(id);
@@ -52,47 +53,65 @@ async function setPdf(id: number) {
 export function getViewedDocument() { return pdf }
 
 
-export async function readZip(file: File) {
-    let metaDatas: Document[] = []
+interface BackupFile {
+    changes: Record<string, DocumentBackup>;
+    tags: Tag[];
+    scoringCriteria: ScoringCriteria[];
+}
+
+export async function readZip(file: File, backup: File | undefined = undefined): Promise<any> {
+    // TODO: add scoring & tags to backup file
+    let metaDatas: Document[] = [];
+    const backupData: BackupFile = JSON.parse(await backup?.text() || "{}");
+    const changes = backupData.changes;
+    localStorage.setItem('tags', JSON.stringify(backupData.tags));
+    localStorage.setItem('bodovanie', JSON.stringify(backupData.scoringCriteria));
+    store.commit('loadData');
     const buffer = await file.arrayBuffer();
     const zipReader = new JSZip();
     const zipFile = await zipReader.loadAsync(buffer);
     let index = 0;
     let parser: DocumentParser | undefined = undefined;
-    const promises: Promise<Document>[] = [];
-    console.log("hello");
-    zipFile.forEach(async (_path, entry) => {
+    const promises: Promise<any>[] = [];
+    zipFile.forEach((_path, entry) => {
         if (parser == undefined) {
             localStorage.setItem('uloha', entry.name.split('/')[0])
             parser = new PMatParser(entry.name.split('/')[0]);
             activeParser = parser;
         }
         if (!entry.name.endsWith('.pdf')) return;
-        const data = await entry.async('arraybuffer');
+        const data = entry.async('arraybuffer');
         index++;
-        promises.push(AddDocument(entry.name, data, index, metaDatas, parser));
+        promises.push(AddDocument(entry.name, data, index, parser, changes).then((doc) => {
+            metaDatas.push(doc);
+        }));
     });
-    metaDatas = await Promise.all(promises);
+    await Promise.all(promises);
     Documents = metaDatas;
-    eventHub.$emit('contentParsed', metaDatas, parser);
+    return {
+        parser: activeParser,
+        docs: metaDatas
+    }
 }
 
-export async function AddDocument(fileName: string, data: ArrayBuffer, index: number = Documents.length, metaDatas: Document[] = Documents, parser: DocumentParser = activeParser) {
+export async function AddDocument(fileName: string, data: ArrayBuffer | Promise<ArrayBuffer>, index: number = Documents.length, parser: DocumentParser = activeParser, changes: Record<string, DocumentBackup> | undefined = undefined) {
     const metaData = parser.parse(fileName);
-    metaDatas.push({
+    const change = changes?.[metaData.id];
+    const pdf = await data;
+    const doc: Document = {
         ...metaData,
-        pdfData: data,
-        initialPdf: data,
+        pdfData: pdf,
+        initialPdf: pdf,
         index: index,
-        changes: [],
-        tags: [],
-        opened: false,
-        timeOpened: 0
-    });
-    await Database.addDocument(metaDatas[metaDatas.length - 1]).catch(() => {
+        changes: change?.changes || [],
+        tags: change?.tags || [],
+        opened: change?.opened || false,
+        timeOpened: change?.timeOpened || 0
+    };
+    await Database.addDocument(doc).catch(() => {
         throw new Error('Document Already Added');
     });
-    return metaDatas[metaDatas.length - 1];
+    return doc;
 }
 
 export async function loadFromDatabase() {
@@ -116,6 +135,28 @@ export async function loadFromDatabase() {
     }, 50);
     store.commit('loadDocuments', metaDatas);
     return metaDatas;
+}
+
+
+interface DocumentBackup {
+    changes: any[];
+    scoring?: IScoring;
+    tags: Tag[];
+    opened: boolean;
+    timeOpened: number;
+}
+
+async function createBackup(tags: Tag[], scoring: ScoringCriteria[]) {
+    let data: BackupFile = {
+        tags: store.state.tags,
+        changes: {},
+        scoringCriteria: store.state.scoringCriteria,
+    };
+    Documents.forEach(e => {
+        data.changes[e.id] = e as DocumentBackup;
+    });
+    const file = new File([JSON.stringify(data)], `Backup_${Date.now()}.json`);
+    FileSaver.saveAs(file);
 }
 
 async function createZip() {

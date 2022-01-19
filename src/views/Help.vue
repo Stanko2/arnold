@@ -78,8 +78,14 @@
             Ak chceš, aby som fungoval aj offline, tak si ma vieš nainštalovať.
             Tento krok je nepovinný, nemusíš ma mať nainštalovaného, aby som bol
             plne funkčný. Ak si ma nainštaluješ, tak ma vieš nájsť medzi svojimi
-            aplikáciami ako aj na svojej pracovnej ploche
+            aplikáciami ako aj na svojej pracovnej ploche.
           </p>
+          <b-alert show variant="danger">
+            Ak si na chrome, tak je veľmi odporúčané si Arnolda nainštalovať a 
+            pridať do bookmarkov, inak v prípade málo miesta na disku vie Chrome 
+            automaticky premazať riešenia bez upozornenia. V prípade Firefoxu treba 
+            povoliť persistent storage.
+          </b-alert>
           <img src="@/assets/Help/Install.png" class="img" />
           <h4 id="MainView" style="">Základné zobrazenie</h4>
           <img src="@/assets/Help/Main-edited.png" class="mw-100 img" />

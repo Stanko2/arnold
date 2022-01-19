@@ -153,6 +153,22 @@
             ></b-form-checkbox>
           </b-col>
         </b-row>
+        <b-row>
+          <b-col>Zálohovať riešenia</b-col>
+          <b-col>
+            <b-button
+              @click="
+                eventHub.$emit(
+                  'editor:backup',
+                  $store.state.tags,
+                  $store.state.scoringCriteria
+                )
+              "
+            >
+              Backup
+            </b-button>
+          </b-col>
+        </b-row>
       </div>
       <div v-else-if="selectedCategory.name == 'shortcut'">
         <b-alert show variant="info" dismissible
