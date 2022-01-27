@@ -65,7 +65,7 @@
 import { Vue } from "vue-property-decorator";
 import { Document, Settings, Shortcut } from "@/@types";
 import Viewport from "../components/Viewport.vue";
-import Topbar from "../components/Topbar.vue";
+import Topbar from "../components/Topbar/Topbar.vue";
 import Toolbar from "../components/Tools/Toolbar.vue";
 import SearchBar from "../components/SearchBar.vue";
 import { Documents, loadFromDatabase } from "../DocumentManager";

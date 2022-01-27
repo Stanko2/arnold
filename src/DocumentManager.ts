@@ -62,7 +62,7 @@ export async function readZip(file: File): Promise<any> {
     const buffer = await file.arrayBuffer();
     const zipReader = new JSZip();
     const zipFile = await zipReader.loadAsync(buffer);
-    const backupData: BackupFile | undefined = JSON.parse((await zipFile.file('Backup.json')?.async('text')) || 'undefined')
+    const backupData: BackupFile | null = JSON.parse((await zipFile.file('Backup.json')?.async('text')) || 'null')
     let changes: Record<string, DocumentBackup> = {};
     if (backupData) {
         changes = backupData.changes;
@@ -75,13 +75,13 @@ export async function readZip(file: File): Promise<any> {
     let parser: DocumentParser | undefined = undefined;
     const promises: Promise<any>[] = [];
     zipFile.forEach((_path, entry) => {
+        if (!entry.name.endsWith('.pdf')) return;
+        if (backupData && entry.name.endsWith('_graded.pdf')) return;
         if (parser == undefined) {
             localStorage.setItem('uloha', entry.name.split('/')[0])
             parser = new PMatParser(entry.name.split('/')[0]);
             activeParser = parser;
         }
-        if (!entry.name.endsWith('.pdf')) return;
-        if (backupData && entry.name.endsWith('_graded.pdf')) return;
         const data = entry.async('arraybuffer');
         index++;
         promises.push(AddDocument(entry.name, data, index, parser, changes).then((doc) => {
@@ -184,7 +184,7 @@ async function createBackup(): Promise<string> {
     return JSON.stringify(data);
 }
 
-async function createZip(forArnold = true) {
+async function createZip(forArnold: boolean) {
     const documents = await Database.getAllDocuments();
     const zip = new JSZip();
     if (forArnold) {
