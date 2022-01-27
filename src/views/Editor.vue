@@ -197,6 +197,7 @@ export default class Editor extends Vue {
 }
 .right-bar {
   width: 25vw;
+  min-width: 300px;
   overflow: hidden;
 }
 .right-bar ul {
@@ -208,7 +209,7 @@ export default class Editor extends Vue {
   width: 100%;
 }
 .viewportWrapper {
-  height: 93.5%;
+  height: calc(100% - 60px);
 }
 .document-list {
   height: calc(100% - 50px);
@@ -264,7 +265,7 @@ export default class Editor extends Vue {
 }
 
 .toggle-button.visible {
-  left: 20vw;
+  left: max(20vw, 300px);
 }
 .toggle-button {
   position: fixed;

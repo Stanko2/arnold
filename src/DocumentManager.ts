@@ -4,7 +4,6 @@ import { Database } from "./Db";
 import FileSaver from "file-saver";
 import { PMatParser } from "./DocumentParser";
 import eventHub from "./Mixins/EventHub";
-import Vue from "vue";
 import type { IScoring, Document, DocumentParser, Tag, ScoringCriteria } from "./@types";
 import store from "./Store";
 
@@ -59,17 +58,19 @@ interface BackupFile {
     scoringCriteria: ScoringCriteria[];
 }
 
-export async function readZip(file: File, backup: File | undefined = undefined): Promise<any> {
-    // TODO: add scoring & tags to backup file
-    let metaDatas: Document[] = [];
-    const backupData: BackupFile = JSON.parse(await backup?.text() || "{}");
-    const changes = backupData.changes;
-    localStorage.setItem('tags', JSON.stringify(backupData.tags));
-    localStorage.setItem('bodovanie', JSON.stringify(backupData.scoringCriteria));
-    store.commit('loadData');
+export async function readZip(file: File): Promise<any> {
     const buffer = await file.arrayBuffer();
     const zipReader = new JSZip();
     const zipFile = await zipReader.loadAsync(buffer);
+    const backupData: BackupFile | undefined = JSON.parse((await zipFile.file('Backup.json')?.async('text')) || 'undefined')
+    let changes: Record<string, DocumentBackup> = {};
+    if (backupData) {
+        changes = backupData.changes;
+        localStorage.setItem('tags', JSON.stringify(backupData.tags));
+        localStorage.setItem('bodovanie', JSON.stringify(backupData.scoringCriteria));
+    }
+    store.commit('loadData');
+
     let index = 0;
     let parser: DocumentParser | undefined = undefined;
     const promises: Promise<any>[] = [];
@@ -80,17 +81,42 @@ export async function readZip(file: File, backup: File | undefined = undefined):
             activeParser = parser;
         }
         if (!entry.name.endsWith('.pdf')) return;
+        if (backupData && entry.name.endsWith('_graded.pdf')) return;
         const data = entry.async('arraybuffer');
         index++;
         promises.push(AddDocument(entry.name, data, index, parser, changes).then((doc) => {
-            metaDatas.push(doc);
+            Documents.push(doc);
         }));
     });
     await Promise.all(promises);
-    Documents = metaDatas;
+    if (backupData) {
+        promises.splice(0, promises.length);
+        zipFile.forEach((_path, entry) => {
+            if (!entry.name.endsWith('_graded.pdf')) return;
+            const id = parseInt(entry.name.split('/')[1].split('_')[0]);
+            const operation = new Promise((resolve, reject) => {
+                entry.async('arraybuffer').then(pdf => {
+                    updateGradedPdf(id, pdf).then(resolve).catch(reject);
+                }).catch(reject);
+            })
+            promises.push(operation);
+        });
+        await Promise.all(promises);
+    }
+    Documents.sort((a, b) => a.riesitel.localeCompare(b.riesitel));
+    Documents.forEach((d, i) => d.index = i);
     return {
         parser: activeParser,
-        docs: metaDatas
+        docs: Documents
+    }
+}
+
+async function updateGradedPdf(id: number, PDFdata: ArrayBuffer) {
+    const doc = await Database.getDocument(id);
+    console.log(id);
+    if (doc) {
+        doc.pdfData = PDFdata;
+        await Database.updateDocument(id, doc, true);
     }
 }
 
@@ -146,7 +172,7 @@ interface DocumentBackup {
     timeOpened: number;
 }
 
-async function createBackup(tags: Tag[], scoring: ScoringCriteria[]) {
+async function createBackup(): Promise<string> {
     let data: BackupFile = {
         tags: store.state.tags,
         changes: {},
@@ -155,28 +181,41 @@ async function createBackup(tags: Tag[], scoring: ScoringCriteria[]) {
     Documents.forEach(e => {
         data.changes[e.id] = e as DocumentBackup;
     });
-    const file = new File([JSON.stringify(data)], `Backup_${Date.now()}.json`);
-    FileSaver.saveAs(file);
+    return JSON.stringify(data);
 }
 
-async function createZip() {
+async function createZip(forArnold = true) {
     const documents = await Database.getAllDocuments();
     const zip = new JSZip();
-    const pts: Record<string, IScoring> = {};
-    for (const doc of documents) {
-        if (doc.scoring) {
-            zip.file(doc.originalName, doc.pdfData);
-            doc.scoring.comments = doc.changes.filter(c => c.type === 'Text').map(c => c.data.text);
-            pts[doc.id] = doc.scoring;
-            delete pts[doc.id]?.annotName;
+    if (forArnold) {
+        const backup = createBackup();
+        zip.file('Backup.json', backup);
+        const task = localStorage.getItem('uloha');
+        for (const doc of documents) {
+            const name = doc.originalName.substring(0, doc.originalName.lastIndexOf('.pdf'));
+            zip.file(`${task}/${name}.pdf`, doc.initialPdf);
+            if (doc.changes.length > 0) {
+                zip.file(`${task}/${doc.id}_graded.pdf`, doc.pdfData);
+            }
         }
     }
+    else {
+        const pts: Record<string, IScoring> = {};
+        for (const doc of documents) {
+            if (doc.scoring) {
+                zip.file(doc.originalName, doc.pdfData);
+                doc.scoring.comments = doc.changes.filter(c => c.type === 'Text').map(c => c.data.text);
+                pts[doc.id] = doc.scoring;
+                delete pts[doc.id]?.annotName;
+            }
+        }
+        const scoring = {
+            criteria: JSON.parse(localStorage.getItem('bodovanie') || '{}'),
+            scores: pts,
+        };
+        zip.file('/points.json', JSON.stringify(scoring, null, '\t'));
+    }
 
-    const scoring = {
-        criteria: JSON.parse(localStorage.getItem('bodovanie') || '{}'),
-        scores: pts,
-    };
-    zip.file('/points.json', JSON.stringify(scoring, null, '\t'));
     const data = await zip.generateAsync({ type: "blob" }, (progress) => {
         eventHub.$emit('download:progress', progress.percent, progress.currentFile);
     });

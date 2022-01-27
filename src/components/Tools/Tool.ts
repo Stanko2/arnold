@@ -112,7 +112,6 @@ export const tools: Tool[] = [
         tooltip: 'Pridat peciatku',
         shortcut: 'e',
         defaultOptions: { name: '' },
-        // TODO: add photo modal, photo embedding to pdf & photo support for canvas
         click: (pdf: PDFdocument, page: number, position: { x: number, y: number }) => {
             const options = Object.assign({}, selectedTool.defaultOptions);
             console.log(selectedTool.defaultOptions);

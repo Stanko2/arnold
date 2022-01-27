@@ -43,13 +43,6 @@
         size="lg"
         placeholder="Vloz zip, v ktorom su vsetky riesenia"
       />
-      <b-form-file
-        v-model="backupInput"
-        accept=".json"
-        id="backupInput"
-        size="md"
-        placeholder="Backup súbor (Backup_xxxxxxx.json)"
-      />
       <b-button @click="start">Načítaj</b-button>
     </div>
 
@@ -148,7 +141,7 @@ export default class Home extends Vue {
     if (file != null) {
       this.fileName = file["name"];
       this.hasFile = true;
-      readZip(file, this.backupInput).then((val) => {
+      readZip(file).then((val) => {
         this.hasDocuments = val.docs.length > 0;
         this.problem = localStorage.getItem("uloha") || "";
         this.getCategories(val.docs, val.parser);

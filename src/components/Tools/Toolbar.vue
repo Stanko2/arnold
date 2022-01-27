@@ -1,5 +1,5 @@
 <template>
-  <div class="toolbar d-flex flex-row justify-content-start align-items-center">
+  <div class="toolbar d-flex justify-content-start align-items-center">
     <div :key="tool.name" v-for="tool in tools">
       <button
         :id="tool.name"
@@ -18,80 +18,84 @@
         {{ tool.tooltip }} ({{ tool.shortcut }})
       </b-tooltip>
     </div>
-    <div class="btn" v-if="selectedOptions.hasText">
-      <b-dropdown :text="selectedTool.defaultOptions.fontFamily">
-        <b-dropdown-item
-          v-for="font in fonts"
-          :key="font.viewport"
-          :style="{ 'font-family': font.viewport }"
-          @click.native="selectedTool.defaultOptions.fontFamily = font.viewport"
-          >{{ font.viewport }}</b-dropdown-item
+    <div class="tool-controls">
+      <div class="btn" v-if="selectedOptions.hasText">
+        <b-dropdown :text="selectedTool.defaultOptions.fontFamily">
+          <b-dropdown-item
+            v-for="font in fonts"
+            :key="font.viewport"
+            :style="{ 'font-family': font.viewport }"
+            @click.native="
+              selectedTool.defaultOptions.fontFamily = font.viewport
+            "
+            >{{ font.viewport }}</b-dropdown-item
+          >
+        </b-dropdown>
+      </div>
+      <div class="form-inline" v-if="selectedOptions.hasText">
+        <p class="d-flex align-items-center">Veľkosť Písma</p>
+        <input
+          class="form-control"
+          min="0"
+          style="width: 100px"
+          type="number"
+          v-model.number="selectedTool.defaultOptions.fontSize"
+        />
+      </div>
+      <div class="form-inline" v-if="selectedOptions.hasStrokeWidth">
+        <p class="d-flex">Hrúbka čiary</p>
+        <input
+          class=""
+          min="1"
+          style="width: 100px"
+          type="range"
+          max="20"
+          v-model.number="selectedTool.defaultOptions.strokeWidth"
+        />
+        {{ selectedTool.defaultOptions.strokeWidth }}
+      </div>
+      <div v-if="selectedOptions.hasFill" class="d-flex align-items-center">
+        <p style="margin: 5px">Výplň</p>
+        <color-picker
+          name="fill"
+          v-model="selectedTool.defaultOptions.fill"
+          :value="selectedTool.defaultOptions.fill"
+        />
+      </div>
+      <div v-if="selectedOptions.hasStroke" class="d-flex align-items-center">
+        <p style="margin: 5px">Farba čiary</p>
+        <color-picker
+          name="stroke"
+          v-model="selectedTool.defaultOptions.stroke"
+          :value="selectedTool.defaultOptions.stroke"
+        />
+      </div>
+      <div v-if="selectedTool.name == 'Photo'">
+        <b-button variant="primary" @click="openImageModal"
+          >Otvoriť obrázkové menu</b-button
         >
-      </b-dropdown>
-    </div>
-    <div class="form-inline" v-if="selectedOptions.hasText">
-      <p class="d-flex align-items-center">Veľkosť Písma</p>
-      <input
-        class="form-control"
-        min="0"
-        style="width: 100px"
-        type="number"
-        v-model.number="selectedTool.defaultOptions.fontSize"
-      />
-    </div>
-    <div class="form-inline" v-if="selectedOptions.hasStrokeWidth">
-      <p class="d-flex">Hrúbka čiary</p>
-      <input
-        class=""
-        min="1"
-        style="width: 100px"
-        type="range"
-        max="20"
-        v-model.number="selectedTool.defaultOptions.strokeWidth"
-      />
-      {{ selectedTool.defaultOptions.strokeWidth }}
-    </div>
-    <div v-if="selectedOptions.hasFill" class="d-flex align-items-center">
-      <p style="margin: 5px">Výplň</p>
-      <color-picker
-        name="fill"
-        v-model="selectedTool.defaultOptions.fill"
-        :value="selectedTool.defaultOptions.fill"
-      />
-    </div>
-    <div v-if="selectedOptions.hasStroke" class="d-flex align-items-center">
-      <p style="margin: 5px">Farba čiary</p>
-      <color-picker
-        name="stroke"
-        v-model="selectedTool.defaultOptions.stroke"
-        :value="selectedTool.defaultOptions.stroke"
-      />
-    </div>
-    <div v-if="selectedTool.name == 'Photo'">
-      <b-button variant="primary" @click="openImageModal"
-        >Otvoriť obrázkové menu</b-button
-      >
-      <b-dropdown :text="getImageDropdownText()">
-        <b-dropdown-item
-          v-for="image in images"
-          :key="image.id"
-          @click.native="selectedTool.defaultOptions.image = image.id"
-          >{{ image.name }}</b-dropdown-item
+        <b-dropdown :text="getImageDropdownText()">
+          <b-dropdown-item
+            v-for="image in images"
+            :key="image.id"
+            @click.native="selectedTool.defaultOptions.image = image.id"
+            >{{ image.name }}</b-dropdown-item
+          >
+        </b-dropdown>
+      </div>
+      <div v-if="selectedTool.name == 'Sign'">
+        <b-button variant="primary" @click="openSignModal"
+          >Otvoriť menu s podpismi</b-button
         >
-      </b-dropdown>
-    </div>
-    <div v-if="selectedTool.name == 'Sign'">
-      <b-button variant="primary" @click="openSignModal"
-        >Otvoriť menu s podpismi</b-button
-      >
-      <b-dropdown :text="getSignDropdownText()">
-        <b-dropdown-item
-          v-for="sign in signatures"
-          :key="sign.id"
-          @click.native="selectedTool.defaultOptions.sign = sign.id"
-          >{{ sign.name }}</b-dropdown-item
-        >
-      </b-dropdown>
+        <b-dropdown :text="getSignDropdownText()">
+          <b-dropdown-item
+            v-for="sign in signatures"
+            :key="sign.id"
+            @click.native="selectedTool.defaultOptions.sign = sign.id"
+            >{{ sign.name }}</b-dropdown-item
+          >
+        </b-dropdown>
+      </div>
     </div>
     <b-modal
       ref="imageMenu"
@@ -301,7 +305,7 @@ export default class Toolbar extends Vue {
   top: 0;
   left: 0;
   width: 100%;
-  height: 6vh;
+  height: 60px;
   padding: 5px;
 }
 .btn {
@@ -312,5 +316,10 @@ b-dropdown {
 }
 .right-controls {
   margin-right: 10px;
+  display: flex;
+  flex-direction: row;
+}
+.tool-controls {
+  display: flex;
 }
 </style>
