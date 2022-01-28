@@ -114,15 +114,16 @@ import Vue from "vue";
 import { TextAnnotation } from "@/Annotation";
 import { PDFdocument } from "./PDFdocument";
 import Component from "vue-class-component";
+import { getViewedDocument } from "@/DocumentManager";
 
 @Component({})
 export default class Scoring extends Vue {
   pointCriterias: ScoringCriteria[] = [];
   acceptedCriteria: boolean[] = [];
   final: boolean = false;
-  pdf: PDFdocument | undefined = undefined;
-  points: number | undefined = undefined;
-  doc: Document | undefined = undefined;
+  pdf: PDFdocument | null = null;
+  points: number | null = null;
+  doc: Document | null = null;
   annotName: string = "";
   showScoringPanel: boolean = false;
 
@@ -132,6 +133,10 @@ export default class Scoring extends Vue {
       this.pointCriterias = JSON.parse(pointCriterias);
       this.acceptedCriteria = this.pointCriterias.map(() => false);
       this.final = false;
+    }
+    this.pdf = getViewedDocument();
+    if (this.pdf) {
+      Database.getDocument(this.pdf.id).then(doc => this.doc = doc)
     }
     this.eventHub.$on(
       "editor:documentChanged",
@@ -173,6 +178,7 @@ export default class Scoring extends Vue {
   }
 
   saveScoring() {
+    console.log(this.doc);
     if (!this.doc) return;
     this.doc.scoring = {
       points: this.points || 0,
@@ -186,7 +192,7 @@ export default class Scoring extends Vue {
   getScoring(doc: Document) {
     this.doc = doc;
     if (!doc.scoring) {
-      this.points = undefined;
+      this.points = null;
       this.acceptedCriteria = this.pointCriterias.map(() => false);
       this.final = false;
       return;

@@ -134,6 +134,9 @@ export async function AddDocument(fileName: string, data: ArrayBuffer | Promise<
         opened: change?.opened || false,
         timeOpened: change?.timeOpened || 0
     };
+    if (change?.scoring) {
+        doc.scoring = change.scoring;
+    }
     await Database.addDocument(doc).catch(() => {
         throw new Error('Document Already Added');
     });
