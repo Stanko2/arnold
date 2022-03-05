@@ -154,7 +154,7 @@ export default class Scoring extends Vue {
   }
 
   updatepointCriterias() {
-    this.$store.commit('setScoring', this.pointCriterias);
+    this.$store.commit('setCriteria', this.pointCriterias);
   }
 
   pridajBodovanie() {
