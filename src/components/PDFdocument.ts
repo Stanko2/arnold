@@ -71,7 +71,7 @@ export class PDFdocument {
 
     async save(): Promise<Document> {
         await this.InitModifyRef();
-
+        this.embeddedResources = {};
         for (const annotation of this.annotations) {
             await this.write(annotation);
         }
