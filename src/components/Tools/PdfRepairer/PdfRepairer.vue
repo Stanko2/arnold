@@ -1,36 +1,68 @@
 <template>
-  <b-modal ref="modal" size="lg" title="Opravit pokazene PDFko" scrollable>
-    <p>Nie je miesto na Komentar, alebo pdfko je divne otocene? Tu to vies vyriesit.
-      Rotovanie je ale dostupne len pri rieseniach, kde su len obrazky. Taktiez tu vies z obrazkovych rieseni odstranit biele okraje :)</p>
+  <b-modal
+    ref="modal"
+    size="xl"
+    title="Opravit pokazene PDFko"
+    scrollable
+    no-close-on-backdrop
+  >
+    <p>
+      Nie je miesto na Komentár, alebo pdfko je divne otočené? Tu to vieš
+      vyriešiť. Rotovanie je ale dostupné len pri riešeniach, kde sú len
+      obrázky. Taktiež tu vieš z obrázkových riešení odstrániť biele okraje :)
+    </p>
     <div v-if="ImageSources">
-      <b-button v-b-toggle.rotate-collapse variant="primary" block>Rotovat strany</b-button>
+      <b-button v-b-toggle.rotate-collapse variant="primary" block
+        >Otáčanie strán</b-button
+      >
       <b-collapse id="rotate-collapse" @show="renderRotateUI">
         <b-alert show variant="warning">
-          <p>Otacaj, len ak riesenie obsahuje iba fotky!</p>
-          <p>Inak prides o vsetok text, ktoey tam bol</p>
+          <p>Otáčaj, len ak riešenie obsahuje iba fotky!</p>
+          <p>Inak prídeš o všetok text, ktorý tam bol</p>
         </b-alert>
-        <b-card v-for="image in ImageSources" :key="image.id">
-            <div class="canvas-wrapper" ref="images">
+        <div class="pages">
+          <b-spinner v-if="imagesLoading"></b-spinner>
+          <b-card
+            v-else
+            v-for="image in ImageSources"
+            :key="image.id"
+            class="m-2"
+          >
+            <div ref="images">
               <canvas ref="pageCanvases" class="image"></canvas>
             </div>
-        </b-card>
+          </b-card>
+        </div>
       </b-collapse>
     </div>
     <div v-if="err">
-        <b-alert show variant="danger">
-            {{ err }}
-        </b-alert>
+      <b-alert show variant="danger">
+        {{ err }}
+      </b-alert>
     </div>
-    <b-button v-b-toggle.new-page variant="primary" block>Nova Strana</b-button>
+    <b-button v-b-toggle.new-page variant="primary" block>Nová Strana</b-button>
     <b-collapse id="new-page">
       <b-card>
-        <b-row class="p-2">
-          <b-col>Pridat Novu Stranu na koniec</b-col>
-          <b-col ><b-form-checkbox class="float-right" switch v-model="newPage"/></b-col>
+        <b-row class="p-2 w-100">
+          <b-col>Pridat Novú Stranu na koniec</b-col>
+          <b-col
+            ><b-form-checkbox class="float-right" switch v-model="newPage"
+          /></b-col>
         </b-row>
       </b-card>
     </b-collapse>
-    <b-button @click="generate()" block :disabled="ImageSources.length == 0 && !newPage">Generate</b-button>
+
+    <template #modal-footer="{ cancel }">
+      <b-button
+        @click="generate()"
+        size="md"
+        :disabled="(ImageSources.length == 0 && !newPage) || busy"
+        ><b-spinner v-if="busy" /><span v-else>Vygeneruj</span></b-button
+      >
+      <b-button size="md" variant="danger" @click="cancel()" :disabled="busy">
+        Zrušiť
+      </b-button>
+    </template>
   </b-modal>
 </template>
 
@@ -41,7 +73,7 @@ import { BCard, BModal } from "bootstrap-vue";
 import { fabric } from "fabric";
 import Vue from "vue";
 import Component from "vue-class-component";
-import { AddTrailingPage, ExtractImages, GeneratePDF, PDFImage } from "./PdfModifier";
+import { AddTrailingPage, ExtractImages, GeneratePDF, GetA4Dimensions, PDFImage } from "./PdfModifier";
 
 @Component
 export default class PDFRepairer extends Vue {
@@ -50,6 +82,8 @@ export default class PDFRepairer extends Vue {
   newPage: boolean = false;
   err: string = '';
   rotating: boolean = false;
+  busy: boolean = false;
+  imagesLoading: boolean = true;
 
   $refs!: {
     modal: BModal;
@@ -58,37 +92,49 @@ export default class PDFRepairer extends Vue {
   };
   Open() {
     this.$refs.modal.show();
+
+    this.loadImages();
+  }
+  async loadImages() {
     const id = getViewedDocument()?.id;
     if (id) {
-      Database.getDocument(id).then((doc) => {
-        ExtractImages(doc.initialPdf).then((images) => {
-          this.ImageSources = images;
-          this.$nextTick().then(() => {
-            this.renderRotateUI();
-          })
-        }).catch(err=>{
-            this.err = err;
-            this.ImageSources = [];
-        });
-      });
+      const doc = await Database.getDocument(id);
+      this.ImageSources = await ExtractImages(doc.initialPdf).catch(err => {
+        this.err = err;
+      }) || [];
+      this.imagesLoading = false;
+      await this.$nextTick();
+      this.renderRotateUI();
     }
   }
+
   generate() {
+
     const doc = getViewedDocument()?.id;
-    if(!doc) return;
-    this.$bvModal.msgBoxConfirm('Ak upravis toto PDFko, tak stratis v nom vsetky zmeny', {
-      title: 'Upravit PDFko?',
-    }).then((val)=>{
-      if(!val) return;
-      if(this.ImageSources.length > 0) {
-        GeneratePDF(this.ImageSources, this.newPage, doc).then(()=> setTimeout(() => {
-          location.reload()
-        }, 50))
+    if (!doc) return;
+    this.$bvModal.msgBoxConfirm('Ak upravíš toto PDFko, tak stratíš v nom všetky zmeny', {
+      title: 'Upraviť PDFko?',
+    }).then((val) => {
+      if (!val) return;
+      this.busy = true;
+      if (this.ImageSources.length > 0) {
+        GeneratePDF(this.ImageSources, this.newPage, doc).then(this.generationFinished)
       }
-      else {
-        AddTrailingPage(doc).then(()=> location.reload())
+      else if (this.newPage) {
+        AddTrailingPage(doc).then(this.generationFinished)
       }
     })
+  }
+
+  generationFinished() {
+    this.busy = false;
+    this.$bvToast.toast('PDFko bolo úspešne upravené. Refreshni stránku (F5) na zobrazenie', {
+      title: 'PDFko upravené',
+      variant: 'success',
+      solid: true,
+      autoHideDelay: 5000,
+    });
+    this.$refs.modal.hide();
   }
   renderRotateUI() {
     const images = this.ImageSources;
@@ -96,63 +142,59 @@ export default class PDFRepairer extends Vue {
     this.$refs.pageCanvases.forEach((e, i) => {
       const img = new Image();
       img.src = images[i].url;
-      const aspect = images[i].width / images[i].height;
-
+      const dimensions = GetA4Dimensions();
+      const pageAspect = dimensions.width / dimensions.height;
       img.onload = () => {
+        const width = 300;
+        const cnv = new fabric.Canvas(e, {
+          width: width,
+          height: width / pageAspect,
+          backgroundColor: 'transparent',
+          selection: false,
+        });
+        cnv.setZoom(width / dimensions.width);
         const cnvImg = new fabric.Image(img, {
-          top: img.height / 2,
-          left: img.width / 2,
+          top: dimensions.height / 2,
+          left: dimensions.width / 2,
           originX: 'center',
           originY: 'center',
-          angle: 360
-            // hasControls: false,
-            // lockMovementX: true,
-            // lockMovementY: true,
+          width: img.width,
+          height: img.height,
+          hasControls: false,
+          lockMovementX: true,
+          lockMovementY: true,
+          scaleX: dimensions.width / img.width,
+          scaleY: dimensions.width / img.width,
         });
-        const cnv = new fabric.Canvas(e, {
-          backgroundImage: cnvImg,
-        })
+        cnv.add(cnvImg);
         this.canvases.push(cnv);
-        let rotation = 0;
-        const width = this.$refs.images[i].clientWidth;
         cnv.on('mouse:down', (e) => {
-          if(cnvImg.angle)
-          cnvImg.angle += 90;
-          this.rotating = true;
-          this.ImageSources[i].rotation++;
-          cnv.backgroundImage = cnvImg;
-          rotation++;
-          if(rotation %2 == 1){
-            cnvImg.left = img.height / 2;
-            cnvImg.top = img.width / 2;
-            cnv.setDimensions({
-              width: width,
-              height: width * aspect,
-            })
-            cnv.setZoom(width / img.height)
+          if (e.target && e.target.type === 'image') {
+            if (!e.target.width || !e.target.height || !e.target.scaleX || !e.target.scaleY) return;
+            let currAngle = e.target.angle || 0;
+            e.target.set({
+              angle: (currAngle + 90) % 360,
+            });
+            currAngle = (currAngle + 90) % 360;
+            images[i].rotation = currAngle / 90;
+            if ((currAngle / 90) % 2 == 1) {
+              e.target.set({
+                scaleX: dimensions.width / e.target.height,
+                scaleY: dimensions.width / e.target.height,
+              });
+            }
+            else {
+              e.target.set({
+                scaleX: dimensions.width / e.target.width,
+                scaleY: dimensions.width / e.target.width,
+              });
+            }
+            images[i].width = e.target.width * e.target.scaleX;
+            images[i].height = e.target.height * e.target.scaleY;
+            cnv.renderAll();
+            console.log(images);
           }
-          else {
-            cnvImg.top = img.height / 2;
-            cnvImg.left = img.width / 2;
-            cnv.setDimensions({
-            width: width,
-            height: width / aspect,
-            })
-            cnv.setZoom(width / img.width)  
-          }
-          cnv.renderAll();
-          this.$refs.images[i].style.height = cnv.getHeight() + "px";
-        })
-        setTimeout(() => {
-          const width = this.$refs.images[i].clientWidth;
-          console.log(width);
-          cnv.setDimensions({
-            width: width,
-            height: width / aspect,
-          })
-          cnv.setZoom(width / img.width)
-          this.$refs.images[i].style.height = cnv.getHeight() + "px";
-        }, 30);
+        });
       }
     })
   }
@@ -167,9 +209,15 @@ export default class PDFRepairer extends Vue {
 }
 .card-body {
   padding: 0;
+  display: flex;
 }
-.canvas-wrapper {
+.pages {
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 </style>

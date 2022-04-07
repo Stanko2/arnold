@@ -54,7 +54,7 @@ export async function GeneratePDF(images: PDFImage[], emptyPage: boolean, id: nu
     for (let i = 0; i < images.length; i++) {
         const img = images[i];
         const image = await (await fetch(img.url)).arrayBuffer();
-        const dims: [number, number] = img.rotation % 2 == 0 ? [img.width, img.height] : [img.height, img.width];
+        const dims: [number, number] = PageSizes.A4;
         const positions = [{ x: 0, y: 0 }, { x: 0, y: dims[1] }, { x: dims[0], y: dims[1] }, { x: dims[0], y: 0 }];
         const page = doc.addPage(dims);
         const PdfImg = await doc.embedPng(image);
@@ -63,7 +63,7 @@ export async function GeneratePDF(images: PDFImage[], emptyPage: boolean, id: nu
             y: positions[img.rotation % 4].y,
             width: img.width,
             height: img.height,
-            rotate: degrees(90 * (img.rotation % 4) + 180 * (img.rotation % 2))
+            rotate: degrees(360 - img.rotation * 90)
         });
     }
     if (emptyPage) {
@@ -79,6 +79,10 @@ export async function AddTrailingPage(id: number) {
     doc.addPage(PageSizes.A4);
 
     await updateDocument(id, await doc.save());
+}
+
+export function GetA4Dimensions() {
+    return { width: PageSizes.A4[0], height: PageSizes.A4[1] };
 }
 
 async function updateDocument(id: number, PDFdata: ArrayBuffer) {
