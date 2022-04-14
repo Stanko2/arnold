@@ -1,7 +1,7 @@
 import { Database } from '@/Db';
 import { degrees, PageSizes, PDFDocument } from 'pdf-lib';
 //@ts-ignore
-import { getDocument, SVGGraphics } from 'pdfjs-dist';
+import { getDocument, OPS } from 'pdfjs-dist';
 
 export interface PDFImage {
     width: number;
@@ -24,43 +24,68 @@ export async function ExtractImages(pdfbytes: ArrayBuffer): Promise<PDFImage[]> 
 
         // @ts-ignore
         const operators = await page.getOperatorList();
-        // @ts-ignore
-        const svgGfx = new SVGGraphics(page.commonObjs, page.objs);
         const viewport = page.getViewport({ scale: 1 });
 
-        const svg = {
-            w: viewport.width,
-            h: viewport.height,
-            doc: await svgGfx.getSVG(operators, viewport) as Document,
-        };
-        (window as any).svg = svg;
-        console.log(svg.doc.querySelector('image'));
-        svg.doc.querySelectorAll('image').forEach(e => {
-            images.push({
-                width: viewport.width,
-                height: viewport.height,
-                url: e.getAttribute('xlink:href') || '',
-                id: count.toString(),
-                rotation: 0
-            })
-            count++;
-        })
+        const validObjectTypes = [
+            OPS.paintImageXObject, // 85
+            OPS.paintImageXObjectRepeat, // 88
+            OPS.paintJpegXObject //82
+        ];
+
+        for (let i = 0; i < operators.fnArray.length; i++) {
+            const op = operators.fnArray[i];
+            if (validObjectTypes.includes(op)) {
+                const imageName = operators.argsArray[i][0];
+                console.log({ imageName });
+                const image = await getImageData(page, imageName);
+                images.push(image);
+            }
+        }
     }
     return images;
+}
+
+async function getImageData(page: any, imageName: string): Promise<PDFImage> {
+    return new Promise<PDFImage>((resolve, reject) => {
+        page.objs.get(imageName, async (image: any) => {
+            const cnv = document.createElement('canvas');
+            cnv.width = image.width;
+            cnv.height = image.height;
+            const ctx = cnv.getContext('2d');
+            console.log(image);
+            const arr = addAlphaChannelToUnit8ClampedArray(image.data, image.width, image.height)
+            const imageData = new ImageData(arr, image.width, image.height);
+            ctx?.putImageData(imageData, 0, 0);
+            resolve({
+                height: image.height,
+                width: image.width,
+                url: cnv.toDataURL('image/jpeg', 0.5),
+                id: imageName,
+                rotation: 0,
+            })
+        });
+    });
 }
 
 export async function GeneratePDF(images: PDFImage[], emptyPage: boolean, id: number) {
     const doc = await PDFDocument.create();
     for (let i = 0; i < images.length; i++) {
         const img = images[i];
-        const image = await (await fetch(img.url)).arrayBuffer();
+        const res = await fetch(img.url);
+        const type = res.headers.get('content-type');
+        const image = await res.arrayBuffer();
         const dims: [number, number] = PageSizes.A4;
         const positions = [{ x: 0, y: 0 }, { x: 0, y: dims[1] }, { x: dims[0], y: dims[1] }, { x: dims[0], y: 0 }];
         const page = doc.addPage(dims);
-        const PdfImg = await doc.embedPng(image);
+        console.log({ type });
+        const PdfImg = type === 'image/png' ? await doc.embedPng(image) : await doc.embedJpg(image);
+        let verticalSpaceAvailable = dims[1] - (img.rotation % 2 === 0 ? img.height : img.width);
+        if (img.rotation === 1 || img.rotation === 2) {
+            verticalSpaceAvailable = -verticalSpaceAvailable;
+        }
         page.drawImage(PdfImg, {
             x: positions[img.rotation % 4].x,
-            y: positions[img.rotation % 4].y,
+            y: positions[img.rotation % 4].y + verticalSpaceAvailable / 2,
             width: img.width,
             height: img.height,
             rotate: degrees(360 - img.rotation * 90)
@@ -92,4 +117,17 @@ async function updateDocument(id: number, PDFdata: ArrayBuffer) {
     data.changes = [];
     data.pdfData = data.initialPdf;
     Database.updateDocument(id, data, true);
+}
+
+function addAlphaChannelToUnit8ClampedArray(unit8Array: Uint8ClampedArray, imageWidth: number, imageHeight: number) {
+    const newImageData = new Uint8ClampedArray(imageWidth * imageHeight * 4);
+
+    for (let j = 0, k = 0, jj = imageWidth * imageHeight * 4; j < jj;) {
+        newImageData[j++] = unit8Array[k++];
+        newImageData[j++] = unit8Array[k++];
+        newImageData[j++] = unit8Array[k++];
+        newImageData[j++] = 255;
+    }
+
+    return newImageData;
 }

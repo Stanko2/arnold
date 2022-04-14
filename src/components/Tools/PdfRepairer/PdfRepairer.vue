@@ -16,23 +16,28 @@
         >Otáčanie strán</b-button
       >
       <b-collapse id="rotate-collapse" @show="renderRotateUI">
-        <b-alert show variant="warning">
-          <p>Otáčaj, len ak riešenie obsahuje iba fotky!</p>
-          <p>Inak prídeš o všetok text, ktorý tam bol</p>
-        </b-alert>
-        <div class="pages">
-          <b-spinner v-if="imagesLoading"></b-spinner>
-          <b-card
-            v-else
-            v-for="image in ImageSources"
-            :key="image.id"
-            class="m-2"
-          >
-            <div ref="images">
-              <canvas ref="pageCanvases" class="image"></canvas>
-            </div>
-          </b-card>
+        <div v-if="ImageSources.length > 0">
+          <b-alert show variant="warning">
+            <p>Otáčaj, len ak riešenie obsahuje iba fotky!</p>
+            <p>Inak prídeš o všetok text, ktorý tam bol</p>
+          </b-alert>
+          <div class="pages">
+            <b-spinner v-if="imagesLoading"></b-spinner>
+            <b-card
+              v-else
+              v-for="image in ImageSources"
+              :key="image.id"
+              class="m-2"
+            >
+              <div ref="images">
+                <canvas ref="pageCanvases" class="image"></canvas>
+              </div>
+            </b-card>
+          </div>
         </div>
+        <b-alert v-else show variant="success">
+          <p>V tomto riešení nie sú obrázky, nie je možné otáčanie</p>
+        </b-alert>
       </b-collapse>
     </div>
     <div v-if="err">
@@ -139,6 +144,7 @@ export default class PDFRepairer extends Vue {
   renderRotateUI() {
     const images = this.ImageSources;
     this.rotating = false;
+    if (!this.$refs.pageCanvases) return;
     this.$refs.pageCanvases.forEach((e, i) => {
       const img = new Image();
       img.src = images[i].url;
