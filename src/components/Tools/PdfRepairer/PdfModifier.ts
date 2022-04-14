@@ -75,6 +75,7 @@ export async function GeneratePDF(images: PDFImage[], emptyPage: boolean, id: nu
         const type = res.headers.get('content-type');
         const image = await res.arrayBuffer();
         const dims: [number, number] = PageSizes.A4;
+        dims[1] = Math.max(dims[1], img.rotation % 2 === 0 ? img.height : img.width);
         const positions = [{ x: 0, y: 0 }, { x: 0, y: dims[1] }, { x: dims[0], y: dims[1] }, { x: dims[0], y: 0 }];
         const page = doc.addPage(dims);
         console.log({ type });
