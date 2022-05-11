@@ -12,14 +12,13 @@
       <v-swatches v-model="color" inline @input="submit"></v-swatches>
       <div class="d-flex align-items-center justify-content-between">
         <p class="d-flex align-items-center transparency-text">Nepriehľadnosť</p>
-        <!-- percentage input -->
         <div class="form-control transparency-num">
           <input
               type="number"
               class="transparency-num"
-              min="6"
+              min="7"
               max="100"
-              v-model.number="transparency"
+              v-model.number="opacity"
               @input="submit"
           /></div>
         <b-form-input
@@ -28,7 +27,7 @@
             type="range"
             max="100"
             step="1"
-            v-model.number="transparency"
+            v-model.number="opacity"
             @input="submit"
         />
       </div>
@@ -53,7 +52,7 @@ export default Vue.extend({
     },
     value: {
       type: String,
-      default: "#ff000000",
+      default: "#ff0000ff",
     },
     label: {
       type: String,
@@ -63,16 +62,25 @@ export default Vue.extend({
   data() {
     return {
       color: "#000000",
-      transparency: 0,
+      opacity: 0,
     };
   },
   mounted() {
+    if (this.value === undefined || this.value === null || this.value.startsWith("rgb")) {
+      this.color = "#000000";
+      this.opacity = 100;
+      this.submit();
+      return;
+    }
     this.color = this.value.substring(0, 7);
-    this.transparency = Math.round((parseInt(this.value.substring(7, 9), 16)/255)*100) || 100;
+    this.opacity = Math.round((parseInt(this.value.substring(7, 9), 16)/255)*100) || 100;
   },
   methods: {
     submit() {
-      this.$emit("input", this.color + Math.floor((this.transparency*255)/100).toString(16));
+      if(this.color.startsWith("rgb")) {
+        this.color = "#000000";
+      }
+      this.$emit("input", this.color + Math.floor((this.opacity*255)/100).toString(16));
     },
   },
 });
