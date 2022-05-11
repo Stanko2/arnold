@@ -27,8 +27,9 @@
         Pri zapnutí po dlhšom čase ma nezabudni
         <b-link @click="reload()">aktualizovať</b-link>
       </p>
+      <changelog class="p-2" />
     </b-jumbotron>
-    <label for="mainInput" class="inputWrapper"> </label>
+    <!-- <label for="mainInput" class="inputWrapper"> </label> -->
     <b-alert :show="getDocumentCount() > 120" dismissible variant="warning">
       Pri takychto vysokych počtoch riešení som nestabilný a spomalený. Prosím
       otvor radšej menej kategórii naraz a potom sa možeš prepnúť cez túto
@@ -45,8 +46,6 @@
       />
       <b-button @click="start">Načítaj</b-button>
     </div>
-
-    <hr />
     <div v-if="hasDocuments">
       <b-list-group v-if="hasDocuments">
         <b-list-group-item variant="primary">
@@ -65,11 +64,14 @@
         </b-list-group-item>
       </b-list-group>
       <p>
-        Vybrate {{ categories.filter((e) => e.enabled).length }} kategórie,
+        Vybraté {{ categories.filter((e) => e.enabled).length }} kategórie,
         dokopy
         {{ getDocumentCount() }}
         riešení
       </p>
+    </div>
+    <div v-else class="text-center">
+      <b-spinner variant="primary"></b-spinner>
     </div>
     <hr />
     <b-button
@@ -91,6 +93,7 @@ import { loadFromDatabase, readZip } from "../DocumentManager";
 import { Document, DocumentParser } from "@/@types";
 import { PMatParser } from "@/DocumentParser";
 import Component from "vue-class-component";
+import Changelog from "@/components/Changelog.vue";
 
 interface Category {
   name: string;
@@ -98,13 +101,13 @@ interface Category {
   enabled: boolean;
 }
 
-@Component
+@Component({ components: { Changelog } })
 export default class Home extends Vue {
   fileName: string = "Vloz Zip s PDFkami na opravovanie";
   hasFile = false;
   fileInput: File | undefined = undefined;
   backupInput: File | undefined = undefined;
-  hasDocuments: boolean = false;
+  hasDocuments: boolean | undefined = undefined;
   problem: string = "";
   categories: Array<Category> = [];
 
