@@ -7,7 +7,7 @@
         'background-color': color,
       }"
     ></b-button>
-    <b-popover :target="name" triggers="click" placement="bottom">
+    <b-popover :show.sync="show" :target="name" triggers="click" placement="bottom" ref="popover">
       <template #title>{{ label }}</template>
       <v-swatches v-model="color" inline @input="submit"></v-swatches>
       <div class="d-flex align-items-center justify-content-between">
@@ -40,6 +40,7 @@ const VSwatches = require("vue-swatches");
 
 import "vue-swatches/dist/vue-swatches.css";
 import Vue from "vue";
+
 export default Vue.extend({
   components: {
     VSwatches,
@@ -63,6 +64,7 @@ export default Vue.extend({
     return {
       color: "#000000",
       opacity: 0,
+      show: false,
     };
   },
   mounted() {
@@ -74,6 +76,17 @@ export default Vue.extend({
     }
     this.color = this.value.substring(0, 7);
     this.opacity = Math.round((parseInt(this.value.substring(7, 9), 16)/255)*100) || 100;
+    document.addEventListener("click", (event) => {
+      if(this.show) {
+        let a:any=this.$refs.popover;
+        if(!a) return;
+        let pop =a.$children[0].$children[0].$el;
+        if(!pop.contains(event.target)) {
+          this.show = false;
+        }
+      }
+    });
+
   },
   methods: {
     submit() {
@@ -81,8 +94,8 @@ export default Vue.extend({
         this.color = "#000000";
       }
       this.$emit("input", this.color + Math.floor((this.opacity*255)/100).toString(16));
-    },
-  },
+    }
+  }
 });
 </script>
 
