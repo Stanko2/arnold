@@ -1,43 +1,28 @@
 <template>
-  <div class="d-inline">
-    <b-button
-      variant="success"
-      :disabled="downloading"
-      v-b-modal.downloadAllModal
-    >
-      <div v-if="downloading">
-        <b-spinner
-          variant="secondary"
-          label="loading..."
-          v-if="downloading"
-          small
-        ></b-spinner>
-        Komprimujem
-      </div>
-      <div v-else>Download all</div>
-    </b-button>
-    <b-modal
-      id="downloadAllModal"
-      hide-footer
-      ref="modal"
-      title="Vyber si formát riešení"
-    >
-      <b-button id="downloadAll" @click="downloadAll(false)" block
-        >Stiahnuť pre stránky</b-button
-      >
-      <b-button id="downloadAllArnold" @click="downloadAll(true)" block
-        >Stiahnuť pre opätovné použitie v Arnoldovi</b-button
-      >
-      <b-tooltip triggers="hover" target="downloadAll" placement="bottom"
-        >Stiahne len obodované riešenia - pripravené na upload na
-        stránky</b-tooltip
-      >
-      <b-tooltip triggers="hover" target="downloadAllArnold" placement="bottom"
-        >Stiahne úplne všetko - pôvodné riešenia, všetky opravené riešenia,
-        komentáre, aby sa to dalo ďalej editovať v Arnoldovi.</b-tooltip
-      >
-    </b-modal>
-  </div>
+  <b-nav-item v-if="downloading">
+    <b-spinner
+        variant="secondary"
+        label="Loading..."
+        v-if="downloading"
+        small
+    ></b-spinner>
+    Komprimujem
+  </b-nav-item>
+  <b-nav-item-dropdown text="Stiahnuť všetky" v-else :disabled="downloading">
+    <b-dropdown-item @click="downloadAll(false)" id="downloadAll" :disabled="downloading">
+      Pre stránky
+    </b-dropdown-item>
+    <b-dropdown-item @click="downloadAll(true)" id="downloadAllArnold" :disabled="downloading">
+      Pre použitie v Arnoldovi
+    </b-dropdown-item>
+    <b-tooltip triggers="hover" target="downloadAll" placement="right">
+      Stiahne len obodované riešenia - pripravené na upload na stránky
+    </b-tooltip>
+    <b-tooltip triggers="hover" target="downloadAllArnold" placement="right">
+      Stiahne úplne všetko - pôvodné riešenia, všetky opravené riešenia,
+      komentáre, aby sa to dalo ďalej editovať v Arnoldovi.
+    </b-tooltip>
+  </b-nav-item-dropdown>
 </template>
 
 <script lang="ts">
@@ -60,7 +45,6 @@ export default class DownloadAllButton extends Vue {
   downloadAll(forArnold: boolean) {
     console.log(forArnold);
     this.eventHub.$emit('editor:downloadZip', forArnold);
-    this.$refs.modal.hide();
   }
 }
 </script>

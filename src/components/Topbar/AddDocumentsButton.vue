@@ -1,24 +1,23 @@
 <template>
-  <div class="d-inline">
-    <b-button variant="success" v-b-modal.noveRiesenie
-      >Pridať ďalšie riešenie</b-button
-    >
+  <b-nav-item v-b-modal.noveRiesenie>
+    <span
+    >Pridať ďalšie riešenie</span>
     <b-modal
-      id="noveRiesenie"
-      size="lg"
-      title="Pridat nové riešenie"
-      @ok="pridajRiesenia"
-      :ok-disabled="noveRiesenia.length == 0"
+        id="noveRiesenie"
+        size="lg"
+        title="Pridat nové riešenie"
+        @ok="pridajRiesenia"
+        :ok-disabled="noveRiesenia.length == 0"
     >
       <b-form-file
-        accept=".pdf"
-        multiple
-        id="rieseniaInput"
-        v-model="noveRiesenia"
-        :file-name-formatter="formatNames"
+          accept=".pdf"
+          multiple
+          id="rieseniaInput"
+          v-model="noveRiesenia"
+          :file-name-formatter="formatNames"
       />
     </b-modal>
-  </div>
+  </b-nav-item>
 </template>
 
 <script lang="ts">
@@ -41,23 +40,23 @@ export default class AddDocumentButton extends Vue {
     for (let i = 0; i < this.noveRiesenia.length; i++) {
       const riesenie = this.noveRiesenia[i];
       addOperations.push(
-        new Promise<void>((resolve, reject) => {
-          const index = i;
-          riesenie.arrayBuffer().then((buffer) => {
-            AddDocument(riesenie.name, buffer, baseLength + index + 1)
-              .then(() => resolve())
-              .catch((err) => this.$bvModal.msgBoxConfirm(`Riešenie ${riesenie.name} už existuje, chceš ho nahradiť novým?`, { okTitle: 'Áno', cancelTitle: 'Nie' }).then(val => {
-                if (val) {
-                  const id = activeParser.parse(riesenie.name).id
-                  Database.removeDocument(id).then(() => {
-                    AddDocument(riesenie.name, buffer, baseLength + index + 1)
-                      .then(() => resolve())
-                  })
-                }
-                else resolve()
-              }));
-          });
-        })
+          new Promise<void>((resolve, reject) => {
+            const index = i;
+            riesenie.arrayBuffer().then((buffer) => {
+              AddDocument(riesenie.name, buffer, baseLength + index + 1)
+                  .then(() => resolve())
+                  .catch((err) => this.$bvModal.msgBoxConfirm(`Riešenie ${riesenie.name} už existuje, chceš ho nahradiť novým?`, { okTitle: 'Áno', cancelTitle: 'Nie' }).then(val => {
+                    if (val) {
+                      const id = activeParser.parse(riesenie.name).id
+                      Database.removeDocument(id).then(() => {
+                        AddDocument(riesenie.name, buffer, baseLength + index + 1)
+                            .then(() => resolve())
+                      })
+                    }
+                    else resolve()
+                  }));
+            });
+          })
       );
     }
     Promise.all(addOperations).then(() => {
