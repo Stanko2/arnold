@@ -4,35 +4,35 @@
       <h4 class="btn btn-primary" @click="toggle()">
         Bodovanie
         <span class="material-icons d-inline position-absolute">{{
-          showScoringPanel ? "expand_more" : "expand_less"
-        }}</span>
+            showScoringPanel ? "expand_more" : "expand_less"
+          }}</span>
       </h4>
       <transition name="slide">
         <div v-if="showScoringPanel" class="bodovanie_okno bg-primary">
           <div class="d-flex flex-row">
             <h3 class="w-50">Body:</h3>
             <input
-              type="number"
-              class="form-control w-50"
-              placeholder="Zadaj body ..."
-              v-model.number="$data.points"
-              @change="saveScoring"
-              id="mainInput"
+                type="number"
+                class="form-control w-50"
+                placeholder="Zadaj body ..."
+                v-model.number="$data.points"
+                @change="saveScoring"
+                id="mainInput"
             />
             <div class="d-flex flex-row mr-2"></div>
           </div>
           <div>
             <div
-              class="form-check w-100 d-flex justify-content-between"
-              v-for="(criteria, i) in pointCriterias"
-              :key="criteria.id"
+                class="form-check w-100 d-flex justify-content-between"
+                v-for="(criteria, i) in pointCriterias"
+                :key="criteria.id"
             >
               <input
-                class="form-check-input"
-                type="checkbox"
-                :id="criteria.id"
-                v-model="acceptedCriteria[i]"
-                @change="calculatePoints"
+                  class="form-check-input"
+                  type="checkbox"
+                  :id="criteria.id"
+                  v-model="acceptedCriteria[i]"
+                  @change="calculatePoints"
               />
               <label class="form-check-label" :for="criteria.id">
                 {{ criteria.from }}
@@ -42,33 +42,33 @@
           </div>
           <div class="m-2">
             <b-button
-              variant="success"
-              size="lg"
-              @click="finalScoringChange()"
-              v-if="!final"
-              :disabled="$data.points == undefined"
-              >Zfinalizuj hodnotenie</b-button
+                variant="success"
+                size="lg"
+                @click="finalScoringChange()"
+                v-if="!final"
+                :disabled="$data.points == undefined"
+            >Zfinalizuj hodnotenie</b-button
             >
             <b-button variant="danger" @click="finalScoringChange()" v-else
-              >Zruš hodnotenie</b-button
+            >Zruš hodnotenie</b-button
             >
           </div>
           <br />
           <b-button v-b-modal.bodovanie size="sm">Upraviť Bodovanie</b-button>
           <b-modal
-            title="Bodovanie"
-            id="bodovanie"
-            @ok="updatepointCriterias"
-            size="lg"
+              title="Bodovanie"
+              id="bodovanie"
+              @ok="updatepointCriterias"
+              size="lg"
           >
             <ul class="list-group m-2">
               <li
-                class="list-group-item"
-                v-for="criteria in pointCriterias"
-                :key="criteria.id"
+                  class="list-group-item"
+                  v-for="criteria in pointCriterias"
+                  :key="criteria.id"
               >
                 <div
-                  class="
+                    class="
                     d-flex
                     flex-row
                     justify-content-between
@@ -77,20 +77,20 @@
                 >
                   <div class="w-100">
                     <input
-                      type="number"
-                      class="kriteria-body form-control d-inline"
-                      v-model.number="criteria.points"
+                        type="number"
+                        class="kriteria-body form-control d-inline"
+                        v-model.number="criteria.points"
                     />B - za
                     <input
-                      type="text"
-                      v-model="criteria.from"
-                      style="width: 80%"
-                      class="form-control d-inline"
+                        type="text"
+                        v-model="criteria.from"
+                        style="width: 80%"
+                        class="form-control d-inline"
                     />
                   </div>
                   <button
-                    class="btn btn-danger"
-                    @click="deleteCriteria(criteria.id)"
+                      class="btn btn-danger"
+                      @click="deleteCriteria(criteria.id)"
                   >
                     <span class="material-icons"> delete </span>
                   </button>
@@ -139,13 +139,13 @@ export default class Scoring extends Vue {
       Database.getDocument(this.pdf.id).then(doc => this.doc = doc)
     }
     this.eventHub.$on(
-      "editor:documentChanged",
-      (pdf: PDFdocument, doc: Document) => {
-        setTimeout(() => {
-          this.pdf = pdf;
-          this.getScoring(doc);
-        }, 50);
-      }
+        "editor:documentChanged",
+        (pdf: PDFdocument, doc: Document) => {
+          setTimeout(() => {
+            this.pdf = pdf;
+            this.getScoring(doc);
+          }, 50);
+        }
     );
   }
 
@@ -154,7 +154,7 @@ export default class Scoring extends Vue {
   }
 
   updatepointCriterias() {
-    this.$store.commit('setScoring', this.pointCriterias);
+    this.$store.commit('setCriteria', this.pointCriterias);
   }
 
   pridajBodovanie() {
@@ -180,12 +180,25 @@ export default class Scoring extends Vue {
   saveScoring() {
     console.log(this.doc);
     if (!this.doc) return;
-    this.doc.scoring = {
-      points: this.points || 0,
-      acceptedCriteria: this.pointCriterias.filter((e, i) => this.acceptedCriteria[i]).map((e) => e.id),
-      final: this.final,
-      annotName: this.annotName,
-    };
+    if(this.final) {
+      this.doc.scoring = {
+        points: this.points || 0,
+        acceptedCriteria: this.pointCriterias.filter((e, i) => this.acceptedCriteria[i]).map((e) => e.id),
+        final: this.final,
+        annotName: this.annotName,
+      };
+    } else {
+      if (this.points || this.points === 0) {
+        this.doc.scoring = {
+          points: this.points || 0,
+          acceptedCriteria: this.pointCriterias.filter((e, i) => this.acceptedCriteria[i]).map((e) => e.id),
+          final: this.final,
+          annotName: this.annotName,
+        };
+      } else {
+        delete this.doc.scoring;
+      }
+    }
     Database.updateDocument(this.doc.id, this.doc);
   }
 
@@ -216,21 +229,21 @@ export default class Scoring extends Vue {
     this.final = !this.final;
     if (this.final) {
       const options = JSON.parse(
-        localStorage.getItem("preferences") || "{}"
+          localStorage.getItem("preferences") || "{}"
       ).tools.settings.tools.find(
-        (e: any) => e.name == "scoring"
+          (e: any) => e.name == "scoring"
       )?.defaultOptions;
       const pointsAnnot = new TextAnnotation(
-        0,
-        {
-          ...options,
-          text: `${this.points}B`,
-          top: 30,
-          left: 300,
-          hasControls: false,
-          editable: false,
-        },
-        pdf.pageCanvases[0]
+          0,
+          {
+            ...options,
+            text: `${this.points}B`,
+            top: 30,
+            left: 300,
+            hasControls: false,
+            editable: false,
+          },
+          pdf.pageCanvases[0]
       );
       pdf.pageCanvases[0].discardActiveObject();
       pdf.addAnnotation(pointsAnnot);
