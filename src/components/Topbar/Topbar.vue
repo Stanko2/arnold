@@ -1,20 +1,22 @@
 <template>
   <!-- create navbar -->
-  <b-navbar type="dark" variant="dark" style="width: 100%;">
+  <b-navbar type="dark" variant="dark" style="width: 100%">
     <b-navbar-brand>
-      <img src="/icon.png" alt="Arnold" height="30">
+      <img src="@/assets/Icon.png" alt="Arnold" height="30" />
     </b-navbar-brand>
     <b-collapse id="nav-collapse" is-nav>
       <b-navbar-nav>
-
-        <b-nav-item @click="$router.push({ path: '/' })" :active="$route.path === '/'">
+        <b-nav-item
+          @click="$router.push({ path: '/' })"
+          :active="$route.path === '/'"
+        >
           <span>Domov</span>
         </b-nav-item>
 
         <b-nav-item class="nav-separator" />
 
         <!-- session destroy button -->
-        <session-destroy-button :disabled="downloading"/>
+        <session-destroy-button :disabled="downloading" />
 
         <b-nav-item class="nav-separator" />
 
@@ -46,13 +48,13 @@
         <b-nav-item v-b-modal.stats>
           <span>Štatistiky</span>
           <b-modal
-              id="stats"
-              title="Štatistiky"
-              centered
-              size="xl"
-              ok-only
-              scrollable
-          ><stats ref="stat"></stats>
+            id="stats"
+            title="Štatistiky"
+            centered
+            size="xl"
+            ok-only
+            scrollable
+            ><stats ref="stat"></stats>
           </b-modal>
         </b-nav-item>
 
@@ -62,12 +64,12 @@
         <b-nav-item v-b-modal.preferences>
           <span>Nastavenia</span>
           <b-modal
-              id="preferences"
-              title="Nastavenia"
-              size="xl"
-              ok-only
-              @ok="$refs.preferences.save()"
-          ><preferences ref="preferences"></preferences>
+            id="preferences"
+            title="Nastavenia"
+            size="xl"
+            ok-only
+            @ok="$refs.preferences.save()"
+            ><preferences ref="preferences"></preferences>
           </b-modal>
         </b-nav-item>
 
@@ -109,8 +111,8 @@ export default class Topbar extends Vue {
   noveRiesenia: File[] = [];
 
   mounted() {
-    this.eventHub.$on("download:done", () => {this.downloading = false});
-    this.eventHub.$on("editor:downloadZip", () => {this.downloading = true; this.progress = 0 });
+    this.eventHub.$on("download:done", () => { this.downloading = false });
+    this.eventHub.$on("editor:downloadZip", () => { this.downloading = true; this.progress = 0 });
     this.eventHub.$on("download:progress", (progress: number) => {
       this.progress = progress;
     });
@@ -144,5 +146,4 @@ export default class Topbar extends Vue {
   width: 0;
   height: 40px;
 }
-
 </style>
