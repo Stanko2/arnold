@@ -1,34 +1,43 @@
 <template>
   <div>
     <b-button
-        :id="name"
-        class="colorInputButton"
-        :style="{
+      :id="name"
+      class="colorInputButton"
+      :style="{
         'background-color': color,
       }"
     ></b-button>
-    <b-popover :show.sync="show" :target="name" triggers="click" placement="bottom" ref="popover">
+    <b-popover
+      :show.sync="show"
+      :target="name"
+      triggers="click"
+      placement="bottom"
+      ref="popover"
+    >
       <template #title>{{ label }}</template>
       <v-swatches v-model="color" inline @input="submit"></v-swatches>
       <div class="d-flex align-items-center justify-content-between">
-        <p class="d-flex align-items-center transparency-text">Nepriehľadnosť</p>
+        <p class="d-flex align-items-center transparency-text">
+          Nepriehľadnosť
+        </p>
         <div class="form-control transparency-num">
           <input
-              type="number"
-              class="transparency-num"
-              min="7"
-              max="100"
-              v-model.number="opacity"
-              @input="submit"
-          /></div>
-        <b-form-input
+            type="number"
+            class="transparency-num"
             min="7"
-            style="width: 80px"
-            type="range"
             max="100"
-            step="1"
             v-model.number="opacity"
             @input="submit"
+          />
+        </div>
+        <b-form-input
+          min="7"
+          style="width: 80px"
+          type="range"
+          max="100"
+          step="1"
+          v-model.number="opacity"
+          @input="submit"
         />
       </div>
     </b-popover>
@@ -40,33 +49,29 @@ const VSwatches = require("vue-swatches");
 
 import "vue-swatches/dist/vue-swatches.css";
 import Vue from "vue";
+import Component from "vue-class-component";
+import { Prop } from "vue-property-decorator";
+import { BPopover } from "bootstrap-vue";
 
-export default Vue.extend({
-  components: {
-    VSwatches,
-  },
-  props: {
-    name: {
-      type: String,
-      default: "name",
-      required: true,
-    },
-    value: {
-      type: String,
-      default: "#ff0000ff",
-    },
-    label: {
-      type: String,
-      default: "Vyber farbu",
-    },
-  },
-  data() {
-    return {
-      color: "#000000",
-      opacity: 0,
-      show: false,
-    };
-  },
+@Component({
+  components: { VSwatches }
+})
+export default class ColorPicker extends Vue {
+  @Prop({ required: true, default: "name" })
+  name!: string;
+  @Prop({ default: "#ff0000ff" })
+  value!: string;
+  @Prop({ default: "Vyber farbu" })
+  label!: string;
+  color = "#000000"
+  opacity = 100
+  show = false
+  clickListener!: (e: MouseEvent) => void;
+
+  $refs!: {
+    popover: BPopover;
+  }
+
   mounted() {
     if (this.value === undefined || this.value === null || this.value.startsWith("rgb")) {
       this.color = "#000000";
@@ -75,28 +80,31 @@ export default Vue.extend({
       return;
     }
     this.color = this.value.substring(0, 7);
-    this.opacity = Math.round((parseInt(this.value.substring(7, 9), 16)/255)*100) || 100;
-    document.addEventListener("click", (event) => {
-      if(this.show) {
-        let a:any=this.$refs.popover;
-        if(!a) return;
-        let pop =a.$children[0].$children[0].$el;
-        if(!pop.contains(event.target)) {
+    this.opacity = Math.round((parseInt(this.value.substring(7, 9), 16) / 255) * 100) || 100;
+    this.clickListener = (event) => {
+      if (this.show) {
+        let a: any = this.$refs.popover;
+        if (!a) return;
+        let pop = a.$children[0].$children[0].$el;
+        if (!pop.contains(event.target)) {
           this.show = false;
         }
       }
-    });
-
-  },
-  methods: {
-    submit() {
-      if(this.color.startsWith("rgb")) {
-        this.color = "#000000";
-      }
-      this.$emit("input", this.color + Math.floor((this.opacity*255)/100).toString(16));
     }
+    document.addEventListener("click", this.clickListener);
   }
-});
+
+  submit() {
+    if (this.color.startsWith("rgb")) {
+      this.color = "#000000";
+    }
+    this.$emit("input", this.color + Math.floor((this.opacity * 255) / 100).toString(16));
+  }
+
+  unmounted() {
+    document.removeEventListener("click", this.clickListener);
+  }
+}
 </script>
 
 <style scoped>
@@ -134,7 +142,7 @@ input.transparency-num::-webkit-inner-spin-button {
   margin: 0;
 }
 
-input[type=number].transparency-num {
+input[type="number"].transparency-num {
   -moz-appearance: textfield;
 }
 input.transparency-num {
@@ -148,6 +156,4 @@ input.transparency-num:focus,
 input.transparency-num:active {
   border: none;
 }
-
-
 </style>
