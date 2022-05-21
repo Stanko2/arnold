@@ -44,9 +44,7 @@ export default <Settings>{
                     "defaultOptions": {
                         "fontFamily": "Helvetica",
                         "fontSize": 15,
-                        "fill": "#3398DBff",
-                        "top": 520.0611601513241,
-                        "left": 90.59583858764186
+                        "fill": "#3398DBff"
                     },
                     "name": "Text",
                     "expanded": false,
@@ -87,24 +85,7 @@ export default <Settings>{
                     },
                     "defaultOptions": {
                         "stroke": "#F2C511ff",
-                        "strokeWidth": 3,
-                        "top": 159.81562302963428,
-                        "left": 39.563896989281204,
-                        "x1": 39.563896989281204,
-                        "y1": 159.81562302963428,
-                        "x2": 94.36452750630515,
-                        "y2": 117.02608961223201,
-                        "hasControls": true,
-                        "hasBorders": false,
-                        "strokeLineCap": "round",
-                        "cornerSize": 20,
-                        "cornerStyle": "circle",
-                        "cornerColor": "blue",
-                        "originX": "left",
-                        "originY": "top",
-                        "lockMovementX": true,
-                        "lockMovementY": true,
-                        "selectable": false
+                        "strokeWidth": 3
                     },
                     "name": "Arrow",
                     "expanded": false,
@@ -118,13 +99,9 @@ export default <Settings>{
                         "hasStrokeWidth": true
                     },
                     "defaultOptions": {
-                        "width": 30,
-                        "height": 30,
                         "stroke": "#3398DBff",
                         "strokeWidth": 10,
-                        "fill": "#A463BFff",
-                        "top": 61.08984375,
-                        "left": 95.625
+                        "fill": "#A463BFff"
                     },
                     "name": "Circle",
                     "expanded": false,
@@ -138,8 +115,6 @@ export default <Settings>{
                         "hasText": false
                     },
                     "defaultOptions": {
-                        "width": 30,
-                        "height": 30,
                         "stroke": "#222F3Dff",
                         "fill": "#1CA085ff",
                         "strokeWidth": 13
@@ -157,10 +132,7 @@ export default <Settings>{
                     },
                     "defaultOptions": {
                         "stroke": "#2ECC70ff",
-                        "strokeWidth": 9,
-                        "top": 30.691172761664568,
-                        "left": 146.1378310214376,
-                        "sign": "wfs0v71oa"
+                        "strokeWidth": 9
                     },
                     "name": "Sign",
                     "expanded": false,
@@ -267,7 +239,7 @@ export default <Settings>{
     "other": {
         "text": "Ostatne",
         "settings": {
-            "showPreviews": false,
+            "showPreviews": true,
             "autoSave": true,
             "showTimer": false
         },

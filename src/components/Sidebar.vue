@@ -80,6 +80,9 @@ export default class Sidebar extends SidebarProps {
     this.$refs.searchBar.getTags();
     this.eventHub.$on("document:save", this.save);
     this.eventHub.$on("editor:search", this.search);
+    this.eventHub.$on("shortcut:selectNext", () => this.selectDir(1));
+    this.eventHub.$on("shortcut:selectPrev", () => this.selectDir(-1));
+    this.eventHub.$on("shortcut:save", this.save);
     this.timer = setInterval(this.stopwatchUpdate, 1000);
   }
   init() {

@@ -121,6 +121,9 @@ export default class Viewport extends ViewportProps {
     this.init();
     this.eventHub.$on("viewport:scale", this.setScale);
     this.eventHub.$on("viewport:rotate", this.rotate);
+    this.eventHub.$on("shortcut:zoomIn", () => this.setScale(0.1));
+    this.eventHub.$on("shortcut:zoomOut", () => this.setScale(-0.1));
+    this.eventHub.$on("shortcut:delete", this.deleteSelected);
     window.addEventListener("resize", this.resize);
     PDFdocument.initDocument = (task: any) => {
       if (this.allPagesLoaded) return;

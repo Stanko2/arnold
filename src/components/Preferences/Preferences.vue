@@ -38,7 +38,7 @@
         >
           <template #header class="p-0">
             <div class="w-100 h-100" @click="tool.expanded = !tool.expanded">
-              {{ tool.name }}
+              {{ shortcutNameMap[tool.name] }}
             </div>
           </template>
           <transition name="slide">
@@ -162,7 +162,7 @@
         </b-alert>
         <div v-for="tool in selectedCategory.settings" :key="tool.name">
           <b-row>
-            <b-col align-self="center">{{ tool.name }}</b-col>
+            <b-col align-self="center">{{ shortcutNameMap[tool.name] }}</b-col>
             <b-col align-self="center">
               <b-form-input
                 class="float-right w-50"
@@ -191,6 +191,7 @@ import {
   ToolsCategory,
 } from "@/@types";
 import { Settings } from "@/@types/Preferences";
+import { nameMap } from "@/Mixins/Keybindings.vue"
 
 @Component({
   components: {
@@ -202,6 +203,7 @@ export default class Preferences extends Vue {
   categories: any;
   selectedCategoryIndex!: number;
   selectedCategory: any;
+  shortcutNameMap = nameMap;
   data() {
     const toolsCopy = [
       ...tools.map((e) => {

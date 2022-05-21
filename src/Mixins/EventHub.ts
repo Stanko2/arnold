@@ -5,7 +5,7 @@ const eventHub = new Vue();
 export default eventHub;
 
 Vue.mixin({
-    data: function(){
+    data: function () {
         return {
             eventHub: eventHub,
         }
