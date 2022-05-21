@@ -11,13 +11,13 @@
         <div v-if="showScoringPanel" class="bodovanie_okno bg-primary">
           <div class="d-flex flex-row">
             <h3 class="w-50">Body:</h3>
-            <input
+            <b-form-input
               type="number"
-              class="form-control w-50"
+              class="w-50"
               placeholder="Zadaj body ..."
               v-model.number="$data.points"
+              ref="pointInput"
               @change="saveScoring"
-              id="mainInput"
             />
             <div class="d-flex flex-row mr-2"></div>
           </div>
@@ -27,7 +27,7 @@
               v-for="(criteria, i) in pointCriterias"
               :key="criteria.id"
             >
-              <input
+              <b-form-checkbox
                 class="form-check-input"
                 type="checkbox"
                 :id="criteria.id"
@@ -76,12 +76,12 @@
                   "
                 >
                   <div class="w-100">
-                    <input
+                    <b-form-input
                       type="number"
-                      class="kriteria-body form-control d-inline"
+                      class="kriteria-body d-inline"
                       v-model.number="criteria.points"
                     />B - za
-                    <input
+                    <b-form-input
                       type="text"
                       v-model="criteria.from"
                       style="width: 80%"
@@ -115,6 +115,7 @@ import { TextAnnotation } from "@/Annotation";
 import { PDFdocument } from "./PDFdocument";
 import Component from "vue-class-component";
 import { getViewedDocument } from "@/DocumentManager";
+import { BFormInput } from "bootstrap-vue";
 
 @Component({})
 export default class Scoring extends Vue {
@@ -126,9 +127,13 @@ export default class Scoring extends Vue {
   doc: Document | null = null;
   annotName: string = "";
   showScoringPanel: boolean = false;
+  $refs!: {
+    pointInput: BFormInput
+  }
 
   mounted() {
     const pointCriterias = localStorage.getItem("bodovanie");
+    this.eventHub.$on("shortcut:scoring", this.toggle)
     if (pointCriterias) {
       this.pointCriterias = JSON.parse(pointCriterias);
       this.acceptedCriteria = this.pointCriterias.map(() => false);
@@ -151,6 +156,11 @@ export default class Scoring extends Vue {
 
   toggle() {
     this.showScoringPanel = !this.showScoringPanel;
+    if (this.showScoringPanel) {
+      this.$nextTick().then(() => {
+        this.$refs.pointInput.focus();
+      });
+    }
   }
 
   updatepointCriterias() {
@@ -180,12 +190,25 @@ export default class Scoring extends Vue {
   saveScoring() {
     console.log(this.doc);
     if (!this.doc) return;
-    this.doc.scoring = {
-      points: this.points || 0,
-      acceptedCriteria: this.pointCriterias.filter((e, i) => this.acceptedCriteria[i]).map((e) => e.id),
-      final: this.final,
-      annotName: this.annotName,
-    };
+    if (this.final) {
+      this.doc.scoring = {
+        points: this.points || 0,
+        acceptedCriteria: this.pointCriterias.filter((e, i) => this.acceptedCriteria[i]).map((e) => e.id),
+        final: this.final,
+        annotName: this.annotName,
+      };
+    } else {
+      if (this.points || this.points === 0) {
+        this.doc.scoring = {
+          points: this.points || 0,
+          acceptedCriteria: this.pointCriterias.filter((e, i) => this.acceptedCriteria[i]).map((e) => e.id),
+          final: this.final,
+          annotName: this.annotName,
+        };
+      } else {
+        delete this.doc.scoring;
+      }
+    }
     Database.updateDocument(this.doc.id, this.doc);
   }
 

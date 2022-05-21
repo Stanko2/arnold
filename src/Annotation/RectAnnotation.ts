@@ -27,7 +27,7 @@ export class RectAnnotation extends Annotation {
         pos = pos.subtract(center);
         page.drawRectangle({
             borderColor: rgb(stroke.red() / 255, stroke.green() / 255, stroke.blue() / 255),
-            color: rgb(fill.blue() / 255, fill.green() / 255, fill.blue() / 255),
+            color: rgb(fill.red() / 255, fill.green() / 255, fill.blue() / 255),
             borderWidth: this.object.strokeWidth,
             height: this.object.height,
             width: this.object.width,

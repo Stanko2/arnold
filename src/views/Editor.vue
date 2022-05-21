@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <nav class="navbar navbar-light bg-primary" style="padding: 0">
-      <topbar class="pdf" @download="downloadCurrent" ref="topbar"></topbar>
+      <topbar class="pdf" ref="topbar"></topbar>
     </nav>
     <div class="d-flex main">
       <transition name="sidebar">
@@ -25,7 +25,7 @@
         <span class="material-icons">arrow_forward_ios</span>
       </div>
       <div style="width: 100%">
-        <toolbar :pdf="pdf" @refresh="refresh"></toolbar>
+        <toolbar :pdf="pdf"></toolbar>
         <div class="viewportWrapper" v-if="pdf != null">
           <keep-alive :max="10">
             <Viewport :pdf="pdf" :key="pdf.id" ref="viewport"></Viewport>
@@ -35,29 +35,7 @@
     </div>
     <scoring />
     <tags />
-    <div v-if="shortcutsUpdate">
-      <div
-        v-shortkey.once="getShortcut('selectPrev')"
-        @shortkey="$refs.sidebar.selectDir(-1)"
-      ></div>
-      <div
-        v-shortkey.once="getShortcut('selectNext')"
-        @shortkey="$refs.sidebar.selectDir(1)"
-      ></div>
-      <div
-        v-shortkey.once="getShortcut('save')"
-        @shortkey="$refs.sidebar.save()"
-      ></div>
-      <div
-        v-shortkey.once="getShortcut('delete')"
-        @shortkey="deleteSelected"
-      ></div>
-      <div v-shortkey.once="getShortcut('zoomIn')" @shortkey="scale(0.1)"></div>
-      <div
-        v-shortkey.once="getShortcut('zoomOut')"
-        @shortkey="scale(-0.1)"
-      ></div>
-    </div>
+    <shortcuts />
   </div>
 </template>
 
@@ -68,13 +46,14 @@ import Viewport from "../components/Viewport.vue";
 import Topbar from "../components/Topbar/Topbar.vue";
 import Toolbar from "../components/Tools/Toolbar.vue";
 import SearchBar from "../components/SearchBar.vue";
-import { Documents, loadFromDatabase } from "../DocumentManager";
+import { Documents, getViewedDocument, loadFromDatabase } from "../DocumentManager";
 import type { PDFdocument } from "@/components/PDFdocument";
 import Scoring from "@/components/Scoring.vue";
 import { loadFonts } from "@/components/Fonts";
 import Tags from "@/components/Tags/Tagy.vue";
 import Component from "vue-class-component";
 import Sidebar from "@/components/Sidebar.vue";
+import Shortcuts from "@/Mixins/Keybindings.vue"
 
 @Component({
   components: {
@@ -84,18 +63,19 @@ import Sidebar from "@/components/Sidebar.vue";
     Scoring,
     Tags,
     Sidebar,
+    Shortcuts
   },
 })
 export default class Editor extends Vue {
   Documents!: Document[];
   documentsShown!: boolean[];
-  selectedIndex: number = 0;
-  pdf!: PDFdocument;
-  shortcuts!: Shortcut[];
-  prefs!: Settings;
+  selectedIndex = 0;
+  pdf: PDFdocument | null = null;
+  get prefs(): Settings {
+    return this.$store.state.settings;
+  }
   loadedDocuments: boolean = false;
   sidebarVisible: boolean = true;
-  shortcutsUpdate: boolean = true;
 
   $refs!: {
     searchBar: SearchBar;
@@ -103,17 +83,6 @@ export default class Editor extends Vue {
     sidebar: Sidebar;
   };
   mounted() {
-    this.$store.subscribe((mutation) => {
-      if (mutation.type == "applySettings") {
-        const settings = mutation.payload as Settings;
-        this.prefs = settings;
-        this.shortcuts = settings.shortcut.settings;
-        this.shortcutsUpdate = false;
-        this.$nextTick().then(() => {
-          this.shortcutsUpdate = true;
-        });
-      }
-    });
     if (Documents.length == 0) {
       loadFromDatabase()
         .then((Documents) => {
@@ -133,46 +102,11 @@ export default class Editor extends Vue {
       });
       loadFonts();
     };
-  }
-  data() {
     this.$store.commit("loadData");
     Documents.sort((a: Document, b: Document) => a.index - b.index);
-    // const tags = JSON.parse(localStorage.getItem("tags") || "[]");
-    // const prefs = JSON.parse(localStorage.getItem("preferences") || "{}")?.other
-    //   ?.settings;
-    // const shortcuts = JSON.parse(localStorage.getItem("preferences") || "{}")
-    //   ?.shortcut?.settings;
-    return {
-      pdf: undefined,
-      Documents: Documents,
-      selectedIndex: 0,
-      documentsShown: Documents.map(() => true),
-      tags: this.$store.state.tags,
-      prefs: this.$store.state.settings,
-      shortcuts: this.$store.state.settings.shortcut.settings,
-      loadedDocuments: false,
-      sidebarVisible: true,
-    };
-  }
-  getShortcut(name: string) {
-    const shortcut = this.shortcuts?.find((e: any) => e.name == name);
-    return shortcut?.shortcut.split("+").map((e) => (e === "plus" ? "+" : e));
-  }
-  downloadCurrent() {
-    this.eventHub.$emit("editor:download", this.pdf.id);
-  }
-  deleteSelected() {
-    const viewport = this.$refs.viewport;
-    viewport.deleteSelected();
-  }
-  refresh() {
-    this.$refs.viewport.$forceUpdate();
-    this.$nextTick().then(() => {
-      this.eventHub.$emit("editor:setDocument", this.selectedIndex);
-    });
-  }
-  scale(multiplier: number) {
-    this.$refs.viewport.setScale(multiplier);
+    this.Documents = Documents;
+    this.documentsShown = Documents.map(() => true);
+    this.pdf = getViewedDocument();
   }
 }
 </script>

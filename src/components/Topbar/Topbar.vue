@@ -1,51 +1,81 @@
 <template>
-  <div class="d-flex justify-content-between w-100">
-    <div>
-      <b-button variant="success" @click="$router.push({ path: '/' })"
-        >Domov</b-button
-      >
-      <session-destroy-button :downloading="downloading" />
-      <button class="btn btn-success" @click="eventHub.$emit('document:save')">
-        Uložiť
-      </button>
-      <download-all-button />
-      <!-- <b-button variant="success" :disabled="downloading" @click="downloadAll">
-        <div v-if="downloading">
-          <b-spinner
-            variant="secondary"
-            label="loading..."
-            v-if="downloading"
-            small
-          ></b-spinner>
-          Komprimujem
-        </div>
-        <div v-else>Download all</div>
-      </b-button> -->
-      <button class="btn btn-success" @click="download">Download</button>
-      <add-document-button />
-      <b-button variant="success" v-b-modal.stats>Štatistiky</b-button>
-      <b-modal
-        id="stats"
-        title="Statistiky"
-        centered
-        size="xl"
-        ok-only
-        scrollable
-        ><stats ref="stat"></stats
-      ></b-modal>
-      <b-button variant="success" v-b-modal.preferences>Nastavenia</b-button>
-      <b-modal
-        id="preferences"
-        title="Nastavenia"
-        size="xl"
-        ok-only
-        @ok="$refs.preferences.save()"
-        ><preferences ref="preferences"></preferences
-      ></b-modal>
-      <b-button variant="success" @click="$router.push({ path: '/help' })"
-        >Pomoc</b-button
-      >
-    </div>
+  <!-- create navbar -->
+  <b-navbar type="dark" variant="dark" style="width: 100%">
+    <b-navbar-brand
+      @click="$router.push({ path: '/' })"
+      :active="$route.path === '/'"
+    >
+      <img class="logo" src="@/assets/Icon.png" alt="Arnold" height="30" />
+    </b-navbar-brand>
+    <b-collapse id="nav-collapse" is-nav>
+      <b-navbar-nav>
+        <!-- session destroy button -->
+        <session-destroy-button :disabled="downloading" />
+
+        <b-nav-item class="nav-separator" />
+
+        <!-- save button -->
+        <b-nav-item @click="eventHub.$emit('document:save')">
+          <span>Uložiť</span>
+        </b-nav-item>
+
+        <b-nav-item class="nav-separator" />
+
+        <!-- download button -->
+
+        <b-nav-item @click="download">
+          <span>Stiahnuť</span>
+        </b-nav-item>
+
+        <!-- download all button -->
+        <download-all-button :mode="1" />
+
+        <b-nav-item class="nav-separator" />
+
+        <!-- add document button -->
+
+        <add-document-button />
+
+        <b-nav-item class="nav-separator" />
+
+        <!-- stats button -->
+        <b-nav-item v-b-modal.stats>
+          <span>Štatistiky</span>
+          <b-modal
+            id="stats"
+            title="Štatistiky"
+            centered
+            size="xl"
+            ok-only
+            scrollable
+            ><stats ref="stat"></stats>
+          </b-modal>
+        </b-nav-item>
+
+        <b-nav-item class="nav-separator" />
+
+        <!-- preferences button -->
+        <b-nav-item v-b-modal.preferences>
+          <span>Nastavenia</span>
+          <b-modal
+            id="preferences"
+            title="Nastavenia"
+            size="xl"
+            ok-only
+            @ok="$refs.preferences.save()"
+            ><preferences ref="preferences"></preferences>
+          </b-modal>
+        </b-nav-item>
+
+        <b-nav-item class="nav-separator" />
+
+        <!-- help button -->
+        <b-nav-item @click="$router.push({ path: '/help' })">
+          Pomoc
+        </b-nav-item>
+      </b-navbar-nav>
+    </b-collapse>
+
     <div class="bottom-progress-bar" v-if="downloading">
       <b-progress max="100" show-progress animated class="h-100 w-100">
         <b-progress-bar :value="progress" animated>
@@ -53,7 +83,7 @@
         </b-progress-bar>
       </b-progress>
     </div>
-  </div>
+  </b-navbar>
 </template>
 
 <script lang="ts">
@@ -75,11 +105,11 @@ export default class Topbar extends Vue {
   noveRiesenia: File[] = [];
 
   mounted() {
-    this.eventHub.$on("download:done", () => (this.downloading = false));
+    this.eventHub.$on("download:done", () => { this.downloading = false });
+    this.eventHub.$on("editor:downloadZip", () => { this.downloading = true; this.progress = 0 });
     this.eventHub.$on("download:progress", (progress: number) => {
       this.progress = progress;
     });
-    this.eventHub.$on("editor:downloadZip", () => { this.downloading = true; this.progress = 0 });
   }
 
   download() {
@@ -96,9 +126,27 @@ export default class Topbar extends Vue {
 }
 .bottom-progress-bar {
   position: fixed;
-  width: 100vw;
+  width: 100%;
+  left: 0;
   bottom: 0;
   height: 30px;
   z-index: 10;
+}
+
+.nav-separator {
+  border-right: 3px solid #505050;
+  margin: 0;
+  padding: 0;
+  width: 0;
+  height: 40px;
+}
+
+.logo {
+  margin-right: 10px;
+  transition: all 300ms ease-in-out;
+}
+.logo:hover {
+  filter: blur(2px);
+  transform: scale(1.1);
 }
 </style>
