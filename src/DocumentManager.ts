@@ -184,7 +184,13 @@ async function createBackup(): Promise<Buffer> {
         scoringCriteria: store.state.scoringCriteria,
     };
     Documents.forEach(e => {
-        data.changes[e.id] = e as DocumentBackup;
+        data.changes[e.id] = {
+            changes: e.changes,
+            opened: e.opened,
+            tags: e.tags,
+            timeOpened: e.timeOpened,
+            scoring: e.scoring
+        };
     });
     return packr.pack(data);
 }
