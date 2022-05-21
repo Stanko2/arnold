@@ -35,7 +35,7 @@
       otvor radšej menej kategórii naraz a potom sa možeš prepnúť cez túto
       stránku.
     </b-alert>
-    <div v-if="hasDocuments === false">
+    <div v-if="hasDocuments == false">
       <p>{{ fileName }}</p>
       <b-form-file
         v-model="fileInput"
@@ -70,7 +70,7 @@
         riešení
       </p>
     </div>
-    <div v-else class="text-center">
+    <div v-if="hasDocuments == null" class="text-center">
       <b-spinner variant="primary"></b-spinner>
     </div>
     <hr />
@@ -107,7 +107,7 @@ export default class Home extends Vue {
   hasFile = false;
   fileInput: File | undefined = undefined;
   backupInput: File | undefined = undefined;
-  hasDocuments: boolean | undefined = undefined;
+  hasDocuments: boolean | null = null;
   problem: string = "";
   categories: Array<Category> = [];
 

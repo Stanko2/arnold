@@ -6,7 +6,7 @@ import { PMatParser } from "./DocumentParser";
 import eventHub from "./Mixins/EventHub";
 import type { IScoring, Document, DocumentParser, Tag, ScoringCriteria } from "./@types";
 import store from "./Store";
-
+import { Packr } from "msgpackr";
 
 eventHub.$on('editor:setDocument', setPdf);
 eventHub.$on('editor:downloadZip', createZip);
@@ -21,6 +21,7 @@ export let activeParser: DocumentParser;
 export let Documents: Document[] = []
 let pdf: null | PDFdocument = null;
 let selectedDocumentIndex = -1;
+const packr = new Packr();
 async function setPdf(id: number) {
     // if (!index) {
     //     setPdf(selectedDocumentIndex);
@@ -62,7 +63,8 @@ export async function readZip(file: File): Promise<any> {
     const buffer = await file.arrayBuffer();
     const zipReader = new JSZip();
     const zipFile = await zipReader.loadAsync(buffer);
-    const backupData: BackupFile | null = JSON.parse((await zipFile.file('Backup.json')?.async('text')) || 'null')
+    const changesBuff = zipFile.file('changes.arn');
+    const backupData: BackupFile | null = changesBuff == null ? null : packr.decode(await changesBuff.async("uint8array"));
     let changes: Record<string, DocumentBackup> = {};
     if (backupData) {
         changes = backupData.changes;
@@ -175,7 +177,7 @@ interface DocumentBackup {
     timeOpened: number;
 }
 
-async function createBackup(): Promise<string> {
+async function createBackup(): Promise<Buffer> {
     let data: BackupFile = {
         tags: store.state.tags,
         changes: {},
@@ -184,15 +186,15 @@ async function createBackup(): Promise<string> {
     Documents.forEach(e => {
         data.changes[e.id] = e as DocumentBackup;
     });
-    return JSON.stringify(data);
+    return packr.pack(data);
 }
 
 async function createZip(forArnold: boolean) {
     const documents = await Database.getAllDocuments();
     const zip = new JSZip();
     if (forArnold) {
-        const backup = createBackup();
-        zip.file('Backup.json', backup);
+        const backup = await createBackup();
+        zip.file('changes.arn', backup);
         const task = localStorage.getItem('uloha');
         for (const doc of documents) {
             const name = doc.originalName.substring(0, doc.originalName.lastIndexOf('.pdf'));
