@@ -9,8 +9,6 @@
           'btn-outline-primary': selectedTool.name != tool.name,
         }"
         @click="select(tool)"
-        v-shortkey="[`${tool.shortcut}`]"
-        @shortkey="select(tool)"
       >
         <span class="material-icons">{{ tool.icon }}</span>
       </button>
@@ -131,13 +129,6 @@
       >
         <span class="material-icons">remove</span>
       </button>
-      <!-- <button
-        id="rotateButton"
-        class="btn btn-outline-primary"
-        @click="eventHub.$emit('viewport:rotate')"
-      >
-        <span class="material-icons">refresh</span>
-      </button> -->
       <b-button id="repairButton" @click="$refs.repairTool.Open()">
         <span class="material-icons">build</span>
       </b-button>
@@ -203,6 +194,9 @@ export default class Toolbar extends Vue {
     this.getImages().then((images) => {
       this.images = images;
     });
+    for (const tool of tools) {
+      this.eventHub.$on(`shortcut:${tool.name}`, () => this.select(tool));
+    }
   }
 
   select(tool: Tool) {

@@ -3,7 +3,7 @@ import Vuex, { Store } from 'vuex';
 import { Settings, Tag, Document, ScoringCriteria } from './@types';
 
 import defaultSettings from './components/Preferences/DefaultSettings';
-interface State {
+export interface State {
     settings: Settings;
     tags: Tag[];
     documents: Document[];

@@ -1,33 +1,33 @@
 <template>
   <div class="d-flex flex-column justify-content-around stats-panel">
     <stats-entry
-      :max="stats.celkovo"
-      :value="stats.otvorene"
-      :color="color('#264653')"
-      label="Otvorených"
+        :max="stats.celkovo"
+        :value="stats.otvorene"
+        :color="color('#264653')"
+        label="Otvorených"
     />
     <stats-entry
-      :max="stats.celkovo"
-      :value="stats.komentar"
-      :color="color('#F4A261')"
-      label="Komentár"
+        :max="stats.celkovo"
+        :value="stats.komentar"
+        :color="color('#F4A261')"
+        label="Komentár"
     />
     <stats-entry
-      :max="stats.celkovo"
-      :value="stats.obodovane"
-      v-if="scoringChartData"
-      :color="color('#E9C46A')"
-      label="Obodované"
-      ><pie-chart
+        :max="stats.celkovo"
+        :value="stats.obodovane"
+        v-if="scoringChartData"
+        :color="color('#E9C46A')"
+        label="Obodované"
+    ><pie-chart
         class="pie-chart"
         :data="scoringChartData.chartData"
         :options="scoringChartData.chartOptions"
     /></stats-entry>
     <stats-entry
-      :max="stats.celkovo"
-      :value="stats.hotovo"
-      :color="color('#2A9D8F')"
-      label="Hotovo"
+        :max="stats.celkovo"
+        :value="stats.hotovo"
+        :color="color('#2A9D8F')"
+        label="Hotovo"
     />
   </div>
 </template>
@@ -83,7 +83,7 @@ export default class Stats extends Vue {
       otvorene: this.count(Documents, (e: Document) => e.opened),
       komentar: this.count(Documents, (e: Document) => {
         return e.changes.some(
-          (f) => f.type === "Text" && f.data.hasControls
+            (f) => f.type === "Text" && f.data.hasControls
         );
       }),
       obodovane: this.count(Documents, (e: Document) => {
@@ -91,26 +91,42 @@ export default class Stats extends Vue {
       }),
       hotovo: this.count(Documents, (e: Document) => {
         return (
-          (e.scoring?.final || false) &&
-          e.changes.some(
-            (f) => f.type === "Text" && f.data.hasControls
-          )
+            (e.scoring?.final || false) &&
+            e.changes.some(
+                (f) => f.type === "Text" && f.data.hasControls
+            )
         );
       }),
     };
     this.generateScoringChartData(Documents);
   }
   generateScoringChartData(Documents: Document[]) {
-    const scores: Record<string, number> = {};
+    const uscores: Record<string, number> = {};
     for (const doc of Documents) {
       if (doc.scoring) {
-        if (scores[`${doc.scoring.points}B`])
-          scores[`${doc.scoring.points}B`]++;
-        else scores[`${doc.scoring.points}B`] = 1;
+        if (uscores[`${doc.scoring.points}B`])
+          uscores[`${doc.scoring.points}B`]++;
+        else uscores[`${doc.scoring.points}B`] = 1;
       } else {
-        if (scores["Neobodovane"]) scores["Neobodovane"]++;
-        else scores["Neobodovane"] = 1;
+        if (uscores["Neobodovane"]) uscores["Neobodovane"]++;
+        else uscores["Neobodovane"] = 1;
       }
+    }
+
+    const keys = Object.keys(uscores).sort((a, b) => {
+      if (a === "Neobodovane") return -1;
+      if (b === "Neobodovane") return 1;
+
+      const aPoints = parseFloat(a.split("B")[0]);
+      const bPoints = parseFloat(b.split("B")[0]);
+      if (aPoints < bPoints) return -1;
+      if (aPoints > bPoints) return 1;
+      return 0;
+    }).reverse();
+
+    const scores: Record<string, number> = {};
+    for (const key of keys) {
+      scores[key] = uscores[key];
     }
 
     this.scoringChartData = {
@@ -125,7 +141,7 @@ export default class Stats extends Vue {
           {
             label: "Scores",
             backgroundColor: Object.keys(scores).map((e) =>
-              this.randomColor(e)
+                this.randomColor(e)
             ),
             data: Object.values(scores),
           },
