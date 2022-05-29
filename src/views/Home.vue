@@ -31,22 +31,22 @@
     </b-jumbotron>
     <!-- <label for="mainInput" class="inputWrapper"> </label> -->
     <b-alert :show="getDocumentCount() > 120" dismissible variant="warning">
-      Pri takychto vysokych počtoch riešení som nestabilný a spomalený. Prosím
-      otvor radšej menej kategórii naraz a potom sa možeš prepnúť cez túto
+      Pri takýchto vysokých počtoch riešení som nestabilný a spomalený. Prosím
+      otvor radšej menej kategórii naraz a potom sa môžeš prepnúť cez túto
       stránku.
     </b-alert>
     <div v-if="hasDocuments === false">
       <p>{{ fileName }}</p>
       <b-form-file
-        v-model="fileInput"
-        accept=".zip"
-        id="mainInput"
-        size="lg"
-        placeholder="Vloz zip, v ktorom su vsetky riesenia"
+          v-model="fileInput"
+          accept=".zip"
+          id="mainInput"
+          size="lg"
+          placeholder="Vlož zip, v ktorom sú všetky riešenia"
       />
       <b-button @click="start">Načítaj</b-button>
     </div>
-    <div v-if="hasDocuments">
+    <div v-else-if="hasDocuments">
       <b-list-group v-if="hasDocuments">
         <b-list-group-item variant="primary">
           <h3>Vyber si kategórie, ktoré ideš opravovať</h3>
@@ -75,7 +75,7 @@
     </div>
     <hr />
     <b-button
-      :disabled="getDocumentCount() == 0"
+      :disabled="getDocumentCount() === 0"
       size="lg"
       block
       variant="primary"
@@ -89,7 +89,7 @@
 <script lang="ts">
 import { Database } from "@/Db";
 import Vue from "vue";
-import { loadFromDatabase, readZip } from "../DocumentManager";
+import { loadFromDatabase, readZip } from "@/DocumentManager";
 import { Document, DocumentParser } from "@/@types";
 import { PMatParser } from "@/DocumentParser";
 import Component from "vue-class-component";
@@ -103,11 +103,10 @@ interface Category {
 
 @Component({ components: { Changelog } })
 export default class Home extends Vue {
-  fileName: string = "Vloz Zip s PDFkami na opravovanie";
+  fileName: string = "Vlož zip s PDFkami na opravovanie";
   hasFile = false;
-  fileInput: File | undefined = undefined;
-  backupInput: File | undefined = undefined;
-  hasDocuments: boolean | undefined = undefined;
+  fileInput: File | null = null;
+  hasDocuments: boolean | null = null;
   problem: string = "";
   categories: Array<Category> = [];
 
@@ -193,7 +192,7 @@ export default class Home extends Vue {
             if (!accepted) {
               this.$bvModal.msgBoxOk(`Nepodarilo sa mi dostať povolenie na persistentné ukladanie riešení na disku. 
                 V prípade málo miesta môžu byť rozopravované riešenia zmazané bez upozornenia. 
-                Ak si v chrome, uisti sa, že som nainštalovaný, mám povolené notifikácie a som pridaný do bookmarkov. 
+                Ak si v Chrome, uisti sa, že som nainštalovaný, mám povolené notifikácie a som pridaný do bookmarkov.
                 Ak si vo Firefoxe, tak si mi nepovolil persistent storage.`, {
                 okVariant: 'warning'
               });
