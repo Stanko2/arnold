@@ -148,7 +148,7 @@ import { tools } from "./Tool";
 import { PDFdocument } from "../PDFdocument";
 import { FontsAvailable } from "../Fonts";
 import { Canvas } from "../../Canvas";
-import { getViewedDocument } from "@/DocumentManager";
+import { getViewedDocument } from "@/Documents/DocumentManager";
 
 import SignModal from "./SignModal.vue";
 import ImageModal from "./ImageModal.vue";

@@ -1,7 +1,7 @@
 import { Canvas } from "@/Canvas";
 import { Annotation } from "./Annotation";
 import { EmbedFont } from "@/components/Fonts";
-import { getViewedDocument } from "@/DocumentManager";
+import { getViewedDocument } from "@/Documents/DocumentManager";
 import Color from "color";
 import { fabric } from "fabric";
 import { concatTransformationMatrix, degrees, PDFFont, PDFPage, PDFPageDrawTextOptions, popGraphicsState, pushGraphicsState, rgb, rotateDegrees, scale, toHexStringOfMinLength, translate } from "pdf-lib";
