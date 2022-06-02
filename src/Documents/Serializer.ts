@@ -40,8 +40,7 @@ async function createZip(forArnold: boolean) {
         zip.file('changes.arn', backup);
         const task = localStorage.getItem('uloha');
         for (const doc of documents) {
-            const name = doc.originalName.substring(0, doc.originalName.lastIndexOf('.pdf'));
-            zip.file(`${task}/${name}.pdf`, doc.initialPdf);
+            zip.file(`${task}/${doc.originalName}`, doc.initialPdf);
             if (doc.changes.length > 0) {
                 zip.file(`${task}/${doc.id}_graded.pdf`, doc.pdfData);
             }
