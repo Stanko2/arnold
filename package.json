@@ -22,6 +22,7 @@
     "fontfaceobserver": "^2.1.0",
     "jszip": "^3.7.0",
     "material-design-icons": "^3.0.1",
+    "msgpackr": "^1.6.0",
     "pdf-lib": "^1.17.0",
     "pdfvuer": "^1.9.2",
     "register-service-worker": "^1.7.1",

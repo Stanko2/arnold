@@ -58,7 +58,7 @@
 const pdf = require("pdfvuer");
 import { Canvas } from "../Canvas";
 import { PDFdocument } from "./PDFdocument";
-import { getViewedDocument } from "@/DocumentManager";
+import { getViewedDocument } from "@/Documents/DocumentManager";
 import Vue from "vue";
 import { Database } from "@/Db";
 import Component from "vue-class-component";

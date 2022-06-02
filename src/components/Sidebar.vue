@@ -29,7 +29,7 @@ import Vue from "vue";
 import DocumentPreview from "./DocumentPreview.vue";
 import Component from "vue-class-component";
 import SearchBar from "./SearchBar.vue";
-import { Documents, getViewedDocument } from "@/DocumentManager";
+import { Documents, getViewedDocument } from "@/Documents/DocumentManager";
 import { Document } from "@/@types";
 import { PDFdocument } from "./PDFdocument";
 import { Database } from "@/Db";

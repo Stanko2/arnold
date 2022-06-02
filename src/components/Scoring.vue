@@ -114,7 +114,7 @@ import Vue from "vue";
 import { TextAnnotation } from "@/Annotation";
 import { PDFdocument } from "./PDFdocument";
 import Component from "vue-class-component";
-import { getViewedDocument } from "@/DocumentManager";
+import { getViewedDocument } from "@/Documents/DocumentManager";
 import { BFormInput } from "bootstrap-vue";
 
 @Component({})

@@ -31,11 +31,11 @@
     </b-jumbotron>
     <!-- <label for="mainInput" class="inputWrapper"> </label> -->
     <b-alert :show="getDocumentCount() > 120" dismissible variant="warning">
-      Pri takychto vysokych počtoch riešení som nestabilný a spomalený. Prosím
+      Pri takýchto vysokých počtoch riešení som nestabilný a spomalený. Prosím
       otvor radšej menej kategórii naraz a potom sa možeš prepnúť cez túto
       stránku.
     </b-alert>
-    <div v-if="hasDocuments === false">
+    <div v-if="hasDocuments == false">
       <p>{{ fileName }}</p>
       <b-form-file
         v-model="fileInput"
@@ -70,7 +70,7 @@
         riešení
       </p>
     </div>
-    <div v-else class="text-center">
+    <div v-if="hasDocuments == null" class="text-center">
       <b-spinner variant="primary"></b-spinner>
     </div>
     <hr />
@@ -89,9 +89,10 @@
 <script lang="ts">
 import { Database } from "@/Db";
 import Vue from "vue";
-import { loadFromDatabase, readZip } from "../DocumentManager";
+import { loadFromDatabase } from "../Documents/DocumentManager";
+import { readZip } from "../Documents/Serializer";
 import { Document, DocumentParser } from "@/@types";
-import { PMatParser } from "@/DocumentParser";
+import { PMatParser } from "@/Documents/DocumentParser";
 import Component from "vue-class-component";
 import Changelog from "@/components/Changelog.vue";
 
@@ -107,7 +108,7 @@ export default class Home extends Vue {
   hasFile = false;
   fileInput: File | undefined = undefined;
   backupInput: File | undefined = undefined;
-  hasDocuments: boolean | undefined = undefined;
+  hasDocuments: boolean | null = null;
   problem: string = "";
   categories: Array<Category> = [];
 
@@ -144,6 +145,7 @@ export default class Home extends Vue {
     if (file != null) {
       this.fileName = file["name"];
       this.hasFile = true;
+      this.hasDocuments = null;
       readZip(file).then((val) => {
         this.hasDocuments = val.docs.length > 0;
         this.problem = localStorage.getItem("uloha") || "";
@@ -226,16 +228,4 @@ input[type="file"] {
   flex-direction: row;
   justify-content: space-between;
 }
-/* .inputWrapper {
-  width: 100%;
-  height: 30vh;
-  background: rgba(128, 128, 128, 0.336);
-  border-radius: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.inputWrapper p {
-  color: rgb(83, 81, 81);
-} */
 </style>
