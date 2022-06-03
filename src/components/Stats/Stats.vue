@@ -15,13 +15,10 @@
     <stats-entry
       :max="stats.celkovo"
       :value="stats.obodovane"
-      v-if="scoringChartData"
       :color="color('#E9C46A')"
       label="Obodované"
-      ><pie-chart
-        class="pie-chart"
-        :data="scoringChartData.chartData"
-        :options="scoringChartData.chartOptions"
+      @click.native="updateScoringData"
+      ><scoring-chart ref="scoringChart" :stats="stats"
     /></stats-entry>
     <stats-entry
       :max="stats.celkovo"
@@ -39,12 +36,13 @@ import Color from "color";
 import Vue from "vue";
 import Component from "vue-class-component";
 import StatsEntry from "./StatsEntry.vue";
-import PieChart from "./PieChart.js";
+import ScoringChart from "./ScoringChart.vue";
+
 
 @Component({
   components: {
     StatsEntry,
-    PieChart,
+    ScoringChart
   },
 })
 export default class Stats extends Vue {
@@ -55,7 +53,10 @@ export default class Stats extends Vue {
     obodovane: number;
     hotovo: number;
   };
-  scoringChartData: any = undefined;
+
+  $refs!: {
+    scoringChart: ScoringChart;
+  }
 
   mounted() {
     this.$store.subscribe((mutation) => {
@@ -76,6 +77,13 @@ export default class Stats extends Vue {
       },
     };
   }
+  updateScoringData() {
+    console.log('update');
+    const Documents = this.$store.state.documents;
+    if (this.$refs.scoringChart)
+      this.$refs.scoringChart.$emit('statsUpdate', Documents);
+  }
+
   update() {
     const Documents = this.$store.state.documents;
     this.stats = {
@@ -98,60 +106,8 @@ export default class Stats extends Vue {
         );
       }),
     };
-    this.generateScoringChartData(Documents);
   }
-  generateScoringChartData(Documents: Document[]) {
-    const uscores: Record<string, number> = {};
-    for (const doc of Documents) {
-      if (doc.scoring) {
-        if (uscores[`${doc.scoring.points}B`])
-          uscores[`${doc.scoring.points}B`]++;
-        else uscores[`${doc.scoring.points}B`] = 1;
-      } else {
-        if (uscores["Neobodovane"]) uscores["Neobodovane"]++;
-        else uscores["Neobodovane"] = 1;
-      }
-    }
 
-    const keys = Object.keys(uscores).sort((a, b) => {
-      if (a === "Neobodovane") return -1;
-      if (b === "Neobodovane") return 1;
-
-      const aPoints = parseFloat(a.split("B")[0]);
-      const bPoints = parseFloat(b.split("B")[0]);
-      if (aPoints < bPoints) return -1;
-      if (aPoints > bPoints) return 1;
-      return 0;
-    }).reverse();
-
-    const scores: Record<string, number> = {};
-    for (const key of keys) {
-      scores[key] = uscores[key];
-    }
-
-    this.scoringChartData = {
-      chartOptions: {
-        hoverBorderWidth: 20,
-      },
-      chartData: {
-        hoverBackgroundColor: "red",
-        hoverBorderWidth: 10,
-        labels: Object.keys(scores),
-        datasets: [
-          {
-            label: "Scores",
-            backgroundColor: Object.keys(scores).map((e) =>
-              this.randomColor(e)
-            ),
-            data: Object.values(scores),
-          },
-        ],
-      },
-    };
-  }
-  randomColor(seed: string): string {
-    return Color.hsl(Math.random() * 360, 90, 50).hex();
-  }
   count(arr: any[], fn: (e: any) => boolean): number {
     let out = 0;
     for (let i = 0; i < arr.length; i++) {
