@@ -30,10 +30,10 @@ import DocumentPreview from "./DocumentPreview.vue";
 import Component from "vue-class-component";
 import SearchBar from "./SearchBar.vue";
 import { Documents, getViewedDocument } from "@/DocumentManager";
-import { Document } from "@/@types";
+import { Document, Settings } from "@/@types";
 import { PDFdocument } from "./PDFdocument";
-import { Database } from "@/Db";
 import Editor from "@/views/Editor.vue";
+import { Stopwatch } from "@/components/Stopwatch";
 
 const SidebarProps = Vue.extend({
   props: {
@@ -71,9 +71,9 @@ export default class Sidebar extends SidebarProps {
   documentsShown!: boolean[];
   selectedIndex: number = -1;
   pdf!: PDFdocument;
-  prefs: any;
-  openTime: number = 0;
+  prefs!: Settings;
   timer!: NodeJS.Timer;
+  stopwatch: Stopwatch = new Stopwatch();
   mounted() {
     this.documentsShown = this.documents.map(() => true);
     this.$nextTick(() => this.init());
@@ -90,7 +90,6 @@ export default class Sidebar extends SidebarProps {
       "editor:documentChanged",
       (doc: PDFdocument, metadata: Document) => {
         this.selectedIndex = Documents.findIndex((e) => e.id === metadata.id);
-        this.openTime = Date.now();
         this.pdf = doc;
         if (this.$refs.documentList) {
           this.UpdateCurrentPreview();
@@ -159,21 +158,11 @@ export default class Sidebar extends SidebarProps {
         left: 0,
         behavior: "smooth",
       });
-    // if (this.selectedIndex != newIndex) {
-    //   this.documents[this.selectedIndex].timeOpened +=
-    //     Date.now() - this.openTime;
-    //   Database.updateDocument(
-    //     this.documents[this.selectedIndex].id,
-    //     this.documents[this.selectedIndex],
-    //     false
-    //   );
-    // }
   }
   stopwatchUpdate() {
     if (this.$refs.documentList && this.selectedIndex != -1) {
       this.$refs.documentList[this.selectedIndex]?.updateStopwatch(
-        this.openTime,
-        this.documents[this.selectedIndex].timeOpened
+        this.stopwatch.time
       );
     }
   }

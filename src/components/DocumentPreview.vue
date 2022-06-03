@@ -195,10 +195,8 @@ export default class DocumentPreview extends Previewprops {
       this.hasComment = doc.changes.some(
         (f) => f.type === "Text" && f.data.hasControls
       );
+      this.updateStopwatch(doc.timeOpened);
       setTimeout(() => {
-        // this.pdf = pdf.createLoadingTask({
-        //   data: new Uint8Array(doc.pdfData),
-        // });
         this.generatePreview(doc.pdfData);
       }, 1000 * doc.index);
     });
@@ -235,9 +233,8 @@ export default class DocumentPreview extends Previewprops {
       color: Color(a?.color).isLight() ? "black" : "white",
     };
   }
-  updateStopwatch(openedAt: number, timeOpened: number) {
-    const time = Date.now() - openedAt + timeOpened;
-    const date = new Date(time);
+  updateStopwatch(timeOpened: number) {
+    const date = new Date(timeOpened);
     const f = function (func: () => number) {
       const res = func();
       if (res < 10) {
@@ -248,7 +245,6 @@ export default class DocumentPreview extends Previewprops {
     this.stopwatchText = `${date.getHours() - 1}:${f(() =>
       date.getMinutes()
     )}:${f(() => date.getSeconds())}`;
-    if (this.document) this.document.timeOpened = timeOpened;
   }
 
   async generatePreview(data: ArrayBuffer) {
