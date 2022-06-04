@@ -25,8 +25,7 @@ function init(VueRef: Vue | undefined = undefined) {
         const shortcuts = data.shortcut.settings;
         prefs.tools.forEach((tool: any, index: number) => {
             if (index < tools.length - 1) {
-                tools[index].defaultOptions = {};
-                tools[index].defaultOptions = tool.defaultOptions;
+                tools[index].defaultOptions = Object.assign({}, tools[index].defaultOptions, tool.defaultOptions);
             }
         });
         shortcuts.forEach((shortcut: any) => {
@@ -106,23 +105,23 @@ export const tools: Tool[] = [
         },
         shortcut: 'w'
     },
-    <Tool>{
+    <Tool><unknown>{
         name: 'Photo',
         cursor: 'pointer',
         icon: 'add_photo_alternate',
         tooltip: 'Pridat peciatku',
         shortcut: 'e',
-        defaultOptions: { name: '' },
-        click: async (pdf: PDFdocument, page: number, position: { x: number, y: number }): Promise<fabric.Object> => {
-            const options = Object.assign({}, selectedTool.defaultOptions);
+        defaultOptions: { name: '', image: '' },
+        click: async (pdf: PDFdocument, page: number, position: { x: number; y: number; }): Promise<fabric.Object> => {
+            const options: fabric.IImageOptions & { image: string } = Object.assign({}, selectedTool.defaultOptions as fabric.IImageOptions & { image: string });
             console.log(selectedTool.defaultOptions);
-            const template = await Database.getTemplate((options as any).image)
+            const template = await Database.getTemplate((options as any).image);
             const img = new Image();
             img.src = template.data.img;
             (options as any).image = template.data.img;
-            const fabricImg = new fabric.Image(img, options);
-            pdf.addAnnotation(new ImageAnnotation(page, { ...fabricImg, image: img.src }, pdf.pageCanvases[page]))
-            return fabricImg;
+            const annot = new ImageAnnotation(page, options, pdf.pageCanvases[page]);
+            pdf.addAnnotation(annot);
+            return annot.object;
         },
         options: {
             hasFill: false,
