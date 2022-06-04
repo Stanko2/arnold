@@ -6,6 +6,7 @@ import Vue from "vue";
 import { Database } from "@/Db";
 import eventHub from "@/Mixins/EventHub";
 import type { Tool } from "@/@types";
+import store from '@/Store';
 
 var vue: Vue | null = null;
 
@@ -18,10 +19,10 @@ function init(VueRef: Vue | undefined = undefined) {
         EllipseAnnotation.toolOptions = tools[4];
         RectAnnotation.toolOptions = tools[5];
     }
-    const data = localStorage.getItem('preferences')
+    const data = store.state.settings
     if (data) {
-        const prefs = JSON.parse(data).tools.settings;
-        const shortcuts = JSON.parse(data).shortcut.settings;
+        const prefs = data.tools.settings;
+        const shortcuts = data.shortcut.settings;
         prefs.tools.forEach((tool: any, index: number) => {
             if (index < tools.length - 1) {
                 tools[index].defaultOptions = {};
@@ -48,7 +49,7 @@ export const tools: Tool[] = [
     <Tool>{
         name: 'Text',
         cursor: 'pointer',
-        click: (pdf: PDFdocument, page: number, position: { x: number, y: number }): fabric.Object => {
+        click: async (pdf: PDFdocument, page: number, position: { x: number, y: number }): Promise<fabric.Object> => {
             console.log(pdf.pageCanvases);
 
             var annot = new TextAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
@@ -112,17 +113,16 @@ export const tools: Tool[] = [
         tooltip: 'Pridat peciatku',
         shortcut: 'e',
         defaultOptions: { name: '' },
-        click: (pdf: PDFdocument, page: number, position: { x: number, y: number }) => {
+        click: async (pdf: PDFdocument, page: number, position: { x: number, y: number }): Promise<fabric.Object> => {
             const options = Object.assign({}, selectedTool.defaultOptions);
             console.log(selectedTool.defaultOptions);
-
-            Database.getTemplate((options as any).image).then((template) => {
-                const img = new Image();
-                img.src = template.data.img;
-                (options as any).image = template.data.img;
-                const fabricImg = new fabric.Image(img, options);
-                pdf.addAnnotation(new ImageAnnotation(page, { ...fabricImg, image: img.src }, pdf.pageCanvases[page]))
-            })
+            const template = await Database.getTemplate((options as any).image)
+            const img = new Image();
+            img.src = template.data.img;
+            (options as any).image = template.data.img;
+            const fabricImg = new fabric.Image(img, options);
+            pdf.addAnnotation(new ImageAnnotation(page, { ...fabricImg, image: img.src }, pdf.pageCanvases[page]))
+            return fabricImg;
         },
         options: {
             hasFill: false,
@@ -141,7 +141,7 @@ export const tools: Tool[] = [
             stroke: '#000000',
             strokeWidth: 5,
         },
-        click: (pdf: PDFdocument, page: number, position: { x: number, y: number }) => {
+        click: async (pdf: PDFdocument, page: number, position: { x: number, y: number }) => {
             const annot = new LineAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
             // selectTool(tools[7]);
@@ -162,14 +162,15 @@ export const tools: Tool[] = [
         tooltip: 'Pridat kruh / elipsu',
         shortcut: 't',
         defaultOptions: <fabric.IEllipseOptions>{
-            rx: 30,
-            ry: 30,
             stroke: '#000000',
             strokeWidth: 5,
         },
-        click: (pdf: PDFdocument, page: number, position: { x: number, y: number }) => {
-            var annot = new EllipseAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
+        click: async (pdf: PDFdocument, page: number, position: { x: number, y: number }) => {
+            const options: fabric.IEllipseOptions = Object.assign({}, selectedTool.defaultOptions, { width: 30, height: 30 });
+            var annot = new EllipseAnnotation(page, options, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
+            console.log(annot.object);
+
             selectTool(tools[7]);
             selectedTool.defaultOptions = tools.find(e => e.name == 'Circle')?.defaultOptions || {};
             return annot.object;
@@ -190,8 +191,9 @@ export const tools: Tool[] = [
             width: 30,
             height: 30,
         },
-        click: (pdf: PDFdocument, page: number, position: { x: number, y: number }) => {
-            var annot = new RectAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
+        click: async (pdf: PDFdocument, page: number, position: { x: number, y: number }) => {
+            const options: fabric.IEllipseOptions = Object.assign({}, selectedTool.defaultOptions, { width: 30, height: 30 });
+            var annot = new RectAnnotation(page, options, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
             selectTool(tools[7]);
             selectedTool.defaultOptions = tools.find(e => e.name == 'Rect')?.defaultOptions || {};
@@ -212,33 +214,37 @@ export const tools: Tool[] = [
         tooltip: 'Pridat podpis',
         shortcut: 'u',
         defaultOptions: {},
-        click: (pdf: PDFdocument, page: number, position: { x: number, y: number }) => {
+        click: async (pdf: PDFdocument, page: number, position: { x: number, y: number }): Promise<fabric.Group> => {
             const sign = (selectedTool.defaultOptions as any).sign
-            Database.getTemplate(sign).then((sign) => {
-                const cnv = pdf.pageCanvases[page]
-                const paths: fabric.Path[] = [];
-                sign.data.objects.forEach((e: any) => {
-                    e.stroke = selectedTool.defaultOptions.stroke || '#000000';
-                    e.strokeWidth = selectedTool.defaultOptions.strokeWidth || 10;
-                    const path = new fabric.Path(e.path, e);
-                    paths.push(path);
-                    // cnv.add(path);
-                    // console.log(position);
-                });
-                const options = selectedTool.defaultOptions;
-                const grp = new fabric.Group(paths, { left: position.x, top: position.y, ...options });
-                (grp as any).sign = sign;
-                console.log(grp);
-
-                cnv.add(grp);
+            const signTemplate = await Database.getTemplate(sign)
+            const cnv = pdf.pageCanvases[page]
+            const paths: fabric.Path[] = [];
+            signTemplate.data.objects.forEach((e: any) => {
+                e.stroke = selectedTool.defaultOptions.stroke || '#000000ff';
+                e.strokeWidth = selectedTool.defaultOptions.strokeWidth || 10;
+                const path = new fabric.Path(e.path, e);
+                paths.push(path);
+                // cnv.add(path);
+                // console.log(position);
             });
+            const options = selectedTool.defaultOptions;
+            const grp = new fabric.Group(paths, { left: position.x, top: position.y, ...options });
+            (grp as any).sign = sign;
+            console.log(grp);
+
+            cnv.add(grp);
+            return grp;
         },
         options: {
             hasFill: false,
             hasStroke: true,
             hasText: false,
             hasStrokeWidth: true,
-        }
+        },
+        onDeselect: () => { },
+        onSelect: () => { },
+        mouseMove: (e: fabric.IEvent) => { },
+        mouseUp: (e: fabric.IEvent) => { },
     },
     <Tool>{
         name: 'Select',

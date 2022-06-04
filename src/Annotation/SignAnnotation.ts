@@ -15,7 +15,8 @@ export class SignAnnotation extends Annotation {
         const parser = new DOMParser();
         const a = parser.parseFromString(grp.toSVG(), "image/svg+xml");
         const translationMatrix = a.firstElementChild?.getAttribute('transform')?.match(/-?[0-9]+(\.[0-9]*)?/gm)?.map(e => parseFloat(e));
-        console.log(this.object.stroke);
+        if (!this.object.stroke)
+            this.object.stroke = '#000000ff';
 
         const color = Color((this.object.stroke as string).substring(0, 7)).object();
         if (translationMatrix == null) return;

@@ -41,7 +41,7 @@ export class Canvas extends fabric.Canvas {
     }
 
     initEvents() {
-        this.on('mouse:down', (e) => {
+        this.on('mouse:down', async (e) => {
             if (e.absolutePointer == null) return;
             if (this.isDrawingMode) return;
             for (const annotation of this.pdf.annotations) {
@@ -63,7 +63,7 @@ export class Canvas extends fabric.Canvas {
                     (Canvas.selectedTool.defaultOptions as fabric.ILineOptions).y1 = pointerPos.y;
                 }
                 else {
-                    this.creating = Canvas.selectedTool.click?.(this.pdf, this.page, pointerPos);
+                    this.creating = await Canvas.selectedTool.click?.(this.pdf, this.page, pointerPos);
                     this.setActiveObject(this.creating);
                     this.requestRenderAll();
                     eventHub.$emit('tool:select', tools[7]);
@@ -71,13 +71,13 @@ export class Canvas extends fabric.Canvas {
             }
 
         });
-        this.on('mouse:up', (e) => {
+        this.on('mouse:up', async (e) => {
             if (this.isDrawingMode) return;
             const pointerPos = e.absolutePointer || new fabric.Point(0, 0);
             if (Canvas.selectedTool && Canvas.selectedTool.name == 'Arrow') {
                 (Canvas.selectedTool.defaultOptions as fabric.ILineOptions).x2 = pointerPos.x;
                 (Canvas.selectedTool.defaultOptions as fabric.ILineOptions).y2 = pointerPos.y;
-                this.creating = Canvas.selectedTool.click?.(this.pdf, this.page, pointerPos);
+                this.creating = await Canvas.selectedTool.click?.(this.pdf, this.page, pointerPos);
                 this.setActiveObject(this.creating);
                 this.requestRenderAll();
             }
@@ -139,7 +139,6 @@ export class Canvas extends fabric.Canvas {
                 }
                 if (obj instanceof fabric.Group && !this.getObjects().some(e => e.type == 'group' && e.name == obj?.name && e != obj)) {
                     console.log((obj as any).sign);
-
                     this.pdf.addAnnotation(new SignAnnotation(this.page, obj as any, this));
                 }
             })

@@ -115,14 +115,14 @@ export default class Sidebar extends SidebarProps {
   }
   async save() {
     this.$refs.documentList[this.selectedIndex].documentBusy = true;
-    const doc = await this.pdf.save();
-    // .catch((err) => {
-    //   this.$bvToast.toast(err, {
-    //     variant: "danger",
-    //     title: "Save failed",
-    //   });
-    //   this.$refs.documentList[this.selectedIndex].documentBusy = false;
-    // });
+    const doc = await this.pdf.save()
+      .catch((err) => {
+        this.$bvToast.toast(err, {
+          variant: "danger",
+          title: "Save failed",
+        });
+        this.$refs.documentList[this.selectedIndex].documentBusy = false;
+      });
     this.$store.commit('updateDocument', doc);
     // this.UpdateCurrentPreview();
   }

@@ -257,7 +257,7 @@ export default class Toolbar extends Vue {
   getImageDropdownText() {
     return (
       this.images.find(
-        (e) => e.id == (this.selectedTool.defaultOptions as any).image
+        (e) => e.id == (this.selectedTool.defaultOptions as any)?.image
       )?.name || "Vyber obrázok"
     );
   }
