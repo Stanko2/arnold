@@ -23,27 +23,45 @@ export class ClipboardObject {
     }
 }
 
-export class Clipboard {
+class Clipboard {
 
-    static set(object: ClipboardObject[] | ClipboardObject): void {
-        Clipboard.object = object;
+    constructor() {
+        const object = localStorage.getItem('clipboard');
+        if(object !== null) {
+            this.object = JSON.parse(object);
+            // convert object type
+            if (this.object instanceof Array) {
+                this.object = this.object.map(o => new ClipboardObject(o.type, o.page, o.data));
+            } else {
+                // @ts-ignore
+                this.object = new ClipboardObject(this.object.type, this.object.page, this.object.data);
+            }
+        }
     }
 
-    static get(): ClipboardObject[] | ClipboardObject | null {
-        return Clipboard.object;
+    public set(object: ClipboardObject[] | ClipboardObject): void {
+        this.object = object;
+        localStorage.setItem('clipboard', JSON.stringify(object));
     }
 
-    static isSingle(): boolean {
-        return Clipboard.object instanceof ClipboardObject;
+    public get(): ClipboardObject[] | ClipboardObject | null {
+        return this.object;
     }
 
-    static clear(): void {
-        Clipboard.object = null;
+    public isSingle(): boolean {
+        return this.object instanceof ClipboardObject;
     }
 
-    static isNull(): boolean {
-        return Clipboard.object === null;
+    public clear(): void {
+        this.object = null;
+        localStorage.removeItem('clipboard');
     }
 
-    private static object: ClipboardObject[] | ClipboardObject | null = null;
+    public isNull(): boolean {
+        return this.object === null;
+    }
+
+    private object: ClipboardObject[] | ClipboardObject | null = null;
 }
+
+export const clipboard: Clipboard = new Clipboard();

@@ -1,6 +1,6 @@
 import {PDFdocument} from "@/components/PDFdocument";
 import {fabric} from "fabric";
-import {Clipboard, ClipboardObject, Util} from "@/@types";
+import {clipboard, ClipboardObject, Util} from "@/@types";
 import {
     Annotation,
     EllipseAnnotation,
@@ -15,7 +15,6 @@ import {Canvas} from "@/Canvas";
 
 /*
    TODO:
-    - persistent clipboard
     - copying to different page
  */
 
@@ -51,11 +50,11 @@ export const utils: Util[] = [
             if(annotations.length == 1) {
                 const serialized = annotations[0].serializeToJSON();
                 delete serialized.data['name'];
-                Clipboard.set(new ClipboardObject(serialized.type, serialized.page, serialized.data));
+                clipboard.set(new ClipboardObject(serialized.type, serialized.page, serialized.data));
             } else if(annotations.length > 1) {
                 const serialized = annotations.map(a => a.serializeToJSON());
                 serialized.forEach(a => delete a.data['name']);
-                Clipboard.set(serialized);
+                clipboard.set(serialized);
             }
             return annotations;
         }
@@ -67,13 +66,13 @@ export const utils: Util[] = [
         shortcut: 'ctrl+v',
         style: 'btn-outline-primary',
         use(pdf: PDFdocument, page: number) {
-            const obj = Clipboard.get();
+            const obj = clipboard.get();
             if(obj === null) return;
 
             if(obj instanceof ClipboardObject) {
-                pasteObject(pdf, page, obj);
+                clipboard.set(pasteObject(pdf, page, obj));
             } else {
-                obj.forEach(o => pasteObject(pdf, page, o));
+                clipboard.set(obj.map(o => pasteObject(pdf, page, o)));
             }
         }
     },
@@ -121,7 +120,7 @@ function pasteObject(pdf: PDFdocument, page: number, obj: ClipboardObject) {
 
     canvas.setActiveObject(annot.object);
     canvas.requestRenderAll();
-    return annot;
+    return obj;
 }
 
 function getAnnotation(obj: ClipboardObject, canvas: Canvas): Annotation {
