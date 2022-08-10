@@ -36,7 +36,10 @@ export const nameMap: Record<string, string> = {
   "save": "Uložiť",
   "delete": "Zmazať vybrané objekty",
   "zoomIn": "Priblížiť sa",
-  "zoomOut": "Vzdialiť sa"
+  "zoomOut": "Vzdialiť sa",
+  "copy": "Kopírovať",
+  "paste": "Vložiť",
+  "cut": "Vystrihnúť",
 }
 
 

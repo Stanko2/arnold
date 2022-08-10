@@ -33,10 +33,10 @@
       <div class="form-inline" v-if="selectedOptions.hasText">
         <p class="d-flex align-items-center">Veľkosť Písma</p>
         <input
+          type="number"
           class="form-control"
           min="0"
           style="width: 100px"
-          type="number"
           v-model.number="selectedTool.defaultOptions.fontSize"
         />
       </div>
@@ -198,6 +198,7 @@ export default class Toolbar extends Vue {
     imageMenu: BModal;
     signModal: SignModal;
     imageModal: ImageModal;
+    repairTool: PdfRepairer;
   }
 
   mounted() {
@@ -212,9 +213,12 @@ export default class Toolbar extends Vue {
     for (const tool of tools) {
       this.eventHub.$on(`shortcut:${tool.name}`, () => this.select(tool));
     }
+    for (const util of utils) {
+      this.eventHub.$on(`shortcut:${util.name}`, () => this.useUtil(util, true));
+    }
   }
 
-  useUtil(util: Util) {
+  useUtil(util: Util, mouse: boolean = false) {
     const doc = getViewedDocument();
     if(doc === null) throw new Error("No document is opened");
 
@@ -225,7 +229,7 @@ export default class Toolbar extends Vue {
         break;
       }
     }
-    util.use(doc, page);
+    util.use(doc, page, mouse);
   }
 
   select(tool: Tool) {

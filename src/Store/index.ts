@@ -1,8 +1,9 @@
 import Vue from 'vue';
 import Vuex, { Store } from 'vuex';
-import { Settings, Tag, Document, ScoringCriteria } from './@types';
+import { Settings, Tag, Document, ScoringCriteria } from '@/@types';
+import Clipboard from './clipboard';
 
-import defaultSettings from './components/Preferences/DefaultSettings';
+import defaultSettings from '@/components/Preferences/DefaultSettings';
 export interface State {
     settings: Settings;
     tags: Tag[];
@@ -47,7 +48,10 @@ const store = new Store<State>({
             localStorage.setItem('tags', JSON.stringify(payload));
             state.tags = payload;
         }
-    }
+    },
+    modules: {
+        Clipboard
+    },
 });
 
 export default store;

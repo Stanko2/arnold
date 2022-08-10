@@ -5,6 +5,7 @@ import { fabric } from "fabric";
 import { ImageAnnotation, PathAnnotation, SignAnnotation } from "@/Annotation";
 import eventHub from "./Mixins/EventHub";
 import { Tool } from "./@types";
+import store from './Store';
 export class Canvas extends fabric.Canvas {
     Clear(): void {
         try {
@@ -100,6 +101,11 @@ export class Canvas extends fabric.Canvas {
                 };
             }
         });
+        this.on('mouse:move', (e) => {
+            const mouse = e.absolutePointer;
+            store.commit('Clipboard/setMousePos', { pos:{x: mouse?.x, y: mouse?.y }, page: this.page });
+            
+        })
         this.on('object:scaled', (e) => {
             if (e.target != null && e.target.type != 'group' && e.target.type != 'ellipse' && e.target.type != 'image') {
                 const obj: fabric.Object = e.target,
@@ -205,10 +211,10 @@ export class Canvas extends fabric.Canvas {
     canOpenCtxMenu(e: Event): boolean {
         var cursor = this.getPointer(e);
         var point = new fabric.Point(cursor.x, cursor.y);
-        if (this.getActiveObjects().length > 0) {
-            return true;
-        }
-        return false;
+        // if (this.getActiveObjects().length > 0) {
+        //     return true;
+        // }
+        return true;
     }
 
     updateObjectProps(newProps: fabric.IObjectOptions) {

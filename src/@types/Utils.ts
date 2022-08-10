@@ -8,13 +8,13 @@ export interface Util {
     tooltip: string,
     shortcut: string,
     style: string,
-    use(pdf: PDFdocument, page: number): void|Annotation[],
+    use(pdf: PDFdocument, page: number, useMouse?: boolean): void|Annotation[],
 }
 
 export class ClipboardObject {
     public type: string;
     public page: number;
-    public data: object;
+    public data: any[];
 
     constructor(type: string, page: number, data: any) {
         this.type = type;
