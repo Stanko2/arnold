@@ -235,6 +235,18 @@ export default <Settings>{
             {
                 "name": "zoomOut",
                 "shortcut": "ctrl+-"
+            },
+            {
+                "name": "copy",
+                "shortcut": "ctrl+c"
+            },
+            {
+                "name": "cut",
+                "shortcut": "ctrl+x"
+            },
+            {
+                "name": "paste",
+                "shortcut": "ctrl+v"
             }
         ],
         "name": "shortcut"

@@ -1,4 +1,4 @@
-import { DocumentMetadata, DocumentParser } from "./@types";
+import { DocumentMetadata, DocumentParser } from "@/@types";
 
 export class PMatParser implements DocumentParser {
     kategorieMapper: Record<string, string>;

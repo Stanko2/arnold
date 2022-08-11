@@ -111,12 +111,17 @@
 </template>
 
 <script lang="ts">
+import { BModal } from "bootstrap-vue";
 import Vue from "vue";
-export default Vue.extend({
-  methods: {
-    show() {
+import Component from "vue-class-component";
+
+@Component
+export default class ShortcutHelpModal extends Vue {
+  $refs!: {
+    modal: BModal;
+  }
+ show() {
       (this.$refs.modal as any).show();
-    },
-  },
-});
+    }
+}
 </script>

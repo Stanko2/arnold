@@ -1,7 +1,7 @@
 import { fabric } from "fabric";
 import { EllipseAnnotation, ImageAnnotation, LineAnnotation, RectAnnotation, TextAnnotation } from "@/Annotation";
 import { PDFdocument } from "../PDFdocument";
-import { getViewedDocument } from '@/DocumentManager';
+import { getViewedDocument } from '@/Documents/DocumentManager';
 import Vue from "vue";
 import { Database } from "@/Db";
 import eventHub from "@/Mixins/EventHub";

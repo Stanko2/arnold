@@ -88,7 +88,7 @@
 
 <script lang="ts">
 import Vue from "vue";
-import { getViewedDocument } from "@/DocumentManager";
+import { getViewedDocument } from "@/Documents/DocumentManager";
 import Stats from "../Stats/Stats.vue";
 import Preferences from "../Preferences/Preferences.vue";
 import Component from "vue-class-component";
