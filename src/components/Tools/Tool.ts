@@ -58,7 +58,7 @@ export const tools: Tool[] = [
                 vue.$data.selectedTool.defaultOptions = tools.find(e => e.name == 'Text')?.defaultOptions || {};
             return annot.object;
         },
-        icon: 'A',
+        icon: 'title',
         tooltip: 'Text',
         defaultOptions: <fabric.ITextboxOptions>{
             width: 200,
@@ -78,7 +78,7 @@ export const tools: Tool[] = [
     <Tool>{
         name: 'Draw',
         cursor: 'pointer',
-        icon: 'draw',
+        icon: 'brush',
         tooltip: 'Kreslit',
         defaultOptions: {
             stroke: '#000000',
@@ -108,7 +108,7 @@ export const tools: Tool[] = [
     <Tool><unknown>{
         name: 'Photo',
         cursor: 'pointer',
-        icon: 'add_photo_alternate',
+        icon: 'image',
         tooltip: 'Pridat peciatku',
         shortcut: 'e',
         defaultOptions: { name: '', image: '' },

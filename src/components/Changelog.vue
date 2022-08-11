@@ -17,6 +17,18 @@
             kliknúť Download All > stiahnuť pre stránky.
           </b-card>
         </b-collapse>
+        <b-button variant="secondary" v-b-toggle.version2 block>
+          <h6>1.Zimná séria 2023</h6>
+        </b-button>
+        <b-collapse id="version2">
+          <b-card bg-variant="success">
+            Pridané kopírovanie objektov. Selectnuté objekty sa dajú kopírovať
+            pomocou <kbd>Ctrl+C</kbd> a prilepiť pomocou <kbd>Ctrl+V</kbd>, 
+            prípadne pomocou menu pri stlačení pravého tlačidla, alebo pomocou 
+            tlačítok v lište s nástrojmi. Lišta s nástrojmi dostala trochu 
+            redesign, niektoré ikonky sú zmenené. 
+          </b-card>
+        </b-collapse>
       </b-card>
     </b-collapse>
   </div>

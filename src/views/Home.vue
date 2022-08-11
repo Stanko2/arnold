@@ -12,7 +12,7 @@
         korešpodenčných seminároch Pikomat a Pikofyz.
       </template>
 
-      <hr class="my-4" />
+      <hr class="my-4">
 
       <p>
         <strong>Chceš opravovať?</strong>
@@ -73,7 +73,7 @@
     <div v-if="hasDocuments == null" class="text-center">
       <b-spinner variant="primary"></b-spinner>
     </div>
-    <hr />
+    <hr>
     <b-button
       :disabled="getDocumentCount() == 0"
       size="lg"
