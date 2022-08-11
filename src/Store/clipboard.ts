@@ -38,9 +38,11 @@ const Clipboard: Module<ClipboardState, any> = {
                     let json = a.serializeToJSON();
                     delete json.data.name;
                     json.offset = {
-                        x: json.data.left - mid.x,
-                        y: json.data.top - mid.y,
+                        x: (json.data.left || a.object.left) - mid.x,
+                        y: (json.data.top || a.object.top) - mid.y,
                     }
+                    json.width = a.object.width;
+                    json.height = a.object.height;
                     return json;
                 }),
             };
@@ -65,8 +67,8 @@ const Clipboard: Module<ClipboardState, any> = {
             for (const object of store.state.object.data) {
                 if (payload.useMouse) {
                     const pos = store.state.mousePos || {x: 0, y: 0};
-                    object.data.left = pos.x + object.offset.x;
-                    object.data.top = pos.y + object.offset.y;
+                    object.data.left = pos.x + object.offset.x - object.width / 2;
+                    object.data.top = pos.y + object.offset.y - object.height / 2;
                 }
                 pdf.createAnotation(object.type, page, object)
             }

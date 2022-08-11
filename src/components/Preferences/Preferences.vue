@@ -204,6 +204,7 @@ export default class Preferences extends Vue {
   selectedCategoryIndex!: number;
   selectedCategory!: SettingsCategory;
   shortcutNameMap = nameMap;
+  fonts = FontsAvailable;
   $refs!: {
     shortcutHelp: ShortcutHelpModal;
   };
