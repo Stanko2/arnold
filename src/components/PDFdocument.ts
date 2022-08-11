@@ -108,33 +108,7 @@ export class PDFdocument {
         Database.getDocument(this.id).then((doc) => {
             for (let i = 0; i < doc.changes.length; i++) {
                 const data = doc.changes[i];
-                var annotation = null;
-                switch (data.type) {
-                    case 'Text':
-                        annotation = new TextAnnotation(data.page, data.data, this.pageCanvases[data.page]);
-                        break;
-                    case 'Rect':
-                        annotation = new RectAnnotation(data.page, data.data, this.pageCanvases[data.page]);
-                        break;
-                    case 'Line':
-                        annotation = new LineAnnotation(data.page, data.data, this.pageCanvases[data.page]);
-                        break;
-                    case 'Path':
-                        annotation = new PathAnnotation(data.page, data.data, this.pageCanvases[data.page]);
-                        break;
-                    case 'Sign':
-                        annotation = new SignAnnotation(data.page, data.data, this.pageCanvases[data.page]);
-                        break;
-                    case 'Ellipse':
-                        annotation = new EllipseAnnotation(data.page, data.data, this.pageCanvases[data.page]);
-                        break;
-                    case 'Image':
-                        annotation = new ImageAnnotation(data.page, data.data, this.pageCanvases[data.page]);
-                        break;
-                    default:
-                        break;
-                }
-                if (annotation != null) this.addAnnotation(annotation);
+                this.createAnotation(data.type, data.page, data);
             }
         });
         this.pageCanvases.forEach(c => {
@@ -142,6 +116,38 @@ export class PDFdocument {
             c.renderAll();
         });
         this.initialized = true;
+    }
+
+    createAnotation(type: string, page: number, data: any): Annotation {
+        let annotation = null;
+        switch (type) {
+            case 'Text':
+                annotation = new TextAnnotation(page, data.data, this.pageCanvases[page]);
+                break;
+            case 'Rect':
+                annotation = new RectAnnotation(page, data.data, this.pageCanvases[page]);
+                break;
+            case 'Line':
+                annotation = new LineAnnotation(page, data.data, this.pageCanvases[page]);
+                break;
+            case 'Path':
+                annotation = new PathAnnotation(page, data.data, this.pageCanvases[page]);
+                break;
+            case 'Sign':
+                annotation = new SignAnnotation(page, data.data, this.pageCanvases[page]);
+                break;
+            case 'Ellipse':
+                annotation = new EllipseAnnotation(page, data.data, this.pageCanvases[page]);
+                break;
+            case 'Image':
+                annotation = new ImageAnnotation(page, data.data, this.pageCanvases[page]);
+                break;
+            default:
+                throw new Error("Unknown annotation type");
+                
+        }
+        this.addAnnotation(annotation);
+        return annotation;
     }
 
     addAnnotation(annotation: Annotation) {

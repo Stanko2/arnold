@@ -23,6 +23,15 @@
         <li class="list-group-item-action p-1" @click="moveToBack">
           Presunúť dozadu
         </li>
+        <li class="list-group-item-action p-1" @click="eventHub.$emit('shortcut:copy')">
+          Kopírovať
+        </li>
+        <li class="list-group-item-action p-1" @click="eventHub.$emit('shortcut:paste')" v-if="$store.state.Clipboard.object !== null">
+          Prilepiť
+        </li>
+        <li class="list-group-item-action p-1" @click="eventHub.$emit('shortcut:cut')">
+          Vystrihnúť
+        </li>
       </context-menu>
       <div class="pdf" ref="pdf">
         <div

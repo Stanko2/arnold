@@ -33,10 +33,10 @@
       <div class="form-inline" v-if="selectedOptions.hasText">
         <p class="d-flex align-items-center">Veľkosť Písma</p>
         <input
+          type="number"
           class="form-control"
           min="0"
           style="width: 100px"
-          type="number"
           v-model.number="selectedTool.defaultOptions.fontSize"
         />
       </div>
@@ -115,6 +115,19 @@
     </b-modal>
     <hr />
     <div class="right-controls">
+      <div :key="util.name" v-for="util in utils">
+        <button
+            :id="util.name"
+            class="btn"
+            :class="util.style"
+            @click="useUtil(util)"
+        >
+          <span class="material-icons">{{ util.icon }}</span>
+        </button>
+        <b-tooltip :target="util.name" triggers="hover">
+          {{ util.tooltip }} ({{ util.shortcut }})
+        </b-tooltip>
+      </div>
       <button
         id="zoomInButton"
         class="btn btn-outline-primary"
@@ -144,21 +157,22 @@
 </template>
 
 <script lang="ts">
-import { tools } from "./Tool";
-import { PDFdocument } from "../PDFdocument";
-import { FontsAvailable } from "../Fonts";
-import { Canvas } from "../../Canvas";
-import { getViewedDocument } from "@/Documents/DocumentManager";
+import {tools} from "./Tool";
+import {utils} from "./Util";
+import {PDFdocument} from "../PDFdocument";
+import {FontsAvailable} from "../Fonts";
+import {Canvas} from "../../Canvas";
+import {getViewedDocument} from "@/Documents/DocumentManager";
 
 import SignModal from "./SignModal.vue";
 import ImageModal from "./ImageModal.vue";
 import ColorPicker from "../ColorPicker.vue";
 import PdfRepairer from "./PdfRepairer/PdfRepairer.vue";
-import { Database } from "@/Db";
-import { Component, Watch } from "vue-property-decorator";
-import { BModal } from "bootstrap-vue";
+import {Database} from "@/Db";
+import {Component, Watch} from "vue-property-decorator";
+import {BModal} from "bootstrap-vue";
 import Vue from "vue";
-import { ITemplate, Tool } from "@/@types";
+import {ITemplate, Tool, Util} from "@/@types";
 
 @Component({
   components: {
@@ -170,6 +184,7 @@ import { ITemplate, Tool } from "@/@types";
 })
 export default class Toolbar extends Vue {
   tools = tools;
+  utils = utils;
   selectedTool = tools[0];
   selectedOptions = tools[0].options;
   fill = "#ffffff";
@@ -183,6 +198,7 @@ export default class Toolbar extends Vue {
     imageMenu: BModal;
     signModal: SignModal;
     imageModal: ImageModal;
+    repairTool: PdfRepairer;
   }
 
   mounted() {
@@ -197,6 +213,23 @@ export default class Toolbar extends Vue {
     for (const tool of tools) {
       this.eventHub.$on(`shortcut:${tool.name}`, () => this.select(tool));
     }
+    for (const util of utils) {
+      this.eventHub.$on(`shortcut:${util.name}`, () => this.useUtil(util, true));
+    }
+  }
+
+  useUtil(util: Util, mouse: boolean = false) {
+    const doc = getViewedDocument();
+    if(doc === null) throw new Error("No document is opened");
+
+    let page = -1;
+    for(let i=0; i<doc.pageCanvases.length; i++) {
+      if(doc.pageCanvases[i].getActiveObject() !== null) {
+        page = i;
+        break;
+      }
+    }
+    util.use(doc, page, mouse);
   }
 
   select(tool: Tool) {

@@ -64,30 +64,27 @@ export class PathAnnotation extends Annotation {
         const path = a.querySelector('path')?.getAttribute('d') || '';
         return {
             path: path,
-            options: <Partial<fabric.IPathOptions>>{
-                stroke: this.object.stroke,
-                strokeWidth: this.object.strokeWidth,
-                fill: this.object.fill,
-                borderColor: this.object.borderColor,
-                backgroundColor: this.object.backgroundColor,
-                strokeDashArray: this.object.strokeDashArray,
-                strokeLineCap: this.object.strokeLineCap,
-                strokeDashOffset: this.object.strokeDashOffset,
-                strokeLineJoin: this.object.strokeLineJoin,
-                top: this.object.top,
-                left: this.object.left,
-            }
+            stroke: this.object.stroke,
+            strokeWidth: this.object.strokeWidth,
+            strokeDashArray: this.object.strokeDashArray,
+            strokeLineCap: this.object.strokeLineCap,
+            strokeDashOffset: this.object.strokeDashOffset,
+            strokeLineJoin: this.object.strokeLineJoin,
+            top: this.object.top,
+            left: this.object.left,
+        
         }
     }
-    constructor(page: number, object: fabric.Path | { path: string, options: fabric.IPathOptions }, canvas: Canvas) {
+    constructor(page: number, object: fabric.Path | (fabric.IPathOptions & { path: string}), canvas: Canvas) {
         if (object instanceof fabric.Path) {
             object.hasControls = false;
             super(page, object, canvas, 'Path', false);
         }
         else {
-            const options = object.options;
-            options.hasControls = false;
-            super(page, new fabric.Path(object.path, options), canvas, 'Path');
+            object.hasControls = false;
+            object.backgroundColor = 'transparent';
+            object.fill = 'transparent';
+            super(page, new fabric.Path(object.path, object), canvas, 'Path');
             this.object._controlsVisibility = { mtr: true };
         }
     }
