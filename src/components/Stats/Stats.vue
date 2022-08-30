@@ -3,19 +3,19 @@
     <stats-entry
       :max="stats.celkovo"
       :value="stats.otvorene"
-      :color="color('#264653')"
+      :color="color('#0dcaf0')"
       label="Otvorených"
     />
     <stats-entry
       :max="stats.celkovo"
       :value="stats.komentar"
-      :color="color('#F4A261')"
+      :color="color('#ffc107')"
       label="Komentár"
     />
     <stats-entry
       :max="stats.celkovo"
       :value="stats.obodovane"
-      :color="color('#E9C46A')"
+      :color="color('#6610f2')"
       label="Obodované"
       @click.native="updateScoringData"
       ><scoring-chart ref="scoringChart" :stats="stats"
@@ -23,7 +23,7 @@
     <stats-entry
       :max="stats.celkovo"
       :value="stats.hotovo"
-      :color="color('#2A9D8F')"
+      :color="color('#20c997')"
       label="Hotovo"
     />
   </div>

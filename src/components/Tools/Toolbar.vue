@@ -328,7 +328,7 @@ export default class Toolbar extends Vue {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .toolbar {
   position: relative;
   top: 0;
@@ -337,6 +337,7 @@ export default class Toolbar extends Vue {
   padding: 5px;
   margin: 0;
   justify-content: space-between;
+  background-color: var(--bg-700);
 }
 .btn {
   margin: 0 2px;
@@ -359,13 +360,14 @@ export default class Toolbar extends Vue {
   justify-content: start;
   align-items: center;
   padding: 0;
-}
-.tool-controls > div {
-  margin: 0 2px;
-  display: flex;
-  align-items: center;
-}
-.tool-controls > div > p {
-  margin: 0 5px !important;
+
+  div {
+    margin: 0 2px;
+    display: flex;
+    align-items: center;
+    p {
+      margin: 0 5px !important;
+    }
+  }
 }
 </style>

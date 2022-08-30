@@ -15,7 +15,7 @@
       ref="popover"
     >
       <template #title>{{ label }}</template>
-      <v-swatches v-model="color" inline @input="submit"></v-swatches>
+      <v-swatches v-model="color" inline @input="submit" backgroundColor="transparent"></v-swatches>
       <div class="d-flex align-items-center justify-content-between">
         <p class="d-flex align-items-center transparency-text">
           Nepriehľadnosť
@@ -107,7 +107,7 @@ export default class ColorPicker extends Vue {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .colorInputButton {
   width: 42px;
   height: 42px;
@@ -119,22 +119,28 @@ p.transparency-text {
   margin-right: 10px;
 }
 
-div.transparency-num {
+.transparency-num {
   width: 75px;
   position: relative;
   padding-top: 4px;
   padding-bottom: 4px;
   padding-left: 4px;
   margin-right: 10px;
+  background-color: var(--bg-500);
+
+  &::after {
+    content: "%";
+    display: inline;
+    position: absolute;
+    right: 5px;
+    top: 5px;
+  }
+
+  &:focus {
+    outline: none;
+  }
 }
 
-div.transparency-num::after {
-  content: "%";
-  display: inline;
-  position: absolute;
-  right: 5px;
-  top: 5px;
-}
 
 input.transparency-num::-webkit-outer-spin-button,
 input.transparency-num::-webkit-inner-spin-button {

@@ -50,7 +50,7 @@
     </div>
     <div
       class="card d-flex justify-content-center align-items-center btn"
-      style="width: 300px; height: 150px"
+      style="width: 300px; height: 150px; background-color: var(--bg-700);"
       @click="addSignature"
     >
       <span class="material-icons">add</span>

@@ -327,7 +327,7 @@ export default class Viewport extends ViewportProps {
   width: 100%;
   max-height: 100%;
   height: 100%;
-  background: silver;
+  background: var(--bg-800);
 }
 .pdf {
   margin: auto;

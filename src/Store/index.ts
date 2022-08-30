@@ -24,14 +24,16 @@ const store = new Store<State>({
         loadData: (state) => {
             const data = localStorage.getItem('preferences');
             if (data) {
-                state.settings = JSON.parse(data);
+                state.settings = JSON.parse(data) as Settings;
                 state.tags = JSON.parse(localStorage.getItem('tags') || '[]');
                 state.scoringCriteria = JSON.parse(localStorage.getItem('bodovanie') || "[]");
             }
+            store.dispatch('setTheme');
         },
         applySettings(state, settings: Settings) {
             localStorage.setItem('preferences', JSON.stringify(settings));
             state.settings = settings;
+            store.dispatch('setTheme');
         },
         loadDocuments(state, documents: Document[]) {
             state.documents = documents;
@@ -52,6 +54,24 @@ const store = new Store<State>({
     modules: {
         Clipboard
     },
+    actions: {
+        setTheme(context){
+            const theme = context.state.settings.other.settings.theme;
+            document.body.classList.remove('light', 'dark')
+            if (theme == 'dark')
+                document.body.classList.add('dark')
+            else if (theme == 'light')
+                document.body.classList.add('light')
+            else {
+                if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    document.body.classList.add('dark')
+                }
+                else {
+                    document.body.classList.add('light')
+                }
+            }
+        }
+    }
 });
 
 export default store;

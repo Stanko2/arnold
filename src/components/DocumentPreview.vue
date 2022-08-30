@@ -1,8 +1,9 @@
 <template>
   <li
+    class="list-group-item"        
     :class="{
       'list-group-item-action': !selected,
-      active: selected,
+      selected: selected,
       opened: document && document.opened,
     }"
   >
@@ -267,7 +268,8 @@ export default class DocumentPreview extends Previewprops {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+  @import '../theme.scss';
 .tags-leave-active {
   animation: bounce-in 500ms reverse;
 }
@@ -285,41 +287,62 @@ export default class DocumentPreview extends Previewprops {
     transform: scale(1);
   }
 }
-.header-text {
-  font-size: 1.1rem;
-}
 .points-text {
   font-size: 1.2rem;
 }
-h5 {
-  font-weight: 900;
-  font-size: 1.3rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.opened h5 {
-  font-weight: normal;
-}
-.opened {
-  transition: box-shadow 100ms linear;
-  background-color: rgb(243, 243, 243);
-}
-.opened:hover,
-.list-group-item-action:hover {
-  /* background-color: #b3bdc7; */
-  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.1);
-}
-.active.opened {
-  background-color: #007bff;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-}
+
 .stopwatch {
   position: absolute;
-  bottom: -8px;
+  bottom: 0;
   right: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.list-group-item{
+  background-color: var(--bg-700) !important;
+  color: var(--body-color) !important;
+  transition: all 100ms linear;
+
+  h5 {
+    font-weight: 900;
+    font-size: 1.3rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  &.selected{
+    background-color: var(--primary) !important;
+    color: var(--bg-700) !important;
+    &:hover {
+      background-color: var(--primary) !important;
+      color: var(--bg-700) !important;
+    }
+  }
+  &:hover {
+    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.1);
+    background-color: var(--bg-500) !important;
+  }
+  &.list-group-item-action{
+
+    &.opened{
+  
+      background-color: var(--bg-600) !important;
+      color: var(--bg-200) !important;
+      &:hover {
+        background-color: var(--bg-500) !important;
+        color: var(--bg-100) !important;
+      }
+      h5 {
+        font-weight: normal;
+      }
+    }
+  }
+  .card {
+    background-color: var(--bg-800);
+    img {
+      border-radius: 0.3rem;
+    }
+  }
 }
 </style>

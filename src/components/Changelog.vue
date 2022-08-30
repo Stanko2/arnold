@@ -22,11 +22,16 @@
         </b-button>
         <b-collapse id="version2">
           <b-card bg-variant="success">
-            Pridané kopírovanie objektov. Selectnuté objekty sa dajú kopírovať
+            <ul>
+              <li>Pridané kopírovanie objektov. Selectnuté objekty sa dajú kopírovať
             pomocou <kbd>Ctrl+C</kbd> a prilepiť pomocou <kbd>Ctrl+V</kbd>, 
             prípadne pomocou menu pri stlačení pravého tlačidla, alebo pomocou 
-            tlačítok v lište s nástrojmi. Lišta s nástrojmi dostala trochu 
-            redesign, niektoré ikonky sú zmenené. 
+            tlačítok v lište s nástrojmi. </li>
+            <li>Lišta s nástrojmi dostala trochu 
+            redesign, niektoré ikonky sú zmenené. </li>
+              <li>🌙 Tmavý mód - aktivuj si ho v nastaveniach</li>
+              <li>Použité P-mat farbičky 😁</li>
+            </ul>
           </b-card>
         </b-collapse>
       </b-card>

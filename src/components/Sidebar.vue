@@ -10,7 +10,6 @@
         <document-preview
           v-show="documentsShown[i]"
           ref="documentList"
-          class="list-group-item"
           :showPDFPreview="showPreviews"
           :documentID="document.id"
           :showTimer="showTimer"

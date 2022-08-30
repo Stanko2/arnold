@@ -111,7 +111,7 @@ export default class Editor extends Vue {
 }
 </script>
 
-<style>
+<style lang="scss">
 .navbar {
   height: 40px;
 }
@@ -133,11 +133,11 @@ export default class Editor extends Vue {
   width: 25vw;
   min-width: 300px;
   overflow: hidden;
-}
-.right-bar ul {
-  overflow: auto;
-  top: 0;
-  bottom: 0;
+  ul {
+    overflow: auto;
+    top: 0;
+    bottom: 0;
+  }
 }
 .pdf-tab {
   width: 100%;
@@ -147,6 +147,7 @@ export default class Editor extends Vue {
 }
 .document-list {
   height: calc(100% - 50px);
+  background-color: var(--bg-700);
 }
 
 .document-list-leave-active,
@@ -212,7 +213,7 @@ export default class Editor extends Vue {
   align-items: center;
   justify-content: right;
   border-radius: 0 20px 20px 0;
-  background-color: var(--success);
+  background-color: var(--primary);
   cursor: pointer;
   transition: all 250ms linear;
   transform-origin: center center;
@@ -220,7 +221,7 @@ export default class Editor extends Vue {
   box-shadow: 2px 5px 14px rgb(0 0 0 / 50%);
 }
 .toggle-button:hover {
-  background: #218838;
+  background: var(--primary);
   width: 50px;
 }
 .toggle-button.visible:hover {
