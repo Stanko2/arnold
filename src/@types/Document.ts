@@ -13,6 +13,7 @@ export interface Document {
     tags: any[];
     originalName: string;
     opened: boolean;
+    problem: string;
 }
 
 export interface DocumentBackup {

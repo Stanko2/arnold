@@ -11,7 +11,6 @@ import {
     SignAnnotation,
     TextAnnotation
 } from "@/Annotation";
-import {Canvas} from "@/Canvas";
 import store from '@/Store';
 
 /*
@@ -27,8 +26,9 @@ export const utils: Util[] = [
         shortcut: 'ctrl+c',
         style: 'btn-outline-primary',
         use(pdf: PDFdocument, page: number) {
-            const selected = pdf.pageCanvases[page].getActiveObjects();
-            if (selected.length === 0) return;
+            const selected = pdf?.pageCanvases[page]?.getActiveObjects();
+            console.log(selected);
+            if (selected == null  || selected.length === 0) return;
             const annotations: Annotation[] = [];
             selected.forEach(obj => {
                 let found = false;
@@ -48,6 +48,7 @@ export const utils: Util[] = [
              */
             pdf.pageCanvases[page].discardActiveObject();
             store.commit('Clipboard/set', annotations);
+            console.log(annotations.length);
             return annotations;
         }
     },

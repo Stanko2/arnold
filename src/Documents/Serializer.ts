@@ -92,8 +92,9 @@ export async function readZip(file: File): Promise<any> {
         if (!entry.name.endsWith('.pdf')) return;
         if (backupData && entry.name.endsWith('_graded.pdf')) return;
         if (parser == undefined) {
-            localStorage.setItem('uloha', entry.name.split('/')[0])
-            parser = new PMatParser(entry.name.split('/')[0]);
+            var problem = entry.name.split('/')[0];
+            parser = new PMatParser(problem);
+            store.commit('addProblem', problem);
             setActiveParser(parser);
         }
         const data = entry.async('arraybuffer');

@@ -230,7 +230,15 @@ export default class Toolbar extends Vue {
         break;
       }
     }
-    util.use(doc, page, mouse);
+    const objects = util.use(doc, page, mouse);
+    if(util.name == 'copy' && objects)
+      this.$bvToast.toast(`Skopírovaných ${objects.length} objektov`, {
+        variant: 'success',
+        autoHideDelay: 50000,
+        title: 'Skopírované',
+        appendToast: true,
+        toaster: 'b-toaster-top-left'
+      })
   }
 
   select(tool: Tool) {
@@ -357,7 +365,7 @@ export default class Toolbar extends Vue {
 }
 .tool-controls {
   display: flex;
-  justify-content: start;
+  justify-content: flex-start;
   align-items: center;
   padding: 0;
 

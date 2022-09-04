@@ -9,6 +9,8 @@ export interface State {
     tags: Tag[];
     documents: Document[];
     scoringCriteria: ScoringCriteria[];
+    loadedProblems: Set<string>;
+    currentProblem: string;
 }
 
 Vue.use(Vuex)
@@ -19,6 +21,8 @@ const store = new Store<State>({
         tags: [],
         documents: [],
         scoringCriteria: [],
+        currentProblem: '',
+        loadedProblems: new Set<string>()
     },
     mutations: {
         loadData: (state) => {
@@ -28,6 +32,10 @@ const store = new Store<State>({
                 state.tags = JSON.parse(localStorage.getItem('tags') || '[]');
                 state.scoringCriteria = JSON.parse(localStorage.getItem('bodovanie') || "[]");
             }
+            for (const problem of JSON.parse(localStorage.getItem('problems') || '[]')) {
+                state.loadedProblems.add(problem);
+            }
+            console.log(state.loadedProblems);
             store.dispatch('setTheme');
         },
         applySettings(state, settings: Settings) {
@@ -49,6 +57,14 @@ const store = new Store<State>({
         setTags(state, payload) {
             localStorage.setItem('tags', JSON.stringify(payload));
             state.tags = payload;
+        },
+        addProblem(state, problemName){
+            state.currentProblem = problemName;
+            state.loadedProblems.add(problemName);
+            store.dispatch('saveProblems');
+        },
+        setActiveProblem(state, problem){
+            state.currentProblem = problem;
         }
     },
     modules: {
@@ -70,6 +86,13 @@ const store = new Store<State>({
                     document.body.classList.add('light')
                 }
             }
+        },
+        saveProblems(context){
+            const arr = [];
+            for (const problem of context.state.loadedProblems) {
+                arr.push(problem);
+            }
+            localStorage.setItem('problems', JSON.stringify(arr));
         }
     }
 });

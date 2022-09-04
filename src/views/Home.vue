@@ -35,44 +35,46 @@
       otvor radšej menej kategórii naraz a potom sa možeš prepnúť cez túto
       stránku.
     </b-alert>
-    <div v-if="hasDocuments == false">
+    <b-card v-if="hasDocuments" header="Vyber si kategórie, ktoré ideš opravovať" header-tag="h3" header-bg-variant="primary">
+      <b-form-select v-model="problem">
+        <b-form-select-option v-for="p in $store.state.loadedProblems" :key="p" :value="p">{{ p }}</b-form-select-option>
+      </b-form-select>
+      <div v-if="categories !== undefined && categories[problem] !== undefined">
+        <b-list-group >
+          <b-list-group-item
+            :active="category.enabled"
+            v-for="category in categories[problem].filter((e) => e.count > 0)"
+            :key="problem + category.name"
+            @click="toggleCategory(category)"
+          >
+            <div class="categoryEntry">
+              <div>{{ category.name }}</div>
+              <div>{{ category.count }} riešení</div>
+            </div>
+          </b-list-group-item>
+        </b-list-group>
+        <p>
+          Vybraté {{ categories[problem].filter((e) => e.enabled).length }} kategórie,
+          dokopy
+          {{ getDocumentCount() }}
+          riešení
+        </p>
+      </div>
+    </b-card>
+    <div v-if="hasDocuments == null" class="text-center">
+      <b-spinner variant="primary"></b-spinner>
+    </div>
+    <b-card header="Pridať novú úlohu" header-tag="h2" header-bg-variant="secondary">
       <p>{{ fileName }}</p>
       <b-form-file
         v-model="fileInput"
         accept=".zip"
         id="mainInput"
         size="lg"
-        placeholder="Vloz zip, v ktorom su vsetky riesenia"
+        placeholder="Vlož zip, v ktorom sú všetky riešenia"
       />
       <b-button @click="start">Načítaj</b-button>
-    </div>
-    <div v-if="hasDocuments">
-      <b-list-group v-if="hasDocuments">
-        <b-list-group-item variant="primary">
-          <h3>Vyber si kategórie, ktoré ideš opravovať</h3>
-        </b-list-group-item>
-        <b-list-group-item
-          :active="category.enabled"
-          v-for="category in categories.filter((e) => e.count > 0)"
-          :key="category.name"
-          @click="category.enabled = !category.enabled"
-        >
-          <div class="categoryEntry">
-            <div>{{ category.name }}</div>
-            <div>{{ category.count }} riešení</div>
-          </div>
-        </b-list-group-item>
-      </b-list-group>
-      <p>
-        Vybraté {{ categories.filter((e) => e.enabled).length }} kategórie,
-        dokopy
-        {{ getDocumentCount() }}
-        riešení
-      </p>
-    </div>
-    <div v-if="hasDocuments == null" class="text-center">
-      <b-spinner variant="primary"></b-spinner>
-    </div>
+    </b-card>
     <hr>
     <b-button
       :disabled="getDocumentCount() == 0"
@@ -95,6 +97,7 @@ import { Document, DocumentParser } from "@/@types";
 import { PMatParser } from "@/Documents/DocumentParser";
 import Component from "vue-class-component";
 import Changelog from "@/components/Changelog.vue";
+import { CallTracker } from "assert";
 
 interface Category {
   name: string;
@@ -104,39 +107,52 @@ interface Category {
 
 @Component({ components: { Changelog } })
 export default class Home extends Vue {
-  fileName: string = "Vloz Zip s PDFkami na opravovanie";
+  fileName: string = "Vlož Zip s PDFkami na opravovanie";
   hasFile = false;
-  fileInput: File | undefined = undefined;
+  fileInput: File | null = null;
   backupInput: File | undefined = undefined;
   hasDocuments: boolean | null = null;
-  problem: string = "";
-  categories: Array<Category> = [];
+  get problem(): string {
+    return this.$store.state.currentProblem;
+  }
+  set problem(val: string) {
+    this.$store.commit('setActiveProblem', val);
+  }
+  categories: Record<string, Array<Category>> = {};
 
   mounted() {
     this.requestStorage();
+    this.$store.commit('loadData');
     Database.getAllDocuments().then((docs) => {
       this.hasDocuments = docs.length > 0;
       if (this.hasDocuments) {
-        this.problem = localStorage.getItem("uloha") || "";
         const parser = new PMatParser(this.problem);
         this.getCategories(docs, parser);
       }
     });
   }
+
+  toggleCategory(category: Category){
+    category.enabled = !category.enabled;
+    this.$forceUpdate();
+  }
+
   getCategories(docs: Document[], parser: DocumentParser) {
-    this.categories = parser.kategorie.map((e) => {
-      return {
-        name: e,
-        enabled: false,
-        count: 0,
-      };
-    });
-    for (let i = 0; i < parser.kategorie.length; i++) {
-      const category = this.categories[i];
-      category.count = docs.filter(
-        (e) => e.kategoria == category.name
-      ).length;
-      this.categories[i] = category;
+    for (const problem of this.$store.state.loadedProblems) {
+      this.categories[problem] = parser.kategorie.map((e) => {
+        return {
+          name: e,
+          enabled: false,
+          count: 0,
+        };
+      });
+      for (let i = 0; i < parser.kategorie.length; i++) {
+        const category = this.categories[problem][i];
+        category.count = docs.filter(
+          (e) => e.kategoria == category.name && e.problem == problem
+        ).length;
+        this.categories[problem][i] = category;
+      }
     }
     console.log(this.categories);
   }
@@ -148,18 +164,17 @@ export default class Home extends Vue {
       this.hasDocuments = null;
       readZip(file).then((val) => {
         this.hasDocuments = val.docs.length > 0;
-        this.problem = localStorage.getItem("uloha") || "";
         this.getCategories(val.docs, val.parser);
       })
     }
   }
   openEditor() {
-    const categoriesEnabled = this.categories
+    const categoriesEnabled = this.categories[this.problem]
       .filter((e) => e.enabled)
       .map((e) => e.name);
     localStorage.setItem("categories", JSON.stringify(categoriesEnabled));
     return new Promise<void>((resolve, reject) => {
-      loadFromDatabase()
+      loadFromDatabase(this.$store.state.currentProblem)
         .then((docs) => {
           setTimeout(() => {
             this.$router
@@ -177,7 +192,8 @@ export default class Home extends Vue {
   }
   getDocumentCount() {
     let count = 0;
-    for (const cat of this.categories) {
+    const categories = this.categories[this.problem] || []
+    for (const cat of categories) {
       if (cat.enabled) {
         count += cat.count;
       }
@@ -210,8 +226,6 @@ export default class Home extends Vue {
   }
 }
 </script>
-
-scrip
 
 <style>
 .text {

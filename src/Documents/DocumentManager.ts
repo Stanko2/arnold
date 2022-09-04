@@ -59,7 +59,8 @@ export async function AddDocument(fileName: string, data: ArrayBuffer | Promise<
         changes: change?.changes || [],
         tags: change?.tags || [],
         opened: change?.opened || false,
-        timeOpened: change?.timeOpened || 0
+        timeOpened: change?.timeOpened || 0,
+        problem: store.state.currentProblem
     };
     if (change?.scoring) {
         doc.scoring = change.scoring;
@@ -70,9 +71,11 @@ export async function AddDocument(fileName: string, data: ArrayBuffer | Promise<
     return doc;
 }
 
-export async function loadFromDatabase() {
+export async function loadFromDatabase(problem: string | undefined = undefined) {
     const metaDatas: Document[] = []
-    const docs = await Database.getAllDocuments();
+    let docs = await Database.getAllDocuments();
+    if(problem)
+        docs = docs.filter(doc => doc.problem === problem);
     const categoriesData = localStorage.getItem('categories');
     if (!categoriesData) throw new Error('No categories');
     const categories = JSON.parse(categoriesData);
