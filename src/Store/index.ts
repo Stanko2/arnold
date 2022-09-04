@@ -35,6 +35,7 @@ const store = new Store<State>({
             for (const problem of JSON.parse(localStorage.getItem('problems') || '[]')) {
                 state.loadedProblems.add(problem);
             }
+            state.currentProblem = localStorage.getItem('currentProblem') || '';
             if(state.currentProblem == "")
                 state.currentProblem = state.loadedProblems.values().next().value;
             store.dispatch('setTheme');
@@ -46,7 +47,6 @@ const store = new Store<State>({
         },
         loadDocuments(state, documents: Document[]) {
             state.documents = documents;
-            state.currentProblem = state.documents[0].problem;
         },
         updateDocument(state, payload) {
             const idx = state.documents.findIndex(doc => doc.id === payload.id);
@@ -67,6 +67,7 @@ const store = new Store<State>({
         },
         setActiveProblem(state, problem){
             state.currentProblem = problem;
+            localStorage.setItem('currentProblem', state.currentProblem);
         },
         unloadCurrentProblem(state) {
             if(state.currentProblem == '') throw new Error('No problem loaded');

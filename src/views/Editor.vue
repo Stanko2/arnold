@@ -83,8 +83,9 @@ export default class Editor extends Vue {
     sidebar: Sidebar;
   };
   mounted() {
+    this.$store.commit("loadData");
     if (Documents.length == 0) {
-      loadFromDatabase()
+      loadFromDatabase(this.$store.state.currentProblem)
         .then((Documents) => {
           this.Documents = Documents;
           this.loadedDocuments = true;
@@ -102,7 +103,6 @@ export default class Editor extends Vue {
       });
       loadFonts();
     };
-    this.$store.commit("loadData");
     Documents.sort((a: Document, b: Document) => a.index - b.index);
     this.Documents = Documents;
     this.documentsShown = Documents.map(() => true);

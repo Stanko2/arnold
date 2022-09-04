@@ -24,7 +24,7 @@ $theme-colors: (
 
 .dark {
     $variable-prefix: "";
-    
+
     /* redefine theme color rgb vars (used for bg- colors) */
     // $theme-colors-rgb: map-loop($theme-colors, to-rgb, "$value");
     // @each $color, $value in $theme-colors-rgb {
@@ -42,6 +42,7 @@ $theme-colors: (
     $input-focus-color: $gray-200;
     $input-bg: $gray-700;
     $input-focus-bg: $gray-700;
+    $input-group-addon-bg: $gray-600;
 
     $list-group-bg: $gray-700;
     $card-bg: $gray-700;
@@ -60,6 +61,8 @@ $theme-colors: (
         "bg-600": $gray-600,
         "bg-700": $gray-700,
         "bg-800": $gray-800,
+        "body-bg": $gray-800,
+        "body-color": $gray-300
     );
     @import "node_modules/bootstrap/scss/forms";
     @import "node_modules/bootstrap/scss/modal";
