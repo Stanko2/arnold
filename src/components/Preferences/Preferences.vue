@@ -339,14 +339,15 @@ export default class Preferences extends Vue {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .colorInput {
   opacity: 0;
-}
-.colorInput::before {
-  display: block;
-  background: red;
-  border-radius: 50%;
+  
+  &::before {
+    display: block;
+    background: red;
+    border-radius: 50%;
+  }
 }
 
 .slide-leave-active,
