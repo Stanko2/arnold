@@ -35,7 +35,8 @@ const store = new Store<State>({
             for (const problem of JSON.parse(localStorage.getItem('problems') || '[]')) {
                 state.loadedProblems.add(problem);
             }
-            console.log(state.loadedProblems);
+            if(state.currentProblem == "")
+                state.currentProblem = state.loadedProblems.values().next().value;
             store.dispatch('setTheme');
         },
         applySettings(state, settings: Settings) {
@@ -45,6 +46,7 @@ const store = new Store<State>({
         },
         loadDocuments(state, documents: Document[]) {
             state.documents = documents;
+            state.currentProblem = state.documents[0].problem;
         },
         updateDocument(state, payload) {
             const idx = state.documents.findIndex(doc => doc.id === payload.id);
@@ -65,6 +67,12 @@ const store = new Store<State>({
         },
         setActiveProblem(state, problem){
             state.currentProblem = problem;
+        },
+        unloadCurrentProblem(state) {
+            if(state.currentProblem == '') throw new Error('No problem loaded');
+            state.loadedProblems.delete(state.currentProblem);
+            store.dispatch('saveProblems')
+            state.currentProblem = state.loadedProblems.values().next().value;
         }
     },
     modules: {
@@ -73,10 +81,12 @@ const store = new Store<State>({
     actions: {
         setTheme(context){
             const theme = context.state.settings.other.settings.theme;
-            document.body.classList.remove('light', 'dark')
-            if (theme == 'dark')
+            console.log(theme)
+            document.body.classList.remove('light')
+            document.body.classList.remove('dark')
+            if (theme === 'dark')
                 document.body.classList.add('dark')
-            else if (theme == 'light')
+            else if (theme === 'light')
                 document.body.classList.add('light')
             else {
                 if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {

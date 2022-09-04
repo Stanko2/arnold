@@ -45,6 +45,7 @@ export interface Tag {
 }
 
 export interface DocumentParser {
+    problemName: string;
     kategorie: string[];
     uloha: string;
     parse: (name: string) => DocumentMetadata;

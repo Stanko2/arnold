@@ -36,9 +36,14 @@
       stránku.
     </b-alert>
     <b-card v-if="hasDocuments" header="Vyber si kategórie, ktoré ideš opravovať" header-tag="h3" header-bg-variant="primary">
-      <b-form-select v-model="problem">
-        <b-form-select-option v-for="p in $store.state.loadedProblems" :key="p" :value="p">{{ p }}</b-form-select-option>
-      </b-form-select>
+      <b-row v-if="$store.state.loadedProblems.size > 1" class="mb-3" align-v="center">
+        <b-col :cols="4"><h5 class="m-auto">Úloha:</h5></b-col>
+        <b-col :cols="8">
+          <b-form-select v-model="problem">
+            <b-form-select-option v-for="p in $store.state.loadedProblems" :key="p" :value="p">{{ p }}</b-form-select-option>
+          </b-form-select>
+        </b-col>
+      </b-row>
       <div v-if="categories !== undefined && categories[problem] !== undefined">
         <b-list-group >
           <b-list-group-item
@@ -156,16 +161,17 @@ export default class Home extends Vue {
     }
     console.log(this.categories);
   }
-  start() {
+  async start() {
     const file = this.fileInput;
     if (file != null) {
       this.fileName = file["name"];
       this.hasFile = true;
       this.hasDocuments = null;
-      readZip(file).then((val) => {
-        this.hasDocuments = val.docs.length > 0;
-        this.getCategories(val.docs, val.parser);
-      })
+      const currDocs = await Database.getAllDocuments();
+      const val = await readZip(file);
+      this.hasDocuments = val.docs.length > 0;
+      this.getCategories(val.docs.concat(currDocs), val.parser);
+      this.$forceUpdate();
     }
   }
   openEditor() {

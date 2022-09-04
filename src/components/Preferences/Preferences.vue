@@ -302,15 +302,14 @@ export default class Preferences extends Vue {
     ];
     this.selectedCategoryIndex = 0;
     this.selectedCategory = this.categories[this.selectedCategoryIndex];
-  }
+  } 
   mounted() {
     const data = localStorage.getItem("preferences");
     if (data) {
       const prefs: Settings = this.$store.state.settings;
       this.categories[0].settings.defaultTool.value =
         prefs.tools.settings.defaultTool.value;
-        Object.assign(this.categories[2], prefs.other);
-      console.log(this.categories[1].settings);
+      Object.assign(this.categories[2].settings, prefs.other.settings);
       Object.assign(this.categories[1].settings, prefs.shortcut.settings);
       
       this.categories[0].settings.tools[

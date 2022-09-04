@@ -1,12 +1,13 @@
 import JSZip from "jszip";
 import { Database } from '@/Db';
-import { IScoring, DocumentParser, BackupFile, DocumentBackup } from '@/@types';
+import { IScoring, DocumentParser, BackupFile, DocumentBackup, Document } from '@/@types';
 import eventHub from '@/Mixins/EventHub';
 import FileSaver from 'file-saver';
-import { Documents, activeParser, AddDocument, setActiveParser } from './DocumentManager';
+import { activeParser, AddDocument, setActiveParser } from './DocumentManager';
 import store from '@/Store';
 import { Packr } from 'msgpackr';
 import { PMatParser } from './DocumentParser';
+import { stroke } from 'pdf-lib';
 
 
 eventHub.$on('editor:backup', createBackup);
@@ -14,13 +15,13 @@ eventHub.$on('editor:downloadZip', createZip);
 const packr = new Packr();
 
 
-async function createBackup(): Promise<Buffer> {
+async function createBackup(documents: Document[]): Promise<Buffer> {
     let data: BackupFile = {
         tags: store.state.tags,
         changes: {},
         scoringCriteria: store.state.scoringCriteria,
     };
-    Documents.forEach(e => {
+    documents.forEach(e => {
         data.changes[e.id] = {
             changes: e.changes,
             opened: e.opened,
@@ -33,12 +34,12 @@ async function createBackup(): Promise<Buffer> {
 }
 
 async function createZip(forArnold: boolean) {
-    const documents = await Database.getAllDocuments();
+    const documents = (await Database.getAllDocuments()).filter(doc => doc.problem == store.state.currentProblem);
     const zip = new JSZip();
     if (forArnold) {
-        const backup = await createBackup();
+        const backup = await createBackup(documents);
         zip.file('changes.arn', backup);
-        const task = localStorage.getItem('uloha');
+        const task = store.state.currentProblem;
         for (const doc of documents) {
             zip.file(`${task}/${doc.originalName}`, doc.initialPdf);
             if (doc.changes.length > 0) {
@@ -66,24 +67,25 @@ async function createZip(forArnold: boolean) {
     const data = await zip.generateAsync({ type: "blob" }, (progress) => {
         eventHub.$emit('download:progress', progress.percent, progress.currentFile);
     });
-    const file = new File([data], localStorage.getItem('uloha') + '_opravene.zip' || 'Opravene.zip');
+    const file = new File([data], store.state.currentProblem + '_opravene.zip' || 'Opravene.zip');
     FileSaver.saveAs(file);
     eventHub.$emit('download:done');
 }
 
-export async function readZip(file: File): Promise<any> {
+export async function readZip(file: File): Promise<{docs: Document[], parser: DocumentParser}> {
     const buffer = await file.arrayBuffer();
     const zipReader = new JSZip();
     const zipFile = await zipReader.loadAsync(buffer);
     const changesBuff = zipFile.file('changes.arn');
     const backupData: BackupFile | null = changesBuff == null ? null : packr.decode(await changesBuff.async("uint8array"));
+    const Documents: Document[] = [];
     let changes: Record<string, DocumentBackup> = {};
     if (backupData) {
         changes = backupData.changes;
         localStorage.setItem('tags', JSON.stringify(backupData.tags));
         localStorage.setItem('bodovanie', JSON.stringify(backupData.scoringCriteria));
+        store.commit('loadData');
     }
-    store.commit('loadData');
 
     let index = 0;
     let parser: DocumentParser | undefined = undefined;
@@ -94,7 +96,7 @@ export async function readZip(file: File): Promise<any> {
         if (parser == undefined) {
             var problem = entry.name.split('/')[0];
             parser = new PMatParser(problem);
-            store.commit('addProblem', problem);
+            store.commit('addProblem', parser.problemName);
             setActiveParser(parser);
         }
         const data = entry.async('arraybuffer');
