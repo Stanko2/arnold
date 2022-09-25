@@ -31,6 +31,7 @@
             <Viewport :pdf="pdf" :key="pdf.id" ref="viewport"></Viewport>
           </keep-alive>
         </div>
+        <div v-else>Nie je vybraté žiadne riešenie</div>
       </div>
     </div>
     <scoring />
@@ -108,6 +109,10 @@ export default class Editor extends Vue {
     this.documentsShown = Documents.map(() => true);
     this.pdf = getViewedDocument();
   }
+
+  unmounted(){
+    console.log('destroy');
+  }
 }
 </script>
 
@@ -124,15 +129,7 @@ export default class Editor extends Vue {
 .main {
   height: calc(100vh - 40px);
   width: 100vw;
-  overflow-x: hidden;
-}
-.pdf {
-  width: 75vw;
-}
-.right-bar {
-  width: 25vw;
-  min-width: 300px;
-  overflow: hidden;
+  overflow-x: hidden;currentProblem
   ul {
     overflow: auto;
     top: 0;
@@ -233,5 +230,9 @@ export default class Editor extends Vue {
 }
 .toggle-button span {
   transition: all 250ms linear;
+}
+.right-bar {
+  width: max(20vw, 300px);
+  overflow-y: scroll;
 }
 </style>

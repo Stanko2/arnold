@@ -68,7 +68,7 @@ export default class Sidebar extends SidebarProps {
     previews: Element;
   };
   documentsShown!: boolean[];
-  selectedIndex: number = -1;
+  selectedIndex = 0;
   pdf!: PDFdocument;
   prefs!: Settings;
   timer!: NodeJS.Timer;
@@ -95,25 +95,24 @@ export default class Sidebar extends SidebarProps {
         }
       }
     );
-    if (getViewedDocument() == null) {
-      const idx = parseInt(this.$route.params.doc);
-      this.updateSelected(idx, true);
-      setTimeout(() => {
-        this.eventHub.$emit("editor:setDocument", idx);
-      }, 50);
-    }
+    // if (getViewedDocument() == null) {
+    //   const idx = parseInt(this.$route.params.doc);
+    //   this.updateSelected(idx, true);
+    //   setTimeout(() => {
+    //     this.eventHub.$emit("editor:setDocument", idx);
+    //   }, 50);
+    // }
   }
   data() {
     const tags = JSON.parse(localStorage.getItem("tags") || "[]");
     return {
-      pdf: undefined,
-      selectedIndex: 0,
       tags: tags,
       documentsShown: this.documents.map(() => true),
     };
   }
   async save() {
     this.$refs.documentList[this.selectedIndex].documentBusy = true;
+
     const doc = await this.pdf.save()
       .catch((err) => {
         this.$bvToast.toast(err, {
@@ -126,8 +125,7 @@ export default class Sidebar extends SidebarProps {
     // this.UpdateCurrentPreview();
   }
   async selectDir(dir: number) {
-    if (!(this.$parent as Editor).$refs.viewport.loaded) return;
-    if (this.autoSave) await this.save();
+    if(!await this.beforeChange()) return;
     const curr = Documents.findIndex((e) => e.id == this.pdf.id);
     let i = curr + dir;
     while (this.documentsShown[i] === false) {
@@ -140,7 +138,7 @@ export default class Sidebar extends SidebarProps {
   updateSelected(newId: number, scrolling: boolean) {
     const newIndex = Documents.findIndex((e) => e.id == newId);
     this.$router
-      .push({ name: "Editor", params: { doc: newId.toString() } })
+      .replace({ name: "Editor", params: { doc: newId.toString() } })
       .catch(() => { });
     const previews = this.$refs.documentList;
     let height = 0;
@@ -158,6 +156,16 @@ export default class Sidebar extends SidebarProps {
         behavior: "smooth",
       });
   }
+
+  async beforeChange(){
+    if(getViewedDocument() == null) return true;
+    if (this.autoSave) await this.save();
+    if (!(this.$parent as Editor).$refs.viewport.loaded) {
+      return false;
+    }
+    return true;
+  }
+
   stopwatchUpdate() {
     if (this.$refs.documentList && this.selectedIndex != -1) {
       this.$refs.documentList[this.selectedIndex]?.updateStopwatch(
@@ -166,8 +174,7 @@ export default class Sidebar extends SidebarProps {
     }
   }
   async selectIndex(id: number) {
-    if (!(this.$parent as Editor).$refs.viewport.loaded) return;
-    if (this.autoSave) await this.save();
+    if(!await this.beforeChange()) return;
     this.updateSelected(id, false);
     this.eventHub.$emit("editor:setDocument", id);
   }

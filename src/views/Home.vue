@@ -96,7 +96,7 @@
 <script lang="ts">
 import { Database } from "@/Db";
 import Vue from "vue";
-import { loadFromDatabase } from "../Documents/DocumentManager";
+import { clearDocument, loadFromDatabase } from "../Documents/DocumentManager";
 import { readZip } from "../Documents/Serializer";
 import { Document, DocumentParser } from "@/@types";
 import { PMatParser } from "@/Documents/DocumentParser";
@@ -135,6 +135,8 @@ export default class Home extends Vue {
         this.getCategories(docs, parser);
       }
     });
+    this.eventHub.$emit("editor:setDocument", -1);
+    clearDocument();
   }
 
   toggleCategory(category: Category){
@@ -163,6 +165,8 @@ export default class Home extends Vue {
   }
   async start() {
     const file = this.fileInput;
+    
+    
     if (file != null) {
       this.fileName = file["name"];
       this.hasFile = true;
@@ -190,7 +194,9 @@ export default class Home extends Vue {
                   doc: docs[0].id.toString(),
                 },
               })
-              .then(() => resolve);
+              .then(() => {
+                resolve();
+              });
           }, 500);
         })
         .catch((err) => reject(err));

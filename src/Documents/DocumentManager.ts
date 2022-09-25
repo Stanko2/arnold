@@ -5,6 +5,7 @@ import { PMatParser } from "./DocumentParser";
 import eventHub from "../Mixins/EventHub";
 import type { Document, DocumentParser, DocumentBackup } from "../@types";
 import store from "../Store";
+import router from '@/router';
 
 eventHub.$on('editor:setDocument', setPdf);
 eventHub.$on('editor:download', download);
@@ -46,6 +47,10 @@ async function setPdf(id: number) {
 }
 
 export function getViewedDocument() { return pdf }
+
+export function clearDocument() {
+    pdf = null;
+}
 
 export async function AddDocument(fileName: string, data: ArrayBuffer | Promise<ArrayBuffer>, index: number = Documents.length, parser: DocumentParser = activeParser, changes: Record<string, DocumentBackup> | undefined = undefined) {
     const metaData = parser.parse(fileName);
