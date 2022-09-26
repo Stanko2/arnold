@@ -28,7 +28,7 @@
       <div :class="{ 'col-7': showPDFPreview, 'w-100': !showPDFPreview }">
         <div class="text-left overflow-hidden mw-100" :id="documentID + 'name'">
           <h5 class="d-inline pr-1 mr-2 border-right">
-            {{ document.index }}
+            {{ index }}
           </h5>
           <h5 class="d-inline">
             {{ document.riesitel }}
@@ -130,19 +130,15 @@ import Color from "color";
 import Vue from "vue";
 import type { Document, Tag } from "@/@types";
 import Component from "vue-class-component";
-// var pdf = require("pdfvuer");
 import { getDocument } from "pdfjs-dist";
+import { Prop } from "vue-property-decorator";
 
-const Previewprops = Vue.extend({
-  props: ["documentID", "showPDFPreview", "showTimer"],
-});
-
-@Component({
-  components: {
-    // pdf: pdf.default,
-  },
-})
-export default class DocumentPreview extends Previewprops {
+@Component
+export default class DocumentPreview extends Vue {
+  @Prop() showTimer!: boolean;
+  @Prop() documentID!: number;
+  @Prop() showPDFPreview!: boolean;
+  @Prop() index!: number;
   document: Document | undefined;
   hasComment: boolean = false;
   documentBusy: boolean = false;
@@ -188,7 +184,7 @@ export default class DocumentPreview extends Previewprops {
       this.updateStopwatch(doc.timeOpened);
       setTimeout(() => {
         this.generatePreview(doc.pdfData);
-      }, 1000 * doc.index);
+      }, 1000 * this.index);
     });
     this.eventHub.$on("tags:documentTag", (id: number, tags: any) => {
       if (!this.document || this.documentID != id) return;

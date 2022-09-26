@@ -114,7 +114,7 @@ export default class Editor extends Vue {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .navbar {
   height: 40px;
 }
@@ -140,63 +140,19 @@ export default class Editor extends Vue {
 .viewportWrapper {
   height: calc(100% - 60px);
 }
-.document-list {
-  height: calc(100% - 50px);
-  background-color: var(--bg-700);
+
+.sidebar {
+  &-leave-active, &-enter-active {
+    transition: 250ms ease-in-out;
+  }
+  &-enter-to, &-leave {
+    right: 0;
+  }
+  &-leave-to, &-enter {
+    right: 25vw;
+  }
 }
 
-.document-list-leave-active,
-.document-list-enter-active {
-  transition: 250ms ease-in-out;
-}
-.document-list-enter {
-  transform: translate(0, -100%) scale(0.2);
-  opacity: 0;
-}
-.document-list-leave-to {
-  transform: translate(100%, 0);
-  opacity: 0;
-}
-
-.sidebar-leave-active,
-.sidebar-enter-active {
-  transition: 250ms ease-in-out;
-}
-
-.sidebar-enter-to,
-.sidebar-leave {
-  right: 0;
-}
-.sidebar-leave-to,
-.sidebar-enter {
-  right: 25vw;
-}
-
-/* width */
-::-webkit-scrollbar {
-  width: 10px;
-}
-
-/* Track */
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-/* Handle */
-::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 5px;
-  transition: all 300ms linear;
-}
-
-/* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-.toggle-button.visible {
-  left: max(20vw, 300px);
-}
 .toggle-button {
   position: fixed;
   z-index: 15;
@@ -214,24 +170,29 @@ export default class Editor extends Vue {
   transform-origin: center center;
   padding: 5px;
   box-shadow: 2px 5px 14px rgb(0 0 0 / 50%);
-}
-.toggle-button:hover {
-  background: var(--primary);
-  width: 50px;
-}
-.toggle-button.visible:hover {
-  width: 30px;
-}
 
-.toggle-button.visible span {
-  transform: rotate(180deg);
-}
-.toggle-button span {
-  transition: all 250ms linear;
+  &:hover {
+    background: var(--primary);
+    width: 50px;
+  }
+
+  &.visible{
+    left: max(20vw, 300px);
+    span {
+      transform: rotate(180deg);
+    }
+    &:hover {
+      width: 30px;
+    }
+  } 
+
+  span {
+    transition: all 250ms linear;
+  }
 }
 .right-bar {
   width: max(25vw, 300px);
-  overflow-y: scroll;
+  overflow: hidden;
 }
 .empty-text{
   display: flex;
@@ -240,6 +201,6 @@ export default class Editor extends Vue {
   height: 100%;
   height: calc(100% - 60px);
   font-weight: 900;
-  color: var(--bg-600)
+  color: var(--bg-500)
 }
 </style>

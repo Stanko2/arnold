@@ -1,5 +1,5 @@
 <template>
-  <div class="right-bar bg-secondary position-relative">
+  <div class="right-bar position-relative">
     <search-bar ref="searchBar" />
     <ul ref="previews" class="list-group document-list p-0">
       <transition
@@ -13,6 +13,7 @@
           :showPDFPreview="showPreviews"
           :documentID="document.id"
           :showTimer="showTimer"
+          :index="i + 1"
           @click.native="selectIndex(document.id)"
         ></document-preview>
       </transition>
@@ -218,3 +219,22 @@ export default class Sidebar extends SidebarProps {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.document-list {
+  height: calc(100% - 50px);
+  background-color: var(--bg-700);
+  overflow: auto;
+  &-leave-active, &-enter-active {
+    transition: 250ms ease-in-out;
+  }
+  &-enter {
+    transform: translate(0, -100%) scale(0.2);
+    opacity: 0;
+  }
+  &-leave-to {
+    transform: translate(100%, 0);
+    opacity: 0;
+  }
+}
+</style>

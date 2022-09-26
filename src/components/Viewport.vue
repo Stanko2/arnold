@@ -11,8 +11,7 @@
       <context-menu
         id="context-menu"
         ref="ctxMenu"
-        class="list-group"
-        style="user-select: none"
+        class="list-group ctxmenu"
       >
         <li class="list-group-item-action p-1" @click="deleteSelected">
           Zmazať
@@ -306,7 +305,7 @@ export default class Viewport extends ViewportProps {
   }
 }
 </script>
-<style scoped>
+<style scoped lang="scss">
 .pageAnnot {
   position: absolute;
   width: 100%;
@@ -337,7 +336,7 @@ export default class Viewport extends ViewportProps {
 }
 .pdf {
   margin: auto;
-  max-width: 75vw;
+  max-width: 95vw;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -358,5 +357,12 @@ export default class Viewport extends ViewportProps {
   position: relative;
   width: 100%;
   height: 100%;
+}
+.ctxmenu{
+  background: var(--bg-800) !important;
+  color: var(--bg-100) !important;
+  ul {
+    bottom: auto;
+  }
 }
 </style>
