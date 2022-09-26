@@ -18,6 +18,7 @@ export default class Main extends Vue { }
   margin: 0;
   height: 100vh;
   width: 100%;
+  user-select: none;
   /* overflow: hidden; */
 }
 </style>

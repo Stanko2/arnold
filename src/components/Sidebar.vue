@@ -111,6 +111,7 @@ export default class Sidebar extends SidebarProps {
     };
   }
   async save() {
+    if(getViewedDocument() == null) return;
     this.$refs.documentList[this.selectedIndex].documentBusy = true;
 
     const doc = await this.pdf.save()

@@ -71,8 +71,8 @@
         />
       </div>
       <div v-if="selectedTool.name == 'Photo'">
-        <b-button variant="primary" @click="openImageModal" class="w-auto"
-          ><span class="material-icons d-block">add_photo_alternate</span></b-button
+        <b-button variant="primary" @click="openImageModal">
+          <span class="material-icons d-block">add_photo_alternate</span></b-button
         >
         <b-dropdown :text="getImageDropdownText()" class="dropdown">
           <b-dropdown-item
@@ -94,6 +94,9 @@
             @click.native="selectedTool.defaultOptions.sign = sign.id"
             >{{ sign.name }}</b-dropdown-item
           >
+          <b-dropdown-item v-if="signatures.length == 0" disabled>
+            Nie je nastavený žiaden podpis, pridaj si aspoň jeden
+          </b-dropdown-item>
         </b-dropdown>
       </div>
     </b-col>

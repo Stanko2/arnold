@@ -43,20 +43,26 @@
           :style="getPageStyle(i - 1)"
         >
           <pdf
-            :key="i.toString() + id.toString()"
-            :src="src"
-            :page="i"
-            :rotate="(rotation[i - 1] || 0) * 90"
-            :text="false"
-            class="card page-data"
-            :style="{ transform: `translate(-50%, -50%) scale(${scale})` }"
-            ref="pagePDFs"
-            @error="err"
-            @loading="(loading) => documentLoaded(!loading, i - 1)"
-          ></pdf>
-          <div class="pageAnnot">
-            <canvas ref="canvases"></canvas>
-          </div>
+              :key="i.toString() + id.toString()"
+              :src="src"
+              :page="i"
+              :rotate="(rotation[i - 1] || 0) * 90"
+              :text="false"
+              class="card page-data"
+              :style="{ transform: `translate(-50%, -50%) scale(${scale})` }"
+              ref="pagePDFs"
+              @error="err"
+              @loading="(loading) => documentLoaded(!loading, i - 1)"
+            >
+            <!-- <template #loading>
+              <b-skeleton-img width="100%" height="100%" class="position-relative"/>
+              <div>loading</div>
+            </template> -->
+          </pdf>
+            <div class="pageAnnot">
+              <canvas ref="canvases"></canvas>
+            </div>
+          
         </div>
       </div>
     </div>
@@ -85,7 +91,7 @@ const ViewportProps = Vue.extend({
   },
 })
 export default class Viewport extends ViewportProps {
-  loaded: boolean[] = [];
+  loaded: (boolean | null)[] = [];
   src: any;
   pageCount: number = 0;
   rotation: number[] = [];
@@ -109,7 +115,7 @@ export default class Viewport extends ViewportProps {
     pdfDocument = getViewedDocument();
     this.src = pdfDocument?.viewref;
     this.pageCount = pdfDocument?.pageCount || 0;
-    this.loaded = Array<boolean>(this.pageCount).fill(false);
+    this.loaded = Array<boolean | null>(this.pageCount).fill(null);
     this.id = pdfDocument?.id || 0;
     this.rotation = Array<number>(pdfDocument?.pageCount || 0).fill(0);
   }

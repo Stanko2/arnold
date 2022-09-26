@@ -96,13 +96,12 @@
 <script lang="ts">
 import { Database } from "@/Db";
 import Vue from "vue";
-import { clearDocument, loadFromDatabase } from "../Documents/DocumentManager";
+import { loadFromDatabase } from "../Documents/DocumentManager";
 import { readZip } from "../Documents/Serializer";
 import { Document, DocumentParser } from "@/@types";
 import { PMatParser } from "@/Documents/DocumentParser";
 import Component from "vue-class-component";
 import Changelog from "@/components/Changelog.vue";
-import { CallTracker } from "assert";
 
 interface Category {
   name: string;
@@ -136,7 +135,6 @@ export default class Home extends Vue {
       }
     });
     this.eventHub.$emit("editor:setDocument", -1);
-    clearDocument();
   }
 
   toggleCategory(category: Category){
@@ -186,20 +184,18 @@ export default class Home extends Vue {
     return new Promise<void>((resolve, reject) => {
       loadFromDatabase(this.$store.state.currentProblem)
         .then((docs) => {
-          setTimeout(() => {
-            this.$router
-              .push({
-                name: "Editor",
-                params: {
-                  doc: docs[0].id.toString(),
-                },
-              })
-              .then(() => {
-                resolve();
-              });
-          }, 500);
+          this.$router
+            .push({
+              name: "Editor",
+              params: {
+                doc: docs[0].id.toString(),
+              },
+            })
+            .then(() => {
+              resolve();
+            }).catch((err) => console.error(err));
         })
-        .catch((err) => reject(err));
+        .catch((err) => console.error(err));
     });
   }
   getDocumentCount() {

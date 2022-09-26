@@ -6,6 +6,7 @@ import eventHub from "../Mixins/EventHub";
 import type { Document, DocumentParser, DocumentBackup } from "../@types";
 import store from "../Store";
 import router from '@/router';
+import { Route } from 'vue-router';
 
 eventHub.$on('editor:setDocument', setPdf);
 eventHub.$on('editor:download', download);
@@ -48,7 +49,7 @@ async function setPdf(id: number) {
 
 export function getViewedDocument() { return pdf }
 
-export function clearDocument() {
+export function onEditorStart() {
     pdf = null;
 }
 

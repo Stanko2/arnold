@@ -31,7 +31,7 @@
             <Viewport :pdf="pdf" :key="pdf.id" ref="viewport"></Viewport>
           </keep-alive>
         </div>
-        <div v-else>Nie je vybraté žiadne riešenie</div>
+        <div v-else class="empty-text">Nie je vybraté žiadne riešenie</div>
       </div>
     </div>
     <scoring />
@@ -47,7 +47,7 @@ import Viewport from "../components/Viewport.vue";
 import Topbar from "../components/Topbar/Topbar.vue";
 import Toolbar from "../components/Tools/Toolbar.vue";
 import SearchBar from "../components/SearchBar.vue";
-import { Documents, getViewedDocument, loadFromDatabase } from "../Documents/DocumentManager";
+import { Documents, getViewedDocument, loadFromDatabase, onEditorStart } from "../Documents/DocumentManager";
 import type { PDFdocument } from "@/components/PDFdocument";
 import Scoring from "@/components/Scoring.vue";
 import { loadFonts } from "@/components/Fonts";
@@ -55,6 +55,7 @@ import Tags from "@/components/Tags/Tagy.vue";
 import Component from "vue-class-component";
 import Sidebar from "@/components/Sidebar.vue";
 import Shortcuts from "@/Mixins/Keybindings.vue"
+import { Route } from "vue-router";
 
 @Component({
   components: {
@@ -85,6 +86,7 @@ export default class Editor extends Vue {
   };
   mounted() {
     this.$store.commit("loadData");
+    onEditorStart();
     if (Documents.length == 0) {
       loadFromDatabase(this.$store.state.currentProblem)
         .then((Documents) => {
@@ -109,10 +111,6 @@ export default class Editor extends Vue {
     this.documentsShown = Documents.map(() => true);
     this.pdf = getViewedDocument();
   }
-
-  unmounted(){
-    console.log('destroy');
-  }
 }
 </script>
 
@@ -129,7 +127,7 @@ export default class Editor extends Vue {
 .main {
   height: calc(100vh - 40px);
   width: 100vw;
-  overflow-x: hidden;currentProblem
+  overflow-x: hidden;
   ul {
     overflow: auto;
     top: 0;
@@ -232,7 +230,16 @@ export default class Editor extends Vue {
   transition: all 250ms linear;
 }
 .right-bar {
-  width: max(20vw, 300px);
+  width: max(25vw, 300px);
   overflow-y: scroll;
+}
+.empty-text{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  height: calc(100% - 60px);
+  font-weight: 900;
+  color: var(--bg-600)
 }
 </style>

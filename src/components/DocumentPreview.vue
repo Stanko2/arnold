@@ -16,25 +16,14 @@
     >
       <b-overlay :show="documentBusy" no-wrap> </b-overlay>
       <div class="col-5" v-if="showPDFPreview">
-        <div class="card">
-          <div
-            v-if="pdfUrl == null"
-            class="d-flex align-items-center justify-content-center"
-          >
-            Nacitavam preview
-          </div>
-          <div v-else>
-            <!-- <pdf
-              :key="pdfKey"
-              :src="pdf"
-              :page="1"
-              :text="false"
-              :resize="true"
-              style="display: inline-block; width: 100%"
-            ></pdf> -->
+        <b-card body-class="p-0">
+          <b-skeleton-wrapper :loading="pdfUrl == null">
+            <template #loading>
+              <b-skeleton-img card-img="top"></b-skeleton-img>
+            </template>
             <img :src="pdfUrl" alt="preview" />
-          </div>
-        </div>
+          </b-skeleton-wrapper>
+        </b-card>
       </div>
       <div :class="{ 'col-7': showPDFPreview, 'w-100': !showPDFPreview }">
         <div class="text-left overflow-hidden mw-100" :id="documentID + 'name'">
