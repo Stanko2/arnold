@@ -33,4 +33,11 @@ export class PMatParser implements DocumentParser {
         }
     }
 
+    public get problemName(): string {
+        const s = this.uloha.split('-');
+        let out = s[0] + '. ';
+        s.splice(0,1);
+        out += s.join(' ');
+        return out;
+    }
 }

@@ -18,7 +18,7 @@ class DB {
                 md.db = e.target.result;
                 var riesenia = md.db?.createObjectStore('riesenia', { keyPath: 'id' })
                 riesenia?.createIndex('id', 'id', { unique: true });
-                riesenia?.createIndex('riesitel', 'riesitel');
+                riesenia?.createIndex('riesitel', 'riesitel', { unique: false });
                 var templates = md.db?.createObjectStore('templates', { keyPath: 'id' });
                 templates?.createIndex('id', 'id', { unique: true });
                 resolve();

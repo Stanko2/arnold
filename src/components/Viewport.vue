@@ -11,8 +11,7 @@
       <context-menu
         id="context-menu"
         ref="ctxMenu"
-        class="list-group"
-        style="user-select: none"
+        class="list-group ctxmenu"
       >
         <li class="list-group-item-action p-1" @click="deleteSelected">
           Zmazať
@@ -43,20 +42,26 @@
           :style="getPageStyle(i - 1)"
         >
           <pdf
-            :key="i.toString() + id.toString()"
-            :src="src"
-            :page="i"
-            :rotate="(rotation[i - 1] || 0) * 90"
-            :text="false"
-            class="card page-data"
-            :style="{ transform: `translate(-50%, -50%) scale(${scale})` }"
-            ref="pagePDFs"
-            @error="err"
-            @loading="(loading) => documentLoaded(!loading, i - 1)"
-          ></pdf>
-          <div class="pageAnnot">
-            <canvas ref="canvases"></canvas>
-          </div>
+              :key="i.toString() + id.toString()"
+              :src="src"
+              :page="i"
+              :rotate="(rotation[i - 1] || 0) * 90"
+              :text="false"
+              class="card page-data"
+              :style="{ transform: `translate(-50%, -50%) scale(${scale})` }"
+              ref="pagePDFs"
+              @error="err"
+              @loading="(loading) => documentLoaded(!loading, i - 1)"
+            >
+            <!-- <template #loading>
+              <b-skeleton-img width="100%" height="100%" class="position-relative"/>
+              <div>loading</div>
+            </template> -->
+          </pdf>
+            <div class="pageAnnot">
+              <canvas ref="canvases"></canvas>
+            </div>
+          
         </div>
       </div>
     </div>
@@ -85,7 +90,7 @@ const ViewportProps = Vue.extend({
   },
 })
 export default class Viewport extends ViewportProps {
-  loaded: boolean[] = [];
+  loaded: (boolean | null)[] = [];
   src: any;
   pageCount: number = 0;
   rotation: number[] = [];
@@ -109,7 +114,7 @@ export default class Viewport extends ViewportProps {
     pdfDocument = getViewedDocument();
     this.src = pdfDocument?.viewref;
     this.pageCount = pdfDocument?.pageCount || 0;
-    this.loaded = Array<boolean>(this.pageCount).fill(false);
+    this.loaded = Array<boolean | null>(this.pageCount).fill(null);
     this.id = pdfDocument?.id || 0;
     this.rotation = Array<number>(pdfDocument?.pageCount || 0).fill(0);
   }
@@ -300,7 +305,7 @@ export default class Viewport extends ViewportProps {
   }
 }
 </script>
-<style scoped>
+<style scoped lang="scss">
 .pageAnnot {
   position: absolute;
   width: 100%;
@@ -327,11 +332,11 @@ export default class Viewport extends ViewportProps {
   width: 100%;
   max-height: 100%;
   height: 100%;
-  background: silver;
+  background: var(--bg-800);
 }
 .pdf {
   margin: auto;
-  max-width: 75vw;
+  max-width: 95vw;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
@@ -352,5 +357,12 @@ export default class Viewport extends ViewportProps {
   position: relative;
   width: 100%;
   height: 100%;
+}
+.ctxmenu{
+  background: var(--bg-800) !important;
+  color: var(--bg-100) !important;
+  ul {
+    bottom: auto;
+  }
 }
 </style>

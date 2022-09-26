@@ -1,0 +1,136 @@
+@import "node_modules/bootstrap/scss/functions";
+@import "node_modules/bootstrap/scss/variables";
+@import "node_modules/bootstrap/scss/mixins";
+$primary:#00ADEF;
+$secondary:#F9A653;
+$success:#9BCA3E;
+$danger:#ED5314;
+$info:#0F81C7;
+$warning:#F68712;
+$light:#e8e8e8;
+$dark:#000000;
+
+$theme-colors: (
+    "primary": $primary,
+    "secondary": $secondary,
+    "success": $success,
+    "info": $info,
+    "warning": $warning,
+    "danger": $danger,
+    "light": $light,
+    "dark": $dark,
+);    
+
+
+.dark {
+    $variable-prefix: "";
+
+    /* redefine theme color rgb vars (used for bg- colors) */
+    // $theme-colors-rgb: map-loop($theme-colors, to-rgb, "$value");
+    // @each $color, $value in $theme-colors-rgb {
+    //     --#{$variable-prefix}#{$color}-rgb: #{$value};
+    // }
+
+    $body-bg: $dark;
+    $body-color: $light;
+    $modal-content-bg: $gray-800;
+    $modal-backdrop-bg: $gray-800;
+
+    $input-color: $gray-200;
+    $input-placeholder-color: $gray-100;
+    $input-border-color: $gray-600;
+    $input-focus-color: $gray-700;
+    $input-bg: $gray-700;
+    $input-focus-bg: $gray-700;
+    $input-group-addon-bg: $gray-600;
+
+    $list-group-bg: $gray-700;
+    $card-bg: $gray-700;
+    $popover-bg: $gray-600;
+    $popover-color: $gray-100;
+    $popover-header-bg: lighten($gray-600, 6%);
+    $dropdown-bg: $gray-600;
+    
+    @import "node_modules/bootstrap/scss/list-group";
+    $theme-colors: (
+        "bg-100": $gray-100,
+        "bg-200": $gray-200,
+        "bg-300": $gray-300,
+        "bg-400": $gray-400,
+        "bg-500": $gray-500,
+        "bg-600": $gray-600,
+        "bg-700": $gray-700,
+        "bg-800": $gray-800,
+        "body-bg": $gray-800,
+        "body-color": $gray-300
+    );
+    @import "node_modules/bootstrap/scss/forms";
+    @import "node_modules/bootstrap/scss/modal";
+    @import "node_modules/bootstrap/scss/card";
+    @import "node_modules/bootstrap/scss/popover";
+    @import "node_modules/bootstrap/scss/dropdown";
+
+    @each $color, $value in $theme-colors {
+        --#{$variable-prefix}#{$color}: #{$value};
+    }
+}
+
+.light {
+    $variable-prefix: "";
+    
+    $theme-colors: (
+        "bg-100": $gray-800,
+        "bg-200": $gray-700,
+        "bg-300": $gray-600,
+        "bg-400": $gray-500,
+        "bg-500": $gray-400,
+        "bg-600": $gray-300,
+        "bg-700": $gray-200,
+        "bg-800": $gray-100,
+    );
+
+    /* redefine theme color variables */
+    @each $color, $value in $theme-colors {
+        --#{$variable-prefix}#{$color}: #{$value};
+    }
+
+    // /* redefine theme color rgb vars (used for bg- colors) */
+    // $theme-colors-rgb: map-loop($theme-colors, to-rgb, "$value");
+    // @each $color, $value in $theme-colors-rgb {
+    //     --#{$variable-prefix}#{$color}-rgb: #{$value};
+    // }
+
+    $body-color: $dark;
+    $body-bg: $light;
+    $modal-content-bg: $gray-100;
+    $modal-backdrop-bg: $gray-800;
+    $input-color: $gray-700;
+    $input-focus-color: $gray-700;
+    $input-bg: $gray-200;
+    $input-focus-bg: $gray-200;
+    $component-active-bg: $primary;
+
+    --#{$variable-prefix}body-color: #{$body-color};
+    --#{$variable-prefix}body-bg: #{$body-bg};
+}
+
+@import "node_modules/bootstrap/scss/bootstrap";
+body {
+    background-color: var(--body-bg);
+    color: var(--body-color);
+    margin: 0;
+    padding: 0;
+    max-height: 100vh;
+}
+
+.modal-backdrop {
+    opacity: 0.5;
+}
+
+// .tooltip, .toast {
+//     opacity: 1 !important;
+// }
+// .tooltip.fade {
+//     opacity: 0;
+// }
+

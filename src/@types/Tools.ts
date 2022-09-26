@@ -2,7 +2,7 @@ import { PDFdocument } from "@/components/PDFdocument";
 
 export interface Tool {
     defaultOptions: fabric.IObjectOptions,
-    click(pdf: PDFdocument, page: number, position: { x: number, y: number }): fabric.Object,
+    click(pdf: PDFdocument, page: number, position: { x: number, y: number }): Promise<fabric.Object>,
     mouseMove: Function,
     mouseUp: Function,
     cursor: string,

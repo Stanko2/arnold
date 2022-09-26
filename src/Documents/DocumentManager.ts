@@ -5,6 +5,8 @@ import { PMatParser } from "./DocumentParser";
 import eventHub from "../Mixins/EventHub";
 import type { Document, DocumentParser, DocumentBackup } from "../@types";
 import store from "../Store";
+import router from '@/router';
+import { Route } from 'vue-router';
 
 eventHub.$on('editor:setDocument', setPdf);
 eventHub.$on('editor:download', download);
@@ -47,6 +49,10 @@ async function setPdf(id: number) {
 
 export function getViewedDocument() { return pdf }
 
+export function onEditorStart() {
+    pdf = null;
+}
+
 export async function AddDocument(fileName: string, data: ArrayBuffer | Promise<ArrayBuffer>, index: number = Documents.length, parser: DocumentParser = activeParser, changes: Record<string, DocumentBackup> | undefined = undefined) {
     const metaData = parser.parse(fileName);
     const change = changes?.[metaData.id];
@@ -59,7 +65,8 @@ export async function AddDocument(fileName: string, data: ArrayBuffer | Promise<
         changes: change?.changes || [],
         tags: change?.tags || [],
         opened: change?.opened || false,
-        timeOpened: change?.timeOpened || 0
+        timeOpened: change?.timeOpened || 0,
+        problem: store.state.currentProblem
     };
     if (change?.scoring) {
         doc.scoring = change.scoring;
@@ -70,9 +77,11 @@ export async function AddDocument(fileName: string, data: ArrayBuffer | Promise<
     return doc;
 }
 
-export async function loadFromDatabase() {
+export async function loadFromDatabase(problem: string | undefined = undefined) {
     const metaDatas: Document[] = []
-    const docs = await Database.getAllDocuments();
+    let docs = await Database.getAllDocuments();
+    if(problem)
+        docs = docs.filter(doc => doc.problem === problem);
     const categoriesData = localStorage.getItem('categories');
     if (!categoriesData) throw new Error('No categories');
     const categories = JSON.parse(categoriesData);

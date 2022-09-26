@@ -13,6 +13,7 @@ export interface Document {
     tags: any[];
     originalName: string;
     opened: boolean;
+    problem: string;
 }
 
 export interface DocumentBackup {
@@ -44,6 +45,7 @@ export interface Tag {
 }
 
 export interface DocumentParser {
+    problemName: string;
     kategorie: string[];
     uloha: string;
     parse: (name: string) => DocumentMetadata;

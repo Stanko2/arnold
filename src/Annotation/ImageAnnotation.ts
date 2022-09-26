@@ -7,20 +7,15 @@ import { Database } from "@/Db";
 
 export class ImageAnnotation extends Annotation {
     imageData: string;
-    constructor(page: number, options: fabric.Image & { image: string; } | any, canvas: Canvas) {
+    constructor(page: number, options: fabric.IImageOptions & { image: string; }, canvas: Canvas) {
         options.originX = 'center';
         options.originY = 'center';
-        if (options instanceof fabric.Image)
-            super(page, options, canvas, 'Image');
-        else {
-            const img = new Image();
-            img.src = options.image;
-            img.onerror = (msg, url, lineNo, columnNo, error) => {
-                console.log(msg);
-            }
-            super(page, new fabric.Image(img, options), canvas, 'Image');
+        const img = new Image();
+        img.src = options.image;
+        img.onerror = (msg, url, lineNo, columnNo, error) => {
+            console.log(msg);
         }
-        // (this.object as any).tool = RectAnnotation.toolOptions;
+        super(page, new fabric.Image(img, options), canvas, 'Image');
         canvas.setActiveObject(this.object);
         this.imageData = options.image;
     }

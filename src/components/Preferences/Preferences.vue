@@ -129,7 +129,7 @@
             ></b-form-checkbox>
           </b-col>
         </b-row>
-        <hr />
+        <hr>
         <b-row>
           <b-col>Auto-save riešenia pri prepnutí</b-col>
           <b-col>
@@ -141,7 +141,7 @@
             ></b-form-checkbox>
           </b-col>
         </b-row>
-        <hr />
+        <hr>
         <b-row>
           <b-col>Ukázať časovač</b-col>
           <b-col>
@@ -151,6 +151,22 @@
               v-model="selectedCategory.settings.showTimer"
               switch
             ></b-form-checkbox>
+          </b-col>
+        </b-row>
+        <hr>
+        <b-row>
+          <b-col>Téma</b-col>
+          <b-col>
+            <b-dropdown
+              class="float-right"
+              size="md"
+              :text="selectedCategory.settings.theme"
+              right
+            >
+              <b-dropdown-item @click="selectedCategory.settings.theme = 'light'">Svetlé</b-dropdown-item>
+              <b-dropdown-item @click="selectedCategory.settings.theme = 'dark'">Tmavé</b-dropdown-item>
+              <b-dropdown-item @click="selectedCategory.settings.theme = 'system'">Podľa systému</b-dropdown-item>
+            </b-dropdown>
           </b-col>
         </b-row>
       </div>
@@ -279,22 +295,22 @@ export default class Preferences extends Vue {
           showPreviews: true,
           autoSave: true,
           showTimer: false,
+          theme: 'system',
         },
         name: "other",
       } as OthersCategory,
     ];
     this.selectedCategoryIndex = 0;
     this.selectedCategory = this.categories[this.selectedCategoryIndex];
-  }
+  } 
   mounted() {
     const data = localStorage.getItem("preferences");
     if (data) {
       const prefs: Settings = this.$store.state.settings;
       this.categories[0].settings.defaultTool.value =
         prefs.tools.settings.defaultTool.value;
-      this.categories[2] = prefs.other;
-      console.log(this.categories[1]);
-      Object.assign(this.categories[1], prefs.shortcut);
+      Object.assign(this.categories[2].settings, prefs.other.settings);
+      Object.assign(this.categories[1].settings, prefs.shortcut.settings);
       
       this.categories[0].settings.tools[
         this.categories[0].settings.tools.length - 1
@@ -323,14 +339,15 @@ export default class Preferences extends Vue {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .colorInput {
   opacity: 0;
-}
-.colorInput::before {
-  display: block;
-  background: red;
-  border-radius: 50%;
+  
+  &::before {
+    display: block;
+    background: red;
+    border-radius: 50%;
+  }
 }
 
 .slide-leave-active,

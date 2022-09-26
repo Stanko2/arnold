@@ -42,9 +42,10 @@ export default <Settings>{
                         "hasStrokeWidth": false
                     },
                     "defaultOptions": {
-                        "fontFamily": "Helvetica",
+                        "fontFamily": "Open Sans",
                         "fontSize": 15,
-                        "fill": "#3398DBff"
+                        "fill": "#3398DBff",
+                        "width": 200,
                     },
                     "name": "Text",
                     "expanded": false,
@@ -101,7 +102,9 @@ export default <Settings>{
                     "defaultOptions": {
                         "stroke": "#3398DBff",
                         "strokeWidth": 10,
-                        "fill": "#A463BFff"
+                        "fill": "#A463BFff",
+                        "rx": 10,
+                        "ry": 10
                     },
                     "name": "Circle",
                     "expanded": false,
