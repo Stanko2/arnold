@@ -370,7 +370,7 @@ export default class Toolbar extends Vue {
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  padding: 0;
+  padding: 0 0 0 1rem;
 
   div {
     margin: 0 2px;
