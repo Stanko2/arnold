@@ -12,7 +12,7 @@
         korešpodenčných seminároch Pikomat a Pikofyz.
       </template>
 
-      <hr class="my-4" />
+      <hr class="my-4">
 
       <p>
         <strong>Chceš opravovať?</strong>
@@ -31,51 +31,58 @@
     </b-jumbotron>
     <!-- <label for="mainInput" class="inputWrapper"> </label> -->
     <b-alert :show="getDocumentCount() > 120" dismissible variant="warning">
-      Pri takychto vysokych počtoch riešení som nestabilný a spomalený. Prosím
+      Pri takýchto vysokých počtoch riešení som nestabilný a spomalený. Prosím
       otvor radšej menej kategórii naraz a potom sa možeš prepnúť cez túto
       stránku.
     </b-alert>
-    <div v-if="hasDocuments === false">
+    <b-card v-if="hasDocuments" header="Vyber si kategórie, ktoré ideš opravovať" header-tag="h3" header-bg-variant="primary">
+      <b-row v-if="$store.state.loadedProblems.size > 1" class="mb-3" align-v="center">
+        <b-col :cols="4"><h5 class="m-auto">Úloha:</h5></b-col>
+        <b-col :cols="8">
+          <b-form-select v-model="problem">
+            <b-form-select-option v-for="p in $store.state.loadedProblems" :key="p" :value="p">{{ p }}</b-form-select-option>
+          </b-form-select>
+        </b-col>
+      </b-row>
+      <div v-if="categories !== undefined && categories[problem] !== undefined">
+        <b-list-group >
+          <b-list-group-item
+            :active="category.enabled"
+            v-for="category in categories[problem].filter((e) => e.count > 0)"
+            :key="problem + category.name"
+            @click="toggleCategory(category)"
+          >
+            <div class="categoryEntry">
+              <div>{{ category.name }}</div>
+              <div>{{ category.count }} riešení</div>
+            </div>
+          </b-list-group-item>
+        </b-list-group>
+        <p>
+          Vybraté {{ categories[problem].filter((e) => e.enabled).length }} kategórie,
+          dokopy
+          {{ getDocumentCount() }}
+          riešení
+        </p>
+      </div>
+    </b-card>
+    <div v-if="hasDocuments == null" class="text-center">
+      <b-spinner variant="primary"></b-spinner>
+    </div>
+    <b-card header="Pridať novú úlohu" header-tag="h2" header-bg-variant="secondary">
       <p>{{ fileName }}</p>
       <b-form-file
         v-model="fileInput"
         accept=".zip"
         id="mainInput"
         size="lg"
-        placeholder="Vloz zip, v ktorom su vsetky riesenia"
+        placeholder="Vlož zip, v ktorom sú všetky riešenia"
       />
       <b-button @click="start">Načítaj</b-button>
-    </div>
-    <div v-if="hasDocuments">
-      <b-list-group v-if="hasDocuments">
-        <b-list-group-item variant="primary">
-          <h3>Vyber si kategórie, ktoré ideš opravovať</h3>
-        </b-list-group-item>
-        <b-list-group-item
-          :active="category.enabled"
-          v-for="category in categories.filter((e) => e.count > 0)"
-          :key="category.name"
-          @click="category.enabled = !category.enabled"
-        >
-          <div class="categoryEntry">
-            <div>{{ category.name }}</div>
-            <div>{{ category.count }} riešení</div>
-          </div>
-        </b-list-group-item>
-      </b-list-group>
-      <p>
-        Vybraté {{ categories.filter((e) => e.enabled).length }} kategórie,
-        dokopy
-        {{ getDocumentCount() }}
-        riešení
-      </p>
-    </div>
-    <div v-else class="text-center">
-      <b-spinner variant="primary"></b-spinner>
-    </div>
-    <hr />
+    </b-card>
+    <hr>
     <b-button
-      :disabled="getDocumentCount() == 0"
+      :disabled="getDocumentCount() === 0"
       size="lg"
       block
       variant="primary"
@@ -89,9 +96,10 @@
 <script lang="ts">
 import { Database } from "@/Db";
 import Vue from "vue";
-import { loadFromDatabase, readZip } from "../DocumentManager";
+import { loadFromDatabase } from "../Documents/DocumentManager";
+import { readZip } from "../Documents/Serializer";
 import { Document, DocumentParser } from "@/@types";
-import { PMatParser } from "@/DocumentParser";
+import { PMatParser } from "@/Documents/DocumentParser";
 import Component from "vue-class-component";
 import Changelog from "@/components/Changelog.vue";
 
@@ -103,79 +111,97 @@ interface Category {
 
 @Component({ components: { Changelog } })
 export default class Home extends Vue {
-  fileName: string = "Vloz Zip s PDFkami na opravovanie";
+  fileName: string = "Vlož Zip s PDFkami na opravovanie";
   hasFile = false;
-  fileInput: File | undefined = undefined;
+  fileInput: File | null = null;
   backupInput: File | undefined = undefined;
-  hasDocuments: boolean | undefined = undefined;
-  problem: string = "";
-  categories: Array<Category> = [];
+  hasDocuments: boolean | null = null;
+  get problem(): string {
+    return this.$store.state.currentProblem;
+  }
+  set problem(val: string) {
+    this.$store.commit('setActiveProblem', val);
+  }
+  categories: Record<string, Array<Category>> = {};
 
   mounted() {
     this.requestStorage();
+    this.$store.commit('loadData');
     Database.getAllDocuments().then((docs) => {
       this.hasDocuments = docs.length > 0;
       if (this.hasDocuments) {
-        this.problem = localStorage.getItem("uloha") || "";
         const parser = new PMatParser(this.problem);
         this.getCategories(docs, parser);
       }
     });
+    this.eventHub.$emit("editor:setDocument", -1);
   }
+
+  toggleCategory(category: Category){
+    category.enabled = !category.enabled;
+    this.$forceUpdate();
+  }
+
   getCategories(docs: Document[], parser: DocumentParser) {
-    this.categories = parser.kategorie.map((e) => {
-      return {
-        name: e,
-        enabled: false,
-        count: 0,
-      };
-    });
-    for (let i = 0; i < parser.kategorie.length; i++) {
-      const category = this.categories[i];
-      category.count = docs.filter(
-        (e) => e.kategoria == category.name
-      ).length;
-      this.categories[i] = category;
+    for (const problem of this.$store.state.loadedProblems) {
+      this.categories[problem] = parser.kategorie.map((e) => {
+        return {
+          name: e,
+          enabled: false,
+          count: 0,
+        };
+      });
+      for (let i = 0; i < parser.kategorie.length; i++) {
+        const category = this.categories[problem][i];
+        category.count = docs.filter(
+          (e) => e.kategoria == category.name && e.problem == problem
+        ).length;
+        this.categories[problem][i] = category;
+      }
     }
     console.log(this.categories);
   }
-  start() {
+  async start() {
     const file = this.fileInput;
+    
+    
     if (file != null) {
       this.fileName = file["name"];
       this.hasFile = true;
-      readZip(file).then((val) => {
-        this.hasDocuments = val.docs.length > 0;
-        this.problem = localStorage.getItem("uloha") || "";
-        this.getCategories(val.docs, val.parser);
-      })
+      this.hasDocuments = null;
+      const currDocs = await Database.getAllDocuments();
+      const val = await readZip(file);
+      this.hasDocuments = val.docs.length > 0;
+      this.getCategories(val.docs.concat(currDocs), val.parser);
+      this.$forceUpdate();
     }
   }
   openEditor() {
-    const categoriesEnabled = this.categories
+    const categoriesEnabled = this.categories[this.problem]
       .filter((e) => e.enabled)
       .map((e) => e.name);
     localStorage.setItem("categories", JSON.stringify(categoriesEnabled));
     return new Promise<void>((resolve, reject) => {
-      loadFromDatabase()
+      loadFromDatabase(this.$store.state.currentProblem)
         .then((docs) => {
-          setTimeout(() => {
-            this.$router
-              .push({
-                name: "Editor",
-                params: {
-                  doc: docs[0].id.toString(),
-                },
-              })
-              .then(() => resolve);
-          }, 500);
+          this.$router
+            .push({
+              name: "Editor",
+              params: {
+                doc: '-1',
+              },
+            })
+            .then(() => {
+              resolve();
+            }).catch((err) => console.error(err));
         })
-        .catch((err) => reject(err));
+        .catch((err) => console.error(err));
     });
   }
   getDocumentCount() {
     let count = 0;
-    for (const cat of this.categories) {
+    const categories = this.categories[this.problem] || []
+    for (const cat of categories) {
       if (cat.enabled) {
         count += cat.count;
       }
@@ -193,7 +219,7 @@ export default class Home extends Vue {
             if (!accepted) {
               this.$bvModal.msgBoxOk(`Nepodarilo sa mi dostať povolenie na persistentné ukladanie riešení na disku. 
                 V prípade málo miesta môžu byť rozopravované riešenia zmazané bez upozornenia. 
-                Ak si v chrome, uisti sa, že som nainštalovaný, mám povolené notifikácie a som pridaný do bookmarkov. 
+                Ak si v Chrome, uisti sa, že som nainštalovaný, mám povolené notifikácie a som pridaný do bookmarkov.
                 Ak si vo Firefoxe, tak si mi nepovolil persistent storage.`, {
                 okVariant: 'warning'
               });
@@ -208,8 +234,6 @@ export default class Home extends Vue {
   }
 }
 </script>
-
-scrip
 
 <style>
 .text {
@@ -226,16 +250,4 @@ input[type="file"] {
   flex-direction: row;
   justify-content: space-between;
 }
-/* .inputWrapper {
-  width: 100%;
-  height: 30vh;
-  background: rgba(128, 128, 128, 0.336);
-  border-radius: 20px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-.inputWrapper p {
-  color: rgb(83, 81, 81);
-} */
 </style>

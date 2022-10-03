@@ -1,23 +1,25 @@
 <template>
-  <div class="toolbar d-flex justify-content-start align-items-center">
-    <div :key="tool.name" v-for="tool in tools">
-      <button
-        :id="tool.name"
-        class="btn"
-        :class="{
-          'btn-primary': selectedTool.name == tool.name,
-          'btn-outline-primary': selectedTool.name != tool.name,
-        }"
-        @click="select(tool)"
-      >
-        <span class="material-icons">{{ tool.icon }}</span>
-      </button>
-      <b-tooltip :target="tool.name" triggers="hover">
-        {{ tool.tooltip }} ({{ tool.shortcut }})
-      </b-tooltip>
-    </div>
-    <div class="tool-controls">
-      <div class="btn" v-if="selectedOptions.hasText">
+  <b-row class="toolbar">
+    <b-col cols="3" class="d-flex p-0">
+      <div :key="tool.name" v-for="tool in tools">
+        <button
+          :id="tool.name"
+          class="btn"
+          :class="{
+            'btn-primary': selectedTool.name == tool.name,
+            'btn-outline-primary': selectedTool.name != tool.name,
+          }"
+          @click="select(tool)"
+        >
+          <span class="material-icons d-block">{{ tool.icon }}</span>
+        </button>
+        <b-tooltip :target="tool.name" triggers="hover">
+          {{ tool.tooltip }} ({{ tool.shortcut }})
+        </b-tooltip>
+      </div>
+    </b-col>
+    <b-col cols="7" class="tool-controls">
+      <div class="" v-if="selectedOptions.hasText">
         <b-dropdown :text="selectedTool.defaultOptions.fontFamily">
           <b-dropdown-item
             v-for="font in fonts"
@@ -33,15 +35,15 @@
       <div class="form-inline" v-if="selectedOptions.hasText">
         <p class="d-flex align-items-center">Veľkosť Písma</p>
         <input
+          type="number"
           class="form-control"
           min="0"
           style="width: 100px"
-          type="number"
           v-model.number="selectedTool.defaultOptions.fontSize"
         />
       </div>
-      <div class="form-inline" v-if="selectedOptions.hasStrokeWidth">
-        <p class="d-flex">Hrúbka čiary</p>
+      <div v-if="selectedOptions.hasStrokeWidth">
+        <p>Hrúbka čiary</p>
         <input
           class=""
           min="1"
@@ -50,9 +52,9 @@
           max="20"
           v-model.number="selectedTool.defaultOptions.strokeWidth"
         />
-        {{ selectedTool.defaultOptions.strokeWidth }}
+        {{ selectedTool.defaultOptions.strokeWidth || 0 }}
       </div>
-      <div v-if="selectedOptions.hasFill" class="d-flex align-items-center">
+      <div v-if="selectedOptions.hasFill">
         <p style="margin: 5px">Výplň</p>
         <color-picker
           name="fill"
@@ -60,7 +62,7 @@
           :value="selectedTool.defaultOptions.fill"
         />
       </div>
-      <div v-if="selectedOptions.hasStroke" class="d-flex align-items-center">
+      <div v-if="selectedOptions.hasStroke">
         <p style="margin: 5px">Farba čiary</p>
         <color-picker
           name="stroke"
@@ -69,10 +71,10 @@
         />
       </div>
       <div v-if="selectedTool.name == 'Photo'">
-        <b-button variant="primary" @click="openImageModal"
-          >Otvoriť obrázkové menu</b-button
+        <b-button variant="primary" @click="openImageModal">
+          <span class="material-icons d-block">add_photo_alternate</span></b-button
         >
-        <b-dropdown :text="getImageDropdownText()">
+        <b-dropdown :text="getImageDropdownText()" class="dropdown">
           <b-dropdown-item
             v-for="image in images"
             :key="image.id"
@@ -82,19 +84,22 @@
         </b-dropdown>
       </div>
       <div v-if="selectedTool.name == 'Sign'">
-        <b-button variant="primary" @click="openSignModal"
+        <b-button variant="primary" @click="openSignModal" class="w-auto p-2"
           >Otvoriť menu s podpismi</b-button
         >
-        <b-dropdown :text="getSignDropdownText()">
+        <b-dropdown :text="getSignDropdownText()" class="dropdown">
           <b-dropdown-item
             v-for="sign in signatures"
             :key="sign.id"
             @click.native="selectedTool.defaultOptions.sign = sign.id"
             >{{ sign.name }}</b-dropdown-item
           >
+          <b-dropdown-item v-if="signatures.length == 0" disabled>
+            Nie je nastavený žiaden podpis, pridaj si aspoň jeden
+          </b-dropdown-item>
         </b-dropdown>
       </div>
-    </div>
+    </b-col>
     <b-modal
       ref="imageMenu"
       centered
@@ -113,24 +118,36 @@
     >
       <sign-modal :signs="getSigns" ref="signModal"></sign-modal>
     </b-modal>
-    <hr />
-    <div class="right-controls">
+    <b-col cols="2" class="right-controls">
+      <div :key="util.name" v-for="util in utils">
+        <button
+            :id="util.name"
+            class="btn"
+            :class="util.style"
+            @click="useUtil(util)"
+        >
+          <span class="material-icons d-block">{{ util.icon }}</span>
+        </button>
+        <b-tooltip :target="util.name" triggers="hover">
+          {{ util.tooltip }} ({{ util.shortcut }})
+        </b-tooltip>
+      </div>
       <button
         id="zoomInButton"
         class="btn btn-outline-primary"
         @click="eventHub.$emit('viewport:scale', 0.1)"
       >
-        <span class="material-icons">add</span>
+        <span class="material-icons d-block">add</span>
       </button>
       <button
         id="zoomOutButton"
         class="btn btn-outline-primary"
         @click="eventHub.$emit('viewport:scale', -0.1)"
       >
-        <span class="material-icons">remove</span>
+        <span class="material-icons d-block">remove</span>
       </button>
       <b-button id="repairButton" @click="$refs.repairTool.Open()">
-        <span class="material-icons">build</span>
+        <span class="material-icons d-block">build</span>
       </b-button>
       <pdf-repairer ref="repairTool" />
       <b-tooltip target="zoomOutButton" triggers="hover"> Oddialiť </b-tooltip>
@@ -139,26 +156,27 @@
         Opraviť zle nahraté PDFko (pridať prázdnu stranu a otočiť obrázky)
       </b-tooltip>
       <!-- <b-tooltip target="rotateButton" triggers="hover"> Otocit </b-tooltip> -->
-    </div>
-  </div>
+    </b-col>
+  </b-row>
 </template>
 
 <script lang="ts">
-import { tools } from "./Tool";
-import { PDFdocument } from "../PDFdocument";
-import { FontsAvailable } from "../Fonts";
-import { Canvas } from "../../Canvas";
-import { getViewedDocument } from "@/DocumentManager";
+import {tools} from "./Tool";
+import {utils} from "./Util";
+import {PDFdocument} from "../PDFdocument";
+import {FontsAvailable} from "../Fonts";
+import {Canvas} from "../../Canvas";
+import {getViewedDocument} from "@/Documents/DocumentManager";
 
 import SignModal from "./SignModal.vue";
 import ImageModal from "./ImageModal.vue";
 import ColorPicker from "../ColorPicker.vue";
 import PdfRepairer from "./PdfRepairer/PdfRepairer.vue";
-import { Database } from "@/Db";
-import { Component, Watch } from "vue-property-decorator";
-import { BModal } from "bootstrap-vue";
+import {Database} from "@/Db";
+import {Component, Watch} from "vue-property-decorator";
+import {BModal} from "bootstrap-vue";
 import Vue from "vue";
-import { ITemplate, Tool } from "@/@types";
+import {ITemplate, Tool, Util} from "@/@types";
 
 @Component({
   components: {
@@ -170,6 +188,7 @@ import { ITemplate, Tool } from "@/@types";
 })
 export default class Toolbar extends Vue {
   tools = tools;
+  utils = utils;
   selectedTool = tools[0];
   selectedOptions = tools[0].options;
   fill = "#ffffff";
@@ -183,6 +202,7 @@ export default class Toolbar extends Vue {
     imageMenu: BModal;
     signModal: SignModal;
     imageModal: ImageModal;
+    repairTool: PdfRepairer;
   }
 
   mounted() {
@@ -197,10 +217,36 @@ export default class Toolbar extends Vue {
     for (const tool of tools) {
       this.eventHub.$on(`shortcut:${tool.name}`, () => this.select(tool));
     }
+    for (const util of utils) {
+      this.eventHub.$on(`shortcut:${util.name}`, () => this.useUtil(util, true));
+    }
+  }
+
+  useUtil(util: Util, mouse: boolean = false) {
+    const doc = getViewedDocument();
+    if(doc === null) throw new Error("No document is opened");
+
+    let page = -1;
+    for(let i=0; i<doc.pageCanvases.length; i++) {
+      if(doc.pageCanvases[i].getActiveObject() !== null) {
+        page = i;
+        break;
+      }
+    }
+    const objects = util.use(doc, page, mouse);
+    if(util.name == 'copy' && objects)
+      this.$bvToast.toast(`Skopírovaných ${objects.length} objektov`, {
+        variant: 'success',
+        autoHideDelay: 50000,
+        title: 'Skopírované',
+        appendToast: true,
+        toaster: 'b-toaster-top-left'
+      })
   }
 
   select(tool: Tool) {
     this.selectedTool = tool;
+    console.log(this.selectedTool);
     this.eventHub.$emit("tool:select", tool);
   }
 
@@ -257,7 +303,7 @@ export default class Toolbar extends Vue {
   getImageDropdownText() {
     return (
       this.images.find(
-        (e) => e.id == (this.selectedTool.defaultOptions as any).image
+        (e) => e.id == (this.selectedTool.defaultOptions as any)?.image
       )?.name || "Vyber obrázok"
     );
   }
@@ -293,27 +339,46 @@ export default class Toolbar extends Vue {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .toolbar {
   position: relative;
   top: 0;
   left: 0;
   width: 100%;
-  height: 60px;
   padding: 5px;
+  margin: 0;
+  justify-content: space-between;
+  background-color: var(--bg-700);
 }
 .btn {
   margin: 0 2px;
+  width: 2.8rem;
+  height: 2.8rem;
+  padding: 0;
 }
-b-dropdown {
+.dropdown {
   margin: 0 2px;
+  height: 2.8rem;
 }
 .right-controls {
-  margin-right: 10px;
   display: flex;
   flex-direction: row;
+  justify-content: flex-end;
+  padding: 0;
 }
 .tool-controls {
   display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 0 0 0 1rem;
+
+  div {
+    margin: 0 2px;
+    display: flex;
+    align-items: center;
+    p {
+      margin: 0 5px !important;
+    }
+  }
 }
 </style>

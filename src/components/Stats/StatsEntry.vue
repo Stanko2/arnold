@@ -75,6 +75,7 @@ export default class StatsEntry extends StatsEntryProps {
 }
 .stats h3 {
   font-size: 2.5rem;
+  font-weight: bold;
 }
 .content-leave-active,
 .content-enter-active {

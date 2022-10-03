@@ -2,14 +2,16 @@
   <b-modal
     ref="modal"
     size="xl"
-    title="Opravit pokazene PDFko"
+    title="Opraviť pokazené PDFko"
     scrollable
     no-close-on-backdrop
   >
     <p>
-      Nie je miesto na Komentár, alebo pdfko je divne otočené? Tu to vieš
-      vyriešiť. Rotovanie je ale dostupné len pri riešeniach, kde sú len
-      obrázky. Taktiež tu vieš z obrázkových riešení odstrániť biele okraje :)
+      Nie je miesto na Komentár, alebo pdfko je divne otočené? Tu to vieš vyriešiť.
+      <br>
+      Rotovanie je ale dostupné len pri riešeniach, kde sú len obrázky.
+      <br>
+      Taktiež tu vieš z obrázkových riešení odstrániť biele okraje :)
     </p>
     <div v-if="ImageSources">
       <b-button v-b-toggle.rotate-collapse variant="primary" block
@@ -18,8 +20,8 @@
       <b-collapse id="rotate-collapse" @show="renderRotateUI">
         <div v-if="ImageSources.length > 0">
           <b-alert show variant="warning">
-            <p>Otáčaj, len ak riešenie obsahuje iba fotky!</p>
-            <p>Inak prídeš o všetok text, ktorý tam bol</p>
+            <p>Otáčaj, len ak riešenie obsahuje iba fotky, inak prídeš o všetok text, ktorý v ňom bol!<br>
+            Riešenie otočíš kliknutím na obrázok nižšie a otočenie uložíš stlačením <b>Vygeneruj</b>.</p>
           </b-alert>
           <div class="pages">
             <b-spinner v-if="imagesLoading"></b-spinner>
@@ -61,7 +63,7 @@
       <b-button
         @click="generate()"
         size="md"
-        :disabled="(ImageSources.length == 0 && !newPage) || busy"
+        :disabled="(ImageSources.length === 0 && !newPage) || busy"
         ><b-spinner v-if="busy" /><span v-else>Vygeneruj</span></b-button
       >
       <b-button size="md" variant="danger" @click="cancel()" :disabled="busy">
@@ -73,7 +75,7 @@
 
 <script lang="ts">
 import { Database } from "@/Db";
-import { getViewedDocument } from "@/DocumentManager";
+import { getViewedDocument } from "@/Documents/DocumentManager";
 import { BCard, BModal } from "bootstrap-vue";
 import { fabric } from "fabric";
 import Vue from "vue";
@@ -114,10 +116,9 @@ export default class PDFRepairer extends Vue {
   }
 
   generate() {
-
     const doc = getViewedDocument()?.id;
     if (!doc) return;
-    this.$bvModal.msgBoxConfirm('Ak upravíš toto PDFko, tak stratíš v nom všetky zmeny', {
+    this.$bvModal.msgBoxConfirm('Ak upravíš toto PDFko, tak stratíš všetky zmeny v ňom urobené', {
       title: 'Upraviť PDFko?',
     }).then((val) => {
       if (!val) return;
@@ -171,6 +172,7 @@ export default class PDFRepairer extends Vue {
           lockMovementY: true,
           scaleX: dimensions.width / img.width,
           scaleY: dimensions.width / img.width,
+          hoverCursor: 'pointer',
         });
         cnv.add(cnvImg);
         this.canvases.push(cnv);
@@ -201,6 +203,18 @@ export default class PDFRepairer extends Vue {
             console.log(images);
           }
         });
+
+        // Fixes a bug caused by not rotating the image at all
+        if(cnvImg && cnvImg.width !== undefined && cnvImg.height !== undefined && cnvImg.scaleX !== undefined && cnvImg.scaleY !== undefined) {
+          cnvImg.set({
+            scaleX: dimensions.width / cnvImg.width,
+            scaleY: dimensions.width / cnvImg.width,
+          });
+          images[i].width = cnvImg.width * cnvImg.scaleX;
+          images[i].height = cnvImg.height * cnvImg.scaleY;
+        } else {
+          console.error('Image dimensions not defined, rotation error may occur');
+        }
       }
     })
   }

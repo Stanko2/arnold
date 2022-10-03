@@ -42,11 +42,15 @@ import DownloadAllButton from "./DownloadAllButton.vue";
 @Component({ components: { DownloadAllButton } })
 export default class SessionDestroyButton extends Vue {
 
-  destroySession() {
-    console.log("Destroy");
-    Database.clearAllDocuments().then(() => {
-      this.$router.push("/");
-    });
+  async destroySession() {
+    const docs = await Database.getAllDocuments();
+    for (const doc of docs) {
+      if(doc.problem === this.$store.state.currentProblem){
+        await Database.removeDocument(doc.id);
+      }
+    }
+    this.$store.commit('unloadCurrentProblem')
+    this.$router.replace({path: '/'});
   }
 }
 </script>
