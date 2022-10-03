@@ -75,7 +75,7 @@
 
 <script lang="ts">
 import { Database } from "@/Db";
-import { getViewedDocument } from "@/DocumentManager";
+import { getViewedDocument } from "@/Documents/DocumentManager";
 import { BCard, BModal } from "bootstrap-vue";
 import { fabric } from "fabric";
 import Vue from "vue";

@@ -219,7 +219,7 @@ export default class SearchBar extends Vue {
   position: absolute;
   left: 0;
   right: 0;
-  background-color: var(--light);
+  background-color: var(--bg-700);
   padding: 5px;
   border: 1px solid rgba(0, 0, 0, 0.2);
   border-radius: 0.3rem;

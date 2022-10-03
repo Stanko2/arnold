@@ -1,3 +1,5 @@
+import { ScoringCriteria } from '.';
+
 export interface Document {
     riesitel: string;
     kategoria: string;
@@ -11,6 +13,21 @@ export interface Document {
     tags: any[];
     originalName: string;
     opened: boolean;
+    problem: string;
+}
+
+export interface DocumentBackup {
+    changes: any[];
+    scoring?: IScoring;
+    tags: Tag[];
+    opened: boolean;
+    timeOpened: number;
+}
+
+export interface BackupFile {
+    changes: Record<string, DocumentBackup>;
+    tags: Tag[];
+    scoringCriteria: ScoringCriteria[];
 }
 
 export interface IScoring {
@@ -28,6 +45,7 @@ export interface Tag {
 }
 
 export interface DocumentParser {
+    problemName: string;
     kategorie: string[];
     uloha: string;
     parse: (name: string) => DocumentMetadata;

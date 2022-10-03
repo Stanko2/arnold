@@ -1,5 +1,5 @@
 <template>
-  <div class="right-bar bg-secondary position-relative">
+  <div class="right-bar position-relative">
     <search-bar ref="searchBar" />
     <ul ref="previews" class="list-group document-list p-0">
       <transition
@@ -10,10 +10,10 @@
         <document-preview
           v-show="documentsShown[i]"
           ref="documentList"
-          class="list-group-item"
           :showPDFPreview="showPreviews"
           :documentID="document.id"
           :showTimer="showTimer"
+          :index="i + 1"
           @click.native="selectIndex(document.id)"
         ></document-preview>
       </transition>
@@ -29,11 +29,11 @@ import Vue from "vue";
 import DocumentPreview from "./DocumentPreview.vue";
 import Component from "vue-class-component";
 import SearchBar from "./SearchBar.vue";
-import { Documents, getViewedDocument } from "@/DocumentManager";
-import { Document } from "@/@types";
+import { Documents, getViewedDocument } from "@/Documents/DocumentManager";
+import { Document, Settings } from "@/@types";
 import { PDFdocument } from "./PDFdocument";
-import { Database } from "@/Db";
 import Editor from "@/views/Editor.vue";
+import { Stopwatch } from "@/components/Stopwatch";
 
 const SidebarProps = Vue.extend({
   props: {
@@ -69,11 +69,11 @@ export default class Sidebar extends SidebarProps {
     previews: Element;
   };
   documentsShown!: boolean[];
-  selectedIndex: number = -1;
+  selectedIndex = 0;
   pdf!: PDFdocument;
-  prefs: any;
-  openTime: number = 0;
+  prefs!: Settings;
   timer!: NodeJS.Timer;
+  stopwatch: Stopwatch = new Stopwatch();
   mounted() {
     this.documentsShown = this.documents.map(() => true);
     this.$nextTick(() => this.init());
@@ -90,46 +90,44 @@ export default class Sidebar extends SidebarProps {
       "editor:documentChanged",
       (doc: PDFdocument, metadata: Document) => {
         this.selectedIndex = Documents.findIndex((e) => e.id === metadata.id);
-        this.openTime = Date.now();
         this.pdf = doc;
         if (this.$refs.documentList) {
           this.UpdateCurrentPreview();
         }
       }
     );
-    if (getViewedDocument() == null) {
-      const idx = parseInt(this.$route.params.doc);
-      this.updateSelected(idx, true);
-      setTimeout(() => {
-        this.eventHub.$emit("editor:setDocument", idx);
-      }, 50);
-    }
+    // if (getViewedDocument() == null) {
+    //   const idx = parseInt(this.$route.params.doc);
+    //   this.updateSelected(idx, true);
+    //   setTimeout(() => {
+    //     this.eventHub.$emit("editor:setDocument", idx);
+    //   }, 50);
+    // }
   }
   data() {
     const tags = JSON.parse(localStorage.getItem("tags") || "[]");
     return {
-      pdf: undefined,
-      selectedIndex: 0,
       tags: tags,
       documentsShown: this.documents.map(() => true),
     };
   }
   async save() {
+    if(getViewedDocument() == null) return;
     this.$refs.documentList[this.selectedIndex].documentBusy = true;
-    const doc = await this.pdf.save();
-    // .catch((err) => {
-    //   this.$bvToast.toast(err, {
-    //     variant: "danger",
-    //     title: "Save failed",
-    //   });
-    //   this.$refs.documentList[this.selectedIndex].documentBusy = false;
-    // });
+
+    const doc = await this.pdf.save()
+      .catch((err) => {
+        this.$bvToast.toast(err, {
+          variant: "danger",
+          title: "Save failed",
+        });
+        this.$refs.documentList[this.selectedIndex].documentBusy = false;
+      });
     this.$store.commit('updateDocument', doc);
     // this.UpdateCurrentPreview();
   }
   async selectDir(dir: number) {
-    if (!(this.$parent as Editor).$refs.viewport.loaded) return;
-    if (this.autoSave) await this.save();
+    if(!await this.beforeChange()) return;
     const curr = Documents.findIndex((e) => e.id == this.pdf.id);
     let i = curr + dir;
     while (this.documentsShown[i] === false) {
@@ -142,7 +140,7 @@ export default class Sidebar extends SidebarProps {
   updateSelected(newId: number, scrolling: boolean) {
     const newIndex = Documents.findIndex((e) => e.id == newId);
     this.$router
-      .push({ name: "Editor", params: { doc: newId.toString() } })
+      .replace({ name: "Editor", params: { doc: newId.toString() } })
       .catch(() => { });
     const previews = this.$refs.documentList;
     let height = 0;
@@ -159,27 +157,26 @@ export default class Sidebar extends SidebarProps {
         left: 0,
         behavior: "smooth",
       });
-    // if (this.selectedIndex != newIndex) {
-    //   this.documents[this.selectedIndex].timeOpened +=
-    //     Date.now() - this.openTime;
-    //   Database.updateDocument(
-    //     this.documents[this.selectedIndex].id,
-    //     this.documents[this.selectedIndex],
-    //     false
-    //   );
-    // }
   }
+
+  async beforeChange(){
+    if(getViewedDocument() == null) return true;
+    if (this.autoSave) await this.save();
+    if (!(this.$parent as Editor).$refs.viewport.loaded) {
+      return false;
+    }
+    return true;
+  }
+
   stopwatchUpdate() {
     if (this.$refs.documentList && this.selectedIndex != -1) {
       this.$refs.documentList[this.selectedIndex]?.updateStopwatch(
-        this.openTime,
-        this.documents[this.selectedIndex].timeOpened
+        this.stopwatch.time
       );
     }
   }
   async selectIndex(id: number) {
-    if (!(this.$parent as Editor).$refs.viewport.loaded) return;
-    if (this.autoSave) await this.save();
+    if(!await this.beforeChange()) return;
     this.updateSelected(id, false);
     this.eventHub.$emit("editor:setDocument", id);
   }
@@ -222,3 +219,22 @@ export default class Sidebar extends SidebarProps {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+.document-list {
+  height: calc(100% - 50px);
+  background-color: var(--bg-700);
+  overflow: auto;
+  &-leave-active, &-enter-active {
+    transition: 250ms ease-in-out;
+  }
+  &-enter {
+    transform: translate(0, -100%) scale(0.2);
+    opacity: 0;
+  }
+  &-leave-to {
+    transform: translate(100%, 0);
+    opacity: 0;
+  }
+}
+</style>

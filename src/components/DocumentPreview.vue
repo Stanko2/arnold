@@ -1,8 +1,9 @@
 <template>
   <li
+    class="list-group-item"        
     :class="{
       'list-group-item-action': !selected,
-      active: selected,
+      selected: selected,
       opened: document && document.opened,
     }"
   >
@@ -15,30 +16,19 @@
     >
       <b-overlay :show="documentBusy" no-wrap> </b-overlay>
       <div class="col-5" v-if="showPDFPreview">
-        <div class="card">
-          <div
-            v-if="pdfUrl == null"
-            class="d-flex align-items-center justify-content-center"
-          >
-            Nacitavam preview
-          </div>
-          <div v-else>
-            <!-- <pdf
-              :key="pdfKey"
-              :src="pdf"
-              :page="1"
-              :text="false"
-              :resize="true"
-              style="display: inline-block; width: 100%"
-            ></pdf> -->
+        <b-card body-class="p-0">
+          <b-skeleton-wrapper :loading="pdfUrl == null">
+            <template #loading>
+              <b-skeleton-img card-img="top"></b-skeleton-img>
+            </template>
             <img :src="pdfUrl" alt="preview" />
-          </div>
-        </div>
+          </b-skeleton-wrapper>
+        </b-card>
       </div>
       <div :class="{ 'col-7': showPDFPreview, 'w-100': !showPDFPreview }">
         <div class="text-left overflow-hidden mw-100" :id="documentID + 'name'">
           <h5 class="d-inline pr-1 mr-2 border-right">
-            {{ document.index }}
+            {{ index }}
           </h5>
           <h5 class="d-inline">
             {{ document.riesitel }}
@@ -140,19 +130,15 @@ import Color from "color";
 import Vue from "vue";
 import type { Document, Tag } from "@/@types";
 import Component from "vue-class-component";
-// var pdf = require("pdfvuer");
 import { getDocument } from "pdfjs-dist";
+import { Prop } from "vue-property-decorator";
 
-const Previewprops = Vue.extend({
-  props: ["documentID", "showPDFPreview", "showTimer"],
-});
-
-@Component({
-  components: {
-    // pdf: pdf.default,
-  },
-})
-export default class DocumentPreview extends Previewprops {
+@Component
+export default class DocumentPreview extends Vue {
+  @Prop() showTimer!: boolean;
+  @Prop() documentID!: number;
+  @Prop() showPDFPreview!: boolean;
+  @Prop() index!: number;
   document: Document | undefined;
   hasComment: boolean = false;
   documentBusy: boolean = false;
@@ -195,12 +181,10 @@ export default class DocumentPreview extends Previewprops {
       this.hasComment = doc.changes.some(
         (f) => f.type === "Text" && f.data.hasControls
       );
+      this.updateStopwatch(doc.timeOpened);
       setTimeout(() => {
-        // this.pdf = pdf.createLoadingTask({
-        //   data: new Uint8Array(doc.pdfData),
-        // });
         this.generatePreview(doc.pdfData);
-      }, 1000 * doc.index);
+      }, 1000 * this.index);
     });
     this.eventHub.$on("tags:documentTag", (id: number, tags: any) => {
       if (!this.document || this.documentID != id) return;
@@ -235,9 +219,8 @@ export default class DocumentPreview extends Previewprops {
       color: Color(a?.color).isLight() ? "black" : "white",
     };
   }
-  updateStopwatch(openedAt: number, timeOpened: number) {
-    const time = Date.now() - openedAt + timeOpened;
-    const date = new Date(time);
+  updateStopwatch(timeOpened: number) {
+    const date = new Date(timeOpened);
     const f = function (func: () => number) {
       const res = func();
       if (res < 10) {
@@ -248,7 +231,6 @@ export default class DocumentPreview extends Previewprops {
     this.stopwatchText = `${date.getHours() - 1}:${f(() =>
       date.getMinutes()
     )}:${f(() => date.getSeconds())}`;
-    if (this.document) this.document.timeOpened = timeOpened;
   }
 
   async generatePreview(data: ArrayBuffer) {
@@ -271,7 +253,8 @@ export default class DocumentPreview extends Previewprops {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+  @import '../theme.scss';
 .tags-leave-active {
   animation: bounce-in 500ms reverse;
 }
@@ -289,41 +272,62 @@ export default class DocumentPreview extends Previewprops {
     transform: scale(1);
   }
 }
-.header-text {
-  font-size: 1.1rem;
-}
 .points-text {
   font-size: 1.2rem;
 }
-h5 {
-  font-weight: 900;
-  font-size: 1.3rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.opened h5 {
-  font-weight: normal;
-}
-.opened {
-  transition: box-shadow 100ms linear;
-  background-color: rgb(243, 243, 243);
-}
-.opened:hover,
-.list-group-item-action:hover {
-  /* background-color: #b3bdc7; */
-  box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.1);
-}
-.active.opened {
-  background-color: #007bff;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-}
+
 .stopwatch {
   position: absolute;
-  bottom: -8px;
+  bottom: 0;
   right: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+.list-group-item{
+  background-color: var(--bg-700) !important;
+  color: var(--body-color) !important;
+  transition: all 100ms linear;
+
+  h5 {
+    font-weight: 900;
+    font-size: 1.3rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  &.selected{
+    background-color: var(--primary) !important;
+    color: var(--bg-700) !important;
+    &:hover {
+      background-color: var(--primary) !important;
+      color: var(--bg-700) !important;
+    }
+  }
+  &:hover {
+    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.1);
+    background-color: var(--bg-500) !important;
+  }
+  &.list-group-item-action{
+
+    &.opened{
+  
+      background-color: var(--bg-600) !important;
+      color: var(--bg-200) !important;
+      &:hover {
+        background-color: var(--bg-500) !important;
+        color: var(--bg-100) !important;
+      }
+      h5 {
+        font-weight: normal;
+      }
+    }
+  }
+  .card {
+    background-color: var(--bg-800);
+    img {
+      border-radius: 0.3rem;
+    }
+  }
 }
 </style>

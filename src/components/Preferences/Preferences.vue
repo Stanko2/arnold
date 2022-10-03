@@ -13,7 +13,7 @@
     </b-col>
     <b-col cols="8" class="categoryMenu">
       <h1 class="text-center">{{ selectedCategory.text }}</h1>
-      <hr />
+      <hr>
       <div v-if="selectedCategory.name == 'tools'">
         <b-row class="setting">
           <b-col>Prvý selectnutý nástroj</b-col>
@@ -25,7 +25,7 @@
             </b-select>
           </b-col>
         </b-row>
-        <hr />
+        <hr>
         <h2 class="text-center m-2">
           Defaultné nastavenia pre jednotlivé nástroje
         </h2>
@@ -129,7 +129,7 @@
             ></b-form-checkbox>
           </b-col>
         </b-row>
-        <hr />
+        <hr>
         <b-row>
           <b-col>Auto-save riešenia pri prepnutí</b-col>
           <b-col>
@@ -141,7 +141,7 @@
             ></b-form-checkbox>
           </b-col>
         </b-row>
-        <hr />
+        <hr>
         <b-row>
           <b-col>Ukázať časovač</b-col>
           <b-col>
@@ -151,6 +151,22 @@
               v-model="selectedCategory.settings.showTimer"
               switch
             ></b-form-checkbox>
+          </b-col>
+        </b-row>
+        <hr>
+        <b-row>
+          <b-col>Téma</b-col>
+          <b-col>
+            <b-dropdown
+              class="float-right"
+              size="md"
+              :text="selectedCategory.settings.theme"
+              right
+            >
+              <b-dropdown-item @click="selectedCategory.settings.theme = 'light'">Svetlé</b-dropdown-item>
+              <b-dropdown-item @click="selectedCategory.settings.theme = 'dark'">Tmavé</b-dropdown-item>
+              <b-dropdown-item @click="selectedCategory.settings.theme = 'system'">Podľa systému</b-dropdown-item>
+            </b-dropdown>
           </b-col>
         </b-row>
       </div>
@@ -170,7 +186,7 @@
               ></b-form-input>
             </b-col>
           </b-row>
-          <hr />
+          <hr>
         </div>
       </div>
     </b-col>
@@ -200,11 +216,15 @@ import { nameMap } from "@/Mixins/Keybindings.vue"
   },
 })
 export default class Preferences extends Vue {
-  categories: any;
+  categories: SettingsCategory[] = [];
   selectedCategoryIndex!: number;
-  selectedCategory: any;
+  selectedCategory!: SettingsCategory;
   shortcutNameMap = nameMap;
-  data() {
+  fonts = FontsAvailable;
+  $refs!: {
+    shortcutHelp: ShortcutHelpModal;
+  };
+  beforeMount() {
     const toolsCopy = [
       ...tools.map((e) => {
         return {
@@ -232,7 +252,7 @@ export default class Preferences extends Vue {
         shortcut: "b",
       },
     ];
-    let categories: SettingsCategory[] = [
+    this.categories = [
       {
         text: "Nástroje",
         settings: {
@@ -263,6 +283,9 @@ export default class Preferences extends Vue {
           { name: "delete", shortcut: "del" },
           { name: "zoomIn", shortcut: "ctrl+plus" },
           { name: "zoomOut", shortcut: "ctrl+-" },
+          { name: "cut", shortcut: "ctrl+x" },
+          { name: "copy", shortcut: "ctrl+c" },
+          { name: "paste", shortcut: "ctrl+v" },
         ],
         name: "shortcut",
       } as ShortcutCategory,
@@ -272,37 +295,33 @@ export default class Preferences extends Vue {
           showPreviews: true,
           autoSave: true,
           showTimer: false,
+          theme: 'system',
         },
         name: "other",
       } as OthersCategory,
     ];
-
-    return {
-      categories: categories,
-      selectedCategoryIndex: 0,
-      selectedCategory: categories[0],
-      fonts: FontsAvailable,
-    };
-  }
+    this.selectedCategoryIndex = 0;
+    this.selectedCategory = this.categories[this.selectedCategoryIndex];
+  } 
   mounted() {
     const data = localStorage.getItem("preferences");
     if (data) {
       const prefs: Settings = this.$store.state.settings;
       this.categories[0].settings.defaultTool.value =
         prefs.tools.settings.defaultTool.value;
-      this.categories[2] = prefs.other;
-      this.categories[1] = prefs.shortcut;
+      Object.assign(this.categories[2].settings, prefs.other.settings);
+      Object.assign(this.categories[1].settings, prefs.shortcut.settings);
+      
       this.categories[0].settings.tools[
         this.categories[0].settings.tools.length - 1
       ] = prefs.tools.settings.tools.find((e: any) => e.name == "scoring");
     }
-    setTimeout(() => {
-      console.log(this.categories);
-    }, 5000);
   }
   select(i: number) {
+    console.log(i);
     this.selectedCategoryIndex = i;
     this.selectedCategory = this.categories[this.selectedCategoryIndex];
+    this.$forceUpdate();
   }
   hasSettings(tool: any): boolean {
     return Object.keys(tool.options).some((key) => tool.options[key]);
@@ -320,14 +339,15 @@ export default class Preferences extends Vue {
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .colorInput {
   opacity: 0;
-}
-.colorInput::before {
-  display: block;
-  background: red;
-  border-radius: 50%;
+  
+  &::before {
+    display: block;
+    background: red;
+    border-radius: 50%;
+  }
 }
 
 .slide-leave-active,

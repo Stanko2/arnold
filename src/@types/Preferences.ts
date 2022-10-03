@@ -44,5 +44,6 @@ export interface OthersCategory extends SettingsCategory {
         showPreviews: boolean;
         autoSave: boolean;
         showTimer: boolean;
+        theme: 'dark' | 'light' | 'system';
     }
 }
