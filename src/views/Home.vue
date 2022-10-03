@@ -82,7 +82,7 @@
     </b-card>
     <hr>
     <b-button
-      :disabled="getDocumentCount() == 0"
+      :disabled="getDocumentCount() === 0"
       size="lg"
       block
       variant="primary"
@@ -219,7 +219,7 @@ export default class Home extends Vue {
             if (!accepted) {
               this.$bvModal.msgBoxOk(`Nepodarilo sa mi dostať povolenie na persistentné ukladanie riešení na disku. 
                 V prípade málo miesta môžu byť rozopravované riešenia zmazané bez upozornenia. 
-                Ak si v chrome, uisti sa, že som nainštalovaný, mám povolené notifikácie a som pridaný do bookmarkov. 
+                Ak si v Chrome, uisti sa, že som nainštalovaný, mám povolené notifikácie a som pridaný do bookmarkov.
                 Ak si vo Firefoxe, tak si mi nepovolil persistent storage.`, {
                 okVariant: 'warning'
               });
