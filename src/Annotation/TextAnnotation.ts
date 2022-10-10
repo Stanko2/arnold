@@ -18,6 +18,8 @@ export class TextAnnotation extends Annotation {
     }
     constructor(page: number, options: fabric.ITextboxOptions, canvas: Canvas) {
         // options.fontWeight = 'bold';
+        options.originX = 'left';
+        options.originY = 'center';
         super(page, new fabric.Textbox(options.text || 'text', options), canvas, 'Text');
         (this.object as any).tool = TextAnnotation.toolOptions;
         canvas.setActiveObject(this.object);
