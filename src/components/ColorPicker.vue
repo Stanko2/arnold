@@ -6,7 +6,9 @@
       :style="{
         'background-color': color,
       }"
-    ></b-button>
+    ><slot />
+
+    </b-button>
     <b-popover
       :show.sync="show"
       :target="name"
