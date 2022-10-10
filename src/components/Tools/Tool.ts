@@ -50,7 +50,8 @@ export const tools: Tool[] = [
         cursor: 'pointer',
         click: async (pdf: PDFdocument, page: number, position: { x: number, y: number }): Promise<fabric.Object> => {
             console.log(pdf.pageCanvases);
-
+            selectedTool.defaultOptions.left = position.x;
+            selectedTool.defaultOptions.top = position.y;
             var annot = new TextAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
             selectTool(tools[7]);
