@@ -96,13 +96,13 @@ export default class Sidebar extends SidebarProps {
         }
       }
     );
-    // if (getViewedDocument() == null) {
-    //   const idx = parseInt(this.$route.params.doc);
-    //   this.updateSelected(idx, true);
-    //   setTimeout(() => {
-    //     this.eventHub.$emit("editor:setDocument", idx);
-    //   }, 50);
-    // }
+    const idx = parseInt(this.$route.params.doc);
+    if (idx != -1) {
+      this.updateSelected(idx, true);
+      setTimeout(() => {
+        this.eventHub.$emit("editor:setDocument", idx);
+      }, 50);
+    }
   }
   data() {
     const tags = JSON.parse(localStorage.getItem("tags") || "[]");

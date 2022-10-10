@@ -188,7 +188,7 @@ export default class Home extends Vue {
             .push({
               name: "Editor",
               params: {
-                doc: docs[0].id.toString(),
+                doc: '-1',
               },
             })
             .then(() => {
