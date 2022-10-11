@@ -177,7 +177,7 @@ export default class Editor extends Vue {
   }
 
   &.visible{
-    left: min(23vw, 485px);
+    left: min(28.6vw, 485px);
     span {
       transform: rotate(180deg);
     }
@@ -191,7 +191,7 @@ export default class Editor extends Vue {
   }
 }
 .right-bar {
-  width: min(30vw, 600px);
+  width: min(40vw, 600px);
   overflow: hidden;
 }
 .empty-text{

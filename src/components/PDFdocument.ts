@@ -14,7 +14,7 @@ export class PDFdocument {
     static viewport: Vue;
     static toolbarRef: any;
     static initDocument: Function;
-    static activeObject: fabric.Object;
+    static activeObject: fabric.Object | undefined;
     modifyRef: PDFDocument | undefined;
     viewref: any;
     initialized = false;
