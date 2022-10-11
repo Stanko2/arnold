@@ -32,7 +32,7 @@
           <b-form-input
             @change="addtag"
             v-model="currTag"
-            placeholder="Zadaj tagy ... "
+            placeholder="Filtrovacie kritéria ... "
             :state="tagValid"
             @update="checkValidity(currTag)"
             list="taglist"
@@ -104,6 +104,7 @@ export default class SearchBar extends Vue {
   currTag: string = "";
   availableTags: Tag[] = [];
   searchStr: string = "";
+  expanded = false;
 
   mounted() {
     this.getTags();
@@ -111,18 +112,7 @@ export default class SearchBar extends Vue {
     this.categories = JSON.parse(localStorage.getItem("categories") || "[]");
     this.categoriesVisible = this.categories.map(() => true);
   }
-  data() {
-    return {
-      searchStr: "",
-      availableTags: [],
-      searchTags: [],
-      currTag: "",
-      expanded: false,
-      tagValid: null,
-      categoriesVisible: Array<Boolean>(),
-      categories: Array<String>(),
-    };
-  }
+
   search() {
     this.eventHub.$emit(
       "editor:search",
@@ -177,18 +167,19 @@ export default class SearchBar extends Vue {
 }
 </script>
 
-<style scoped>
-.slide-leave-active,
-.slide-enter-active {
-  transition: all 250ms ease-in-out;
-}
-.slide-enter {
-  transform: translate(0, -100%);
-  box-shadow: 0 0 0 transparent;
-}
-.slide-leave-to {
-  transform: translate(0, -100%);
-  box-shadow: 0 0 0 transparent;
+<style scoped lang="scss">
+.slide{
+  &-leave-active, &-enter-active {
+    transition: all 250ms ease-in-out;
+  }
+  &-enter{
+    transform: translate(0, -100%);
+    box-shadow: 0 0 0 transparent;
+  }
+  &-leave-to{
+    transform: translate(0, -100%);
+    box-shadow: 0 0 0 transparent;
+  }
 }
 .tags-leave-active {
   animation: bounce-in 500ms reverse;

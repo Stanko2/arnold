@@ -28,7 +28,7 @@
 import Vue from "vue";
 import DocumentPreview from "./DocumentPreview.vue";
 import Component from "vue-class-component";
-import SearchBar from "./SearchBar.vue";
+import SearchBar from "./Filtering/SearchBar.vue";
 import { Documents, getViewedDocument } from "@/Documents/DocumentManager";
 import { Document, Settings } from "@/@types";
 import { PDFdocument } from "./PDFdocument";
