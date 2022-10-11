@@ -45,13 +45,12 @@ export class Canvas extends fabric.Canvas {
         this.on('mouse:down', async (e) => {
             if (e.absolutePointer == null) return;
             if (this.isDrawingMode) return;
-            for (const annotation of this.pdf.annotations) {
-                if (annotation.object.containsPoint(e.absolutePointer)) {
-                    return;
-                }
-            }
+            // for (const annotation of this.pdf.annotations) {
+            //     if (annotation.object.containsPoint(e.absolutePointer)) {
+            //         return;
+            //     }
+            // }
             if (Canvas.selectedTool && Canvas.selectedTool.name != 'Select' && this.getActiveObjects().length == 0 && Canvas.selectedTool.defaultOptions) {
-                console.log(Canvas.selectedTool.name);
                 var options = Canvas.selectedTool.defaultOptions as fabric.IObjectOptions;
                 const width = Canvas.selectedTool.defaultOptions.width || 0;
                 const height = Canvas.selectedTool.defaultOptions.height || 0;
@@ -187,6 +186,9 @@ export class Canvas extends fabric.Canvas {
                     e.renderAll();
                 }
             })
+        }
+        else {
+            PDFdocument.activeObject = undefined;
         }
     }
 

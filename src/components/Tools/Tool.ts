@@ -277,6 +277,7 @@ eventHub.$on('tool:initCurrent', () => selectTool(selectedTool));
 function selectTool(tool: Tool) {
     selectedTool?.onDeselect?.();
     selectedTool = tool;
+    PDFdocument.activeObject = undefined;
     if (tool.onSelect) {
         tool.onSelect();
     }
