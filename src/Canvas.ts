@@ -77,6 +77,7 @@ export class Canvas extends fabric.Canvas {
             if (Canvas.selectedTool && Canvas.selectedTool.name == 'Arrow') {
                 (Canvas.selectedTool.defaultOptions as fabric.ILineOptions).x2 = pointerPos.x;
                 (Canvas.selectedTool.defaultOptions as fabric.ILineOptions).y2 = pointerPos.y;
+                
                 this.creating = await Canvas.selectedTool.click?.(this.pdf, this.page, pointerPos);
                 this.setActiveObject(this.creating);
                 this.requestRenderAll();

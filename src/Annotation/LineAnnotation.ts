@@ -13,7 +13,7 @@ export class LineAnnotation extends Annotation {
     }
     constructor(page: number, options: fabric.ILineOptions, canvas: Canvas) {
         options.hasControls = true;
-        options.hasBorders = false;
+        options.hasBorders = true;
         options.strokeLineCap = 'round';
         options.cornerSize = 20;
         options.cornerStyle = "circle";
@@ -31,6 +31,8 @@ export class LineAnnotation extends Annotation {
         this.line.set({
             points: this.getArrowPoints(options.x1, options.y1, options.x2, options.y2, options.strokeWidth)
         });
+        this.line.setCoords();
+        this.canvas.requestRenderAll();
         const annotation = this;
         function actionHandler(eventData: MouseEvent, transform: fabric.Transform, x: number, y: number, tip: boolean) {
             let polygon = transform.target as fabric.Polyline,

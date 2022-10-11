@@ -142,6 +142,11 @@ export const tools: Tool[] = [
             strokeWidth: 5,
         },
         click: async (pdf: PDFdocument, page: number, position: { x: number, y: number }) => {
+            (selectedTool.defaultOptions as fabric.ILineOptions).x2 = position.x;
+            (selectedTool.defaultOptions as fabric.ILineOptions).y2 = position.y;
+            delete selectedTool.defaultOptions.top;
+            delete selectedTool.defaultOptions.left;
+            
             const annot = new LineAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
             // selectTool(tools[7]);
