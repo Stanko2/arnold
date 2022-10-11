@@ -17,7 +17,7 @@
       ref="popover"
     >
       <template #title>{{ label }}</template>
-      <v-swatches v-model="color" inline @input="submit" backgroundColor="transparent"></v-swatches>
+      <v-swatches class="color-picker" v-model="color" inline @input="submit" backgroundColor="transparent" show-fallback fallback-input-type="color"></v-swatches>
       <div class="d-flex align-items-center justify-content-between">
         <p class="d-flex align-items-center transparency-text">
           Nepriehľadnosť
@@ -164,4 +164,12 @@ input.transparency-num:focus,
 input.transparency-num:active {
   border: none;
 }
+</style>
+
+<style>
+
+.color-picker .vue-swatches__fallback__wrapper {
+  display: flex !important;
+}
+
 </style>
