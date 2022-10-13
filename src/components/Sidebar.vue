@@ -77,7 +77,6 @@ export default class Sidebar extends SidebarProps {
   mounted() {
     this.documentsShown = this.documents.map(() => true);
     this.$nextTick(() => this.init());
-    this.$refs.searchBar.getTags();
     this.eventHub.$on("document:save", this.save);
     this.eventHub.$on("editor:search", this.search);
     this.eventHub.$on("shortcut:selectNext", () => this.selectDir(1));

@@ -30,11 +30,10 @@
       <div v-if="expanded" class="search-menu">
         <b-input-group>
           <b-form-input
-            @change="addtag"
-            v-model="currTag"
+            v-model="currQuery"
             placeholder="Filtrovacie kritéria ... "
             :state="tagValid"
-            @update="checkValidity(currTag)"
+            @update="checkValidity(currQuery)"
             list="taglist"
           >
           </b-form-input>
@@ -79,7 +78,6 @@
               >{{ tag.meno }}
               <b-btn-close
                 class="ml-2"
-                @click="removeTag(tag.meno)"
               ></b-btn-close
             ></span>
           </b-badge>
@@ -94,6 +92,7 @@ import type { DocumentParser, Tag } from "@/@types";
 import Color from "color";
 import Vue from "vue";
 import Component from "vue-class-component";
+import filter from './Filter';
 
 @Component({})
 export default class SearchBar extends Vue {
@@ -101,14 +100,12 @@ export default class SearchBar extends Vue {
   categoriesVisible: boolean[] = [];
   searchTags: Tag[] = [];
   tagValid: boolean | null = null;
-  currTag: string = "";
+  currQuery: string = "";
   availableTags: Tag[] = [];
   searchStr: string = "";
   expanded = false;
 
   mounted() {
-    this.getTags();
-    this.eventHub.$on("tags:update", this.getTags);
     this.categories = JSON.parse(localStorage.getItem("categories") || "[]");
     this.categoriesVisible = this.categories.map(() => true);
   }
@@ -123,35 +120,13 @@ export default class SearchBar extends Vue {
       })
     );
   }
-  addtag() {
-    const tag = this.availableTags.find((e: Tag) => e.meno == this.currTag);
-    if (this.tagValid && tag) {
-      this.searchTags.push(tag);
-      this.currTag = "";
-      this.tagValid = null;
-      this.search();
+  checkValidity(query: string) {
+    try{
+      filter.updateQuery(query)
     }
-  }
-  removeTag(tag: string) {
-    this.searchTags.splice(
-      this.searchTags.findIndex((e: any) => e.id == tag),
-      1
-    );
-    this.search();
-  }
-  getTags() {
-    // const tags = JSON.parse(localStorage.getItem("tags") || "[]");
-    this.availableTags = this.$store.state.tags;
-  }
-  checkValidity(tag: string) {
-    if (
-      this.availableTags.every((e: any) => e.meno.match(tag) == null) ||
-      this.searchTags.findIndex((e: any) => e.meno == tag) != -1
-    )
+    catch(e){
       this.tagValid = false;
-    else if (this.availableTags.findIndex((e: any) => e.meno == tag) != -1)
-      this.tagValid = true;
-    else this.tagValid = null;
+    }
   }
   getContrastColor(color: string) {
     const c = new Color(color);
