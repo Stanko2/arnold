@@ -32,10 +32,18 @@
           <b-form-input
             v-model="currQuery"
             placeholder="Filtrovacie kritéria ... "
-            :state="tagValid"
-            @update="checkValidity(currQuery)"
-          >
-          </b-form-input>
+            @update="updateQuery(currQuery)"
+            size="sm"
+          />
+          <b-input-group-append>
+            <b-button variant="success" size="sm" class="material-icons" id="filter" v-b-modal.filterhelp>
+              help
+            </b-button>
+            <b-tooltip target="filter">
+              Pomoc k filtrovaniu
+            </b-tooltip>
+            <filter-help/>
+          </b-input-group-append>
         </b-input-group>
         <h6 v-if="categories.length > 1">
           <b-badge
@@ -83,8 +91,9 @@ import Color from "color";
 import Vue from "vue";
 import Component from "vue-class-component";
 import filter from './Filter';
+import FilterHelp from './FilterHelp.vue';
 
-@Component({})
+@Component({components: {FilterHelp}})
 export default class SearchBar extends Vue {
   categories: string[] = [];
   categoriesVisible: boolean[] = [];
@@ -97,6 +106,17 @@ export default class SearchBar extends Vue {
   mounted() {
     this.categories = JSON.parse(localStorage.getItem("categories") || "[]");
     this.categoriesVisible = this.categories.map(() => true);
+    
+    // @ts-ignore
+    const filter: string = this.$route.query.filter ?? '';
+    console.log(this.$route.query);
+    
+    setTimeout(() => {
+      if(filter != ''){
+        this.currQuery = filter
+        this.updateQuery(filter)
+      }
+    }, 200);
   }
 
   search() {
@@ -111,9 +131,14 @@ export default class SearchBar extends Vue {
       })
     );
   }
-  checkValidity(query: string) {
+  updateQuery(query: string) {
     try{
       filter.updateQuery(query)
+      this.$router.replace({
+        query: {
+          filter: query
+        }
+      })
       this.search()
       this.tagValid = true
     }

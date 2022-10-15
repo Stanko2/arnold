@@ -60,6 +60,7 @@ import Component from "vue-class-component";
 export default class Tags extends Vue {
   availableTags: Tag[] = [];
   doc: Document | undefined;
+  ukazMenu = false;
   mounted() {
     this.availableTags = JSON.parse(localStorage.getItem("tags") || "[]");
     this.eventHub.$on(
@@ -81,13 +82,6 @@ export default class Tags extends Vue {
         Database.updateDocument(document.id, document, false);
       }
     );
-  }
-  data() {
-    return {
-      ukazMenu: false,
-      availableTags: [],
-      doc: undefined,
-    };
   }
   zistiTagy(doc: Document) {
     this.$data.doc = doc;

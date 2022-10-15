@@ -157,6 +157,13 @@ export default class Sidebar extends SidebarProps {
         left: 0,
         behavior: "smooth",
       });
+    setTimeout(() => {
+      const doc = Documents.find(doc=>doc.id == newId);
+      if(doc){
+        this.documentsShown[newIndex] = filter.getVisibility(doc);
+        this.$forceUpdate();
+      }
+    }, 30);
   }
 
   async beforeChange(){

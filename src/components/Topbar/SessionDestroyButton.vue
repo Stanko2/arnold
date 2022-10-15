@@ -50,7 +50,7 @@ export default class SessionDestroyButton extends Vue {
       }
     }
     this.$store.commit('unloadCurrentProblem')
-    this.$router.replace({path: '/'});
+    this.$router.push({path: '/'});
   }
 }
 </script>
