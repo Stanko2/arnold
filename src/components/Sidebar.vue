@@ -34,6 +34,7 @@ import { Document, Settings } from "@/@types";
 import { PDFdocument } from "./PDFdocument";
 import Editor from "@/views/Editor.vue";
 import { Stopwatch } from "@/components/Stopwatch";
+import filter from "./Filtering/Filter";
 
 const SidebarProps = Vue.extend({
   props: {
@@ -179,35 +180,20 @@ export default class Sidebar extends SidebarProps {
     this.updateSelected(id, false);
     this.eventHub.$emit("editor:setDocument", id);
   }
-  search(query: string, tags: string[], categories: string[]) {
-    const onlyLettersRegex = /[a-z]+/gi;
-    let resultCount = 0;
-    query = query.match(onlyLettersRegex)?.join("").toLowerCase() || "";
+  search(query: string, categories: string[]) {
     this.documents.forEach((e: Document, index: number) => {
       if (
         e.riesitel.toLowerCase().match(query) != null &&
         categories.includes(e.kategoria)
       ) {
-        if (tags.length > 0) {
-          this.documentsShown[index] = this.IsDocumentValid(tags, e.tags);
-        } else this.documentsShown[index] = true;
+        this.documentsShown[index] = filter.getVisibility(e);
       } else {
         this.documentsShown[index] = false;
       }
-
-      if (this.documentsShown[index]) resultCount++;
     });
-    // this.$bvToast.toast(`Najdenych ${resultCount} rieseni`, {
-    //   variant: "info",
-    //   autoHideDelay: 1000,
-    //   toaster: "b-toaster-bottom-left",
-    //   appendToast: false,
-    // });
     this.$forceUpdate();
   }
-  IsDocumentValid(searchTags: string[], documentTags: string[]): boolean {
-    return searchTags.every((e) => documentTags.includes(e));
-  }
+
   UpdateCurrentPreview() {
     const documents = this.$refs.documentList;
     if (documents.some((e) => e.document == null)) return;

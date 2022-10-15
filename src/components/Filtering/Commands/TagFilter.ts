@@ -8,8 +8,8 @@ export class TagFilter implements FilterCommand {
     inversed = false;
     matches(doc: Document): boolean {
         return this.args.some(arg=>{
-            const id = store.state.tags.find(t=> t.meno == arg) || 'invalid';
-            doc.tags.some(tag => tag == id);
+            const id = store.state.tags.find(t=> t.meno == arg)?.id || 'invalid';
+            return doc.tags.some(tag => tag == id);
         })   
     }
 

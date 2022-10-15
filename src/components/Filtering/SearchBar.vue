@@ -34,18 +34,8 @@
             placeholder="Filtrovacie kritéria ... "
             :state="tagValid"
             @update="checkValidity(currQuery)"
-            list="taglist"
           >
           </b-form-input>
-          <datalist id="tagList">
-            <option
-              v-for="tag in availableTags"
-              :key="tag.id"
-              :value="tag.meno"
-            >
-              {{ tag.meno }}
-            </option>
-          </datalist>
         </b-input-group>
         <h6 v-if="categories.length > 1">
           <b-badge
@@ -62,7 +52,7 @@
             {{ tag }}
           </b-badge>
         </h6>
-        <transition-group name="tags">
+        <!-- <transition-group name="tags">
           <b-badge
             pill
             v-for="tag in searchTags"
@@ -81,7 +71,7 @@
               ></b-btn-close
             ></span>
           </b-badge>
-        </transition-group>
+        </transition-group> -->
       </div>
     </transition>
   </div>
@@ -98,7 +88,6 @@ import filter from './Filter';
 export default class SearchBar extends Vue {
   categories: string[] = [];
   categoriesVisible: boolean[] = [];
-  searchTags: Tag[] = [];
   tagValid: boolean | null = null;
   currQuery: string = "";
   availableTags: Tag[] = [];
@@ -111,10 +100,12 @@ export default class SearchBar extends Vue {
   }
 
   search() {
+    const onlyLettersRegex = /[a-z]+/gi;
+    const query = this.searchStr.match(onlyLettersRegex)?.join("").toLowerCase() || "";
+    
     this.eventHub.$emit(
       "editor:search",
-      this.searchStr,
-      this.searchTags.map((e: Tag) => e.id),
+      query,
       this.categories.filter((e: String, i: number) => {
         return this.categoriesVisible[i];
       })
@@ -123,9 +114,13 @@ export default class SearchBar extends Vue {
   checkValidity(query: string) {
     try{
       filter.updateQuery(query)
+      this.search()
+      this.tagValid = true
     }
     catch(e){
       this.tagValid = false;
+      console.log(e);
+      
     }
   }
   getContrastColor(color: string) {

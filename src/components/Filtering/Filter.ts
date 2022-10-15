@@ -44,6 +44,8 @@ class FilterCommandParser {
                     mode = 'name';
                 else
                     throw new Error('Unexpected character )');
+                if(curr.args.length == 1 && curr.args[0] == '')
+                    curr.args.pop();
                 commands.push(curr);
                 curr = {
                     name: '',
