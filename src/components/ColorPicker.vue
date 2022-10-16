@@ -18,7 +18,7 @@
     >
       <template #title>{{ label }}</template>
       <v-swatches v-model="color" inline @input="submit" backgroundColor="transparent"></v-swatches>
-      <div class="d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center justify-content-between" v-if="hasOpacity">
         <p class="d-flex align-items-center transparency-text">
           Nepriehľadnosť
         </p>
@@ -65,6 +65,8 @@ export default class ColorPicker extends Vue {
   value!: string;
   @Prop({ default: "Vyber farbu" })
   label!: string;
+  @Prop({required: false, default: true})
+  hasOpacity!: boolean;
   color = "#000000"
   opacity = 100
   show = false

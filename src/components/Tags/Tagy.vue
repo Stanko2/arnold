@@ -64,7 +64,10 @@ export default class Tags extends Vue {
     this.availableTags = JSON.parse(localStorage.getItem("tags") || "[]");
     this.eventHub.$on(
       "tags:update",
-      (tags: any[]) => (this.$data.availableTags = tags)
+      (tags: Tag[]) => {
+        this.$data.availableTags = tags;
+        this.$forceUpdate();
+      }
     );
     this.eventHub.$on(
       "editor:documentChanged",
@@ -129,7 +132,7 @@ export default class Tags extends Vue {
 
 .tags h4 {
   position: absolute;
-  transform: rotate(-90deg) translate(-60%, 0);
+  transform: rotate(-90deg) translate(-3rem, 0);
   transform-origin: bottom left;
   height: 48px;
   border-radius: 10px 10px 0 0;
