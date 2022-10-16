@@ -124,6 +124,7 @@ export default class Sidebar extends SidebarProps {
         this.$refs.documentList[this.selectedIndex].documentBusy = false;
       });
     this.$store.commit('updateDocument', doc);
+    this.documentsShown[this.selectedIndex] = filter.getVisibility(Documents[this.selectedIndex]);
     // this.UpdateCurrentPreview();
   }
   async selectDir(dir: number) {
