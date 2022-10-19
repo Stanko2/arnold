@@ -80,6 +80,7 @@ export default class Tags extends Vue {
           } else i++;
         }
         Database.updateDocument(document.id, document, false);
+        this.$forceUpdate();
       }
     );
   }
@@ -100,6 +101,7 @@ export default class Tags extends Vue {
     }
     this.doc.tags.sort();
     Database.updateDocument(this.doc.id, this.doc);
+    this.eventHub.$emit("visibilityUpdate", this.doc);
     this.eventHub.$emit(
       "tags:documentTag",
       this.doc.id,

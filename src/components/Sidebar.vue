@@ -83,6 +83,7 @@ export default class Sidebar extends SidebarProps {
     this.eventHub.$on("shortcut:selectNext", () => this.selectDir(1));
     this.eventHub.$on("shortcut:selectPrev", () => this.selectDir(-1));
     this.eventHub.$on("shortcut:save", this.save);
+    this.eventHub.$on("visibilityUpdate", this.updateVisibility);
     this.timer = setInterval(this.stopwatchUpdate, 1000);
   }
   init() {
@@ -200,6 +201,16 @@ export default class Sidebar extends SidebarProps {
       }
     });
     this.$forceUpdate();
+  }
+
+  updateVisibility(doc: Document) {
+    const index = this.documents.findIndex(e=> e.id == doc.id);
+    if(index == -1)
+      throw new Error('invalid Document');
+    this.documentsShown[index] = filter.getVisibility(doc);
+    this.$forceUpdate();
+    console.log(this.documentsShown[index]);
+    
   }
 
   UpdateCurrentPreview() {

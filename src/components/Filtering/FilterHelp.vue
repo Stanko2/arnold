@@ -27,7 +27,9 @@
         <p><code>body(2,5)</code> -> Všetky riešenia, 
             ktoré majú aspoň 2 a najviac 5 bodov</p>
         <h3>3. Podmienka - otvorené</h3>
-        <p><code>open()</code>-> zobrazí len už otvorené riešenia</p>
+        <p><code>open()</code>-> zobrazí len už otvorené riešenia.</p>
+        <h3>4. Podmienka - komentár</h3>
+        <p><code>comment()</code>-> ukáže len riešenia s napísaným komentárom.</p>
         <h3>Tips & Tricks</h3>
         <p>Všetky neobodované riešenia s tagom "hlupáci" -> <code>tags(hlupáci) -body()</code></p>
         <p>Všetky nepozreté riešenia <code>-open()</code></p>
