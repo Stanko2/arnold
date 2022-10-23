@@ -104,7 +104,9 @@ export async function AddTrailingPage(id: number) {
     const doc = await PDFDocument.load(data.initialPdf);
     doc.addPage(PageSizes.A4);
 
-    await updateDocument(id, await doc.save());
+
+    data.initialPdf = await doc.save();
+    Database.updateDocument(id, data);
 }
 
 export function GetA4Dimensions() {

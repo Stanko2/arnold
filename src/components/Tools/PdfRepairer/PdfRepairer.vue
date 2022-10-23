@@ -118,18 +118,21 @@ export default class PDFRepairer extends Vue {
   generate() {
     const doc = getViewedDocument()?.id;
     if (!doc) return;
-    this.$bvModal.msgBoxConfirm('Ak upravíš toto PDFko, tak stratíš všetky zmeny v ňom urobené', {
-      title: 'Upraviť PDFko?',
-    }).then((val) => {
-      if (!val) return;
-      this.busy = true;
-      if (this.ImageSources.length > 0) {
+
+    if (this.ImageSources.length > 0) {
+      this.$bvModal.msgBoxConfirm('Ak upravíš toto PDFko, tak stratíš všetky zmeny v ňom urobené', {
+        title: 'Upraviť PDFko?',
+      }).then((val) => {
+        if (!val) return;
+        this.busy = true;
+        this.eventHub.$emit('document:save')
         GeneratePDF(this.ImageSources, this.newPage, doc).then(this.generationFinished)
-      }
-      else if (this.newPage) {
-        AddTrailingPage(doc).then(this.generationFinished)
-      }
-    })
+      })
+    } else if (this.newPage) {
+      this.busy = true;
+      this.eventHub.$emit('document:save')
+      AddTrailingPage(doc).then(this.generationFinished)
+    }
   }
 
   generationFinished() {
