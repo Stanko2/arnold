@@ -10,8 +10,6 @@
       Nie je miesto na Komentár, alebo pdfko je divne otočené? Tu to vieš vyriešiť.
       <br>
       Rotovanie je ale dostupné len pri riešeniach, kde sú len obrázky.
-      <br>
-      Taktiež tu vieš z obrázkových riešení odstrániť biele okraje :)
     </p>
     <div v-if="ImageSources">
       <b-button v-b-toggle.rotate-collapse variant="primary" block
@@ -51,7 +49,7 @@
     <b-collapse id="new-page">
       <b-card>
         <b-row class="p-2 w-100">
-          <b-col>Pridat Novú Stranu na koniec</b-col>
+          <b-col>Pridať novú stranu na koniec</b-col>
           <b-col
             ><b-form-checkbox class="float-right" switch v-model="newPage"
           /></b-col>
@@ -91,6 +89,7 @@ export default class PDFRepairer extends Vue {
   rotating: boolean = false;
   busy: boolean = false;
   imagesLoading: boolean = true;
+  rotated: boolean = false;
 
   $refs!: {
     modal: BModal;
@@ -119,7 +118,7 @@ export default class PDFRepairer extends Vue {
     const doc = getViewedDocument()?.id;
     if (!doc) return;
 
-    if (this.ImageSources.length > 0) {
+    if (this.rotated) {
       this.$bvModal.msgBoxConfirm('Ak upravíš toto PDFko, tak stratíš všetky zmeny v ňom urobené', {
         title: 'Upraviť PDFko?',
       }).then((val) => {
@@ -132,6 +131,14 @@ export default class PDFRepairer extends Vue {
       this.busy = true;
       this.eventHub.$emit('document:save')
       AddTrailingPage(doc).then(this.generationFinished)
+    } else {
+      this.$bvToast.toast('Nevybral si ktoré strany ako otočiť ani či chceš pridať stranu. ' +
+                          'Pre vygenerovanie zmeneného PDFka musíš vybrať aspoň jednu akciu.', {
+        title: 'Neboli vykonané žiadne zmeny',
+        variant: 'warning',
+        solid: true,
+        autoHideDelay: 3000,
+      })
     }
   }
 
@@ -182,6 +189,7 @@ export default class PDFRepairer extends Vue {
         cnv.on('mouse:down', (e) => {
           if (e.target && e.target.type === 'image') {
             if (!e.target.width || !e.target.height || !e.target.scaleX || !e.target.scaleY) return;
+            this.rotated = true;
             let currAngle = e.target.angle || 0;
             e.target.set({
               angle: (currAngle + 90) % 360,
