@@ -11,7 +11,7 @@ export class Stopwatch {
         eventHub.$on("editor:documentChanged", (pdf: PDFdocument, data: Document) => {
             if (this.currentSelected != null) {
                 this.currentSelected.timeOpened = this.time;
-                Database.updateDocument(this.currentSelected.id, this.currentSelected);
+                Database.updateDocument(this.currentSelected.id, this.currentSelected, false);
             }
             this.currentSelected = data;
             this.selectedTimeOpened = data.timeOpened;

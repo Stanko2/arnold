@@ -1,6 +1,6 @@
 <template>
-  <b-row class="toolbar">
-    <b-col cols="3" class="d-flex p-0">
+  <div class="toolbar">
+    <div cols="3" class="d-flex p-0">
       <div :key="tool.name" v-for="tool in tools">
         <button
           :id="tool.name"
@@ -17,8 +17,8 @@
           {{ tool.tooltip }} ({{ tool.shortcut }})
         </b-tooltip>
       </div>
-    </b-col>
-    <b-col cols="7" class="tool-controls">
+    </div>
+    <div cols="7" class="tool-controls">
       <div class="" v-if="selectedOptions.hasText">
         <b-dropdown :text="selectedTool.defaultOptions.fontFamily">
           <b-dropdown-item
@@ -55,20 +55,18 @@
         {{ selectedTool.defaultOptions.strokeWidth || 0 }}
       </div>
       <div v-if="selectedOptions.hasFill">
-        <p style="margin: 5px">Výplň</p>
         <color-picker
           name="fill"
           v-model="selectedTool.defaultOptions.fill"
           :value="selectedTool.defaultOptions.fill"
-        />
+        ><span class="material-icons d-block">format_color_fill</span></color-picker>
       </div>
       <div v-if="selectedOptions.hasStroke">
-        <p style="margin: 5px">Farba čiary</p>
         <color-picker
           name="stroke"
           v-model="selectedTool.defaultOptions.stroke"
           :value="selectedTool.defaultOptions.stroke"
-        />
+        ><span class="material-icons d-block">gesture</span></color-picker>
       </div>
       <div v-if="selectedTool.name == 'Photo'">
         <b-button variant="primary" @click="openImageModal">
@@ -99,7 +97,7 @@
           </b-dropdown-item>
         </b-dropdown>
       </div>
-    </b-col>
+    </div>
     <b-modal
       ref="imageMenu"
       centered
@@ -118,7 +116,7 @@
     >
       <sign-modal :signs="getSigns" ref="signModal"></sign-modal>
     </b-modal>
-    <b-col cols="2" class="right-controls">
+    <div cols="2" class="right-controls">
       <div :key="util.name" v-for="util in utils">
         <button
             :id="util.name"
@@ -156,8 +154,8 @@
         Opraviť zle nahraté PDFko (pridať prázdnu stranu a otočiť obrázky)
       </b-tooltip>
       <!-- <b-tooltip target="rotateButton" triggers="hover"> Otocit </b-tooltip> -->
-    </b-col>
-  </b-row>
+    </div>
+  </div>
 </template>
 
 <script lang="ts">
@@ -246,7 +244,6 @@ export default class Toolbar extends Vue {
 
   select(tool: Tool) {
     this.selectedTool = tool;
-    console.log(this.selectedTool);
     this.eventHub.$emit("tool:select", tool);
   }
 
@@ -345,10 +342,16 @@ export default class Toolbar extends Vue {
   top: 0;
   left: 0;
   width: 100%;
+  max-width: 100%;
   padding: 5px;
   margin: 0;
   justify-content: space-between;
   background-color: var(--bg-700);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: left;
+  overflow-x: auto;
+  height: 60px;
 }
 .btn {
   margin: 0 2px;
@@ -363,6 +366,7 @@ export default class Toolbar extends Vue {
 .right-controls {
   display: flex;
   flex-direction: row;
+  margin-left:auto;
   justify-content: flex-end;
   padding: 0;
 }
@@ -370,8 +374,7 @@ export default class Toolbar extends Vue {
   display: flex;
   justify-content: flex-start;
   align-items: center;
-  padding: 0;
-
+  padding: 0 0 0 1rem;
   div {
     margin: 0 2px;
     display: flex;

@@ -111,7 +111,7 @@
             >
           </transition-group>
         </div>
-        <div class="stopwatch" v-if="showTimer">
+        <div class="stopwatch" v-if="showTimer && document.opened">
           <span>{{ stopwatchText }}</span
           ><span class="material-icons">hourglass_empty</span>
         </div>

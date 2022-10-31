@@ -28,12 +28,13 @@
 import Vue from "vue";
 import DocumentPreview from "./DocumentPreview.vue";
 import Component from "vue-class-component";
-import SearchBar from "./SearchBar.vue";
+import SearchBar from "./Filtering/SearchBar.vue";
 import { Documents, getViewedDocument } from "@/Documents/DocumentManager";
 import { Document, Settings } from "@/@types";
 import { PDFdocument } from "./PDFdocument";
 import Editor from "@/views/Editor.vue";
 import { Stopwatch } from "@/components/Stopwatch";
+import filter from "./Filtering/Filter";
 
 const SidebarProps = Vue.extend({
   props: {
@@ -77,12 +78,12 @@ export default class Sidebar extends SidebarProps {
   mounted() {
     this.documentsShown = this.documents.map(() => true);
     this.$nextTick(() => this.init());
-    this.$refs.searchBar.getTags();
     this.eventHub.$on("document:save", this.save);
     this.eventHub.$on("editor:search", this.search);
     this.eventHub.$on("shortcut:selectNext", () => this.selectDir(1));
     this.eventHub.$on("shortcut:selectPrev", () => this.selectDir(-1));
     this.eventHub.$on("shortcut:save", this.save);
+    this.eventHub.$on("visibilityUpdate", this.updateVisibility);
     this.timer = setInterval(this.stopwatchUpdate, 1000);
   }
   init() {
@@ -96,13 +97,13 @@ export default class Sidebar extends SidebarProps {
         }
       }
     );
-    // if (getViewedDocument() == null) {
-    //   const idx = parseInt(this.$route.params.doc);
-    //   this.updateSelected(idx, true);
-    //   setTimeout(() => {
-    //     this.eventHub.$emit("editor:setDocument", idx);
-    //   }, 50);
-    // }
+    const idx = parseInt(this.$route.params.doc);
+    if (idx != -1) {
+      this.updateSelected(idx, true);
+      setTimeout(() => {
+        this.eventHub.$emit("editor:setDocument", idx);
+      }, 50);
+    }
   }
   data() {
     const tags = JSON.parse(localStorage.getItem("tags") || "[]");
@@ -124,6 +125,7 @@ export default class Sidebar extends SidebarProps {
         this.$refs.documentList[this.selectedIndex].documentBusy = false;
       });
     this.$store.commit('updateDocument', doc);
+    this.documentsShown[this.selectedIndex] = filter.getVisibility(Documents[this.selectedIndex]);
     // this.UpdateCurrentPreview();
   }
   async selectDir(dir: number) {
@@ -157,6 +159,13 @@ export default class Sidebar extends SidebarProps {
         left: 0,
         behavior: "smooth",
       });
+    setTimeout(() => {
+      const doc = Documents.find(doc=>doc.id == newId);
+      if(doc){
+        this.documentsShown[newIndex] = filter.getVisibility(doc);
+        this.$forceUpdate();
+      }
+    }, 30);
   }
 
   async beforeChange(){
@@ -180,35 +189,30 @@ export default class Sidebar extends SidebarProps {
     this.updateSelected(id, false);
     this.eventHub.$emit("editor:setDocument", id);
   }
-  search(query: string, tags: string[], categories: string[]) {
-    const onlyLettersRegex = /[a-z]+/gi;
-    let resultCount = 0;
-    query = query.match(onlyLettersRegex)?.join("").toLowerCase() || "";
+  search(query: string, categories: string[]) {
     this.documents.forEach((e: Document, index: number) => {
       if (
         e.riesitel.toLowerCase().match(query) != null &&
         categories.includes(e.kategoria)
       ) {
-        if (tags.length > 0) {
-          this.documentsShown[index] = this.IsDocumentValid(tags, e.tags);
-        } else this.documentsShown[index] = true;
+        this.documentsShown[index] = filter.getVisibility(e);
       } else {
         this.documentsShown[index] = false;
       }
-
-      if (this.documentsShown[index]) resultCount++;
     });
-    // this.$bvToast.toast(`Najdenych ${resultCount} rieseni`, {
-    //   variant: "info",
-    //   autoHideDelay: 1000,
-    //   toaster: "b-toaster-bottom-left",
-    //   appendToast: false,
-    // });
     this.$forceUpdate();
   }
-  IsDocumentValid(searchTags: string[], documentTags: string[]): boolean {
-    return searchTags.every((e) => documentTags.includes(e));
+
+  updateVisibility(doc: Document) {
+    const index = this.documents.findIndex(e=> e.id == doc.id);
+    if(index == -1)
+      throw new Error('invalid Document');
+    this.documentsShown[index] = filter.getVisibility(doc);
+    this.$forceUpdate();
+    console.log(this.documentsShown[index]);
+    
   }
+
   UpdateCurrentPreview() {
     const documents = this.$refs.documentList;
     if (documents.some((e) => e.document == null)) return;

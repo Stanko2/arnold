@@ -6,7 +6,9 @@
       :style="{
         'background-color': color,
       }"
-    ></b-button>
+    ><slot />
+
+    </b-button>
     <b-popover
       :show.sync="show"
       :target="name"
@@ -15,8 +17,8 @@
       ref="popover"
     >
       <template #title>{{ label }}</template>
-      <v-swatches v-model="color" inline @input="submit" backgroundColor="transparent"></v-swatches>
-      <div class="d-flex align-items-center justify-content-between">
+      <v-swatches class="color-picker" v-model="color" inline @input="submit" backgroundColor="transparent" show-fallback fallback-input-type="color"></v-swatches>
+      <div class="d-flex align-items-center justify-content-between" v-if="hasOpacity">
         <p class="d-flex align-items-center transparency-text">
           Nepriehľadnosť
         </p>
@@ -63,6 +65,8 @@ export default class ColorPicker extends Vue {
   value!: string;
   @Prop({ default: "Vyber farbu" })
   label!: string;
+  @Prop({required: false, default: true})
+  hasOpacity!: boolean;
   color = "#000000"
   opacity = 100
   show = false
@@ -162,4 +166,21 @@ input.transparency-num:focus,
 input.transparency-num:active {
   border: none;
 }
+</style>
+
+<style lang="scss">
+
+.color-picker {
+
+  .vue-swatches__fallback__wrapper {
+    display: flex !important;
+  }
+  
+  .vue-swatches__fallback__input {
+    border: none !important;
+    background: transparent !important;
+  }
+
+}
+
 </style>

@@ -1,11 +1,11 @@
 <template>
-  <b-modal size="lg" id="tag-modal" title="Upravit tagy" @ok="tagUpdate">
+  <b-modal size="lg" id="tag-modal" title="Upraviť tagy" @ok="tagUpdate">
     <b-list-group>
       <b-list-group-item
         pill
         v-for="(tag, i) in availableTags"
         :key="tag.id"
-        class="d-flex flex-row align-items-center justify-content-between"
+        class="tag"
         :style="{ background: lighten(tag.color) }"
       >
         <b-input-group class="mr-3 d-flex align-items-center">
@@ -16,11 +16,13 @@
             placeholder="Zadaj meno"
             :style="{ color: getContrastColor(tag.color) }"
           />
-          <b-input-group-append>
-            <v-swatches v-model="tag.color" />
-          </b-input-group-append>
         </b-input-group>
-        <b-btn-close @click="removeTag(i)"></b-btn-close>
+        <div class="tag-options">
+          <color-picker :name="'tagcolor' + i" v-model="tag.color" :hasOpacity="false" class="color-picker"/>
+          <button @click="move(i, false)" :disabled="i == 0">expand_less</button>
+          <button @click="move(i, true)" :disabled="i == availableTags.length - 1">expand_more</button>
+          <button @click="removeTag(i)">close</button>
+        </div>
       </b-list-group-item>
     </b-list-group>
     <b-button block @click="addTag()">Pridat novy Tag</b-button>
@@ -32,11 +34,12 @@ import { Tag } from "@/@types";
 import Color from "color";
 import Vue from "vue";
 import Component from "vue-class-component";
-const VSwatches = require("vue-swatches");
+import ColorPicker from "../ColorPicker.vue";
+
 
 @Component({
   components: {
-    VSwatches,
+    ColorPicker
   },
 })
 export default class TagEditModal extends Vue {
@@ -74,15 +77,46 @@ export default class TagEditModal extends Vue {
     localStorage.setItem("tags", JSON.stringify(this.availableTags));
     this.eventHub.$emit("tags:update", this.availableTags);
   }
+  move(index: number, up: boolean){
+    const next = up ? index + 1 : index - 1;
+    const temp = this.availableTags[index];
+    this.availableTags[index] = this.availableTags[next];
+    this.availableTags[next] = temp;
+    this.$forceUpdate();
+  }
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .tag-edit {
   background: transparent;
   border: none;
+  &:focus {
+    background: transparent;
+  }
 }
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
+  appearance: none;
+}
+.tag{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1;
+  .tag-options{
+    display: flex;
+    align-items: center;
+    .color-picker{
+      height: 42px;
+      transform: scale(0.85);
+    }
+    button{
+      @apply material-icons;
+      background: transparent;
+      border: none;
+      font-family: 'Material Icons';
+    }
+  }
 }
 </style>

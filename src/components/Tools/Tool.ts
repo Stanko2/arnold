@@ -50,7 +50,8 @@ export const tools: Tool[] = [
         cursor: 'pointer',
         click: async (pdf: PDFdocument, page: number, position: { x: number, y: number }): Promise<fabric.Object> => {
             console.log(pdf.pageCanvases);
-
+            selectedTool.defaultOptions.left = position.x;
+            selectedTool.defaultOptions.top = position.y;
             var annot = new TextAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
             selectTool(tools[7]);
@@ -141,6 +142,11 @@ export const tools: Tool[] = [
             strokeWidth: 5,
         },
         click: async (pdf: PDFdocument, page: number, position: { x: number, y: number }) => {
+            (selectedTool.defaultOptions as fabric.ILineOptions).x2 = position.x;
+            (selectedTool.defaultOptions as fabric.ILineOptions).y2 = position.y;
+            delete selectedTool.defaultOptions.top;
+            delete selectedTool.defaultOptions.left;
+            
             const annot = new LineAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
             // selectTool(tools[7]);
@@ -276,6 +282,7 @@ eventHub.$on('tool:initCurrent', () => selectTool(selectedTool));
 function selectTool(tool: Tool) {
     selectedTool?.onDeselect?.();
     selectedTool = tool;
+    PDFdocument.activeObject = undefined;
     if (tool.onSelect) {
         tool.onSelect();
     }
