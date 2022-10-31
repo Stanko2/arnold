@@ -46,7 +46,7 @@ import { Document, Settings, Shortcut } from "@/@types";
 import Viewport from "../components/Viewport.vue";
 import Topbar from "../components/Topbar/Topbar.vue";
 import Toolbar from "../components/Tools/Toolbar.vue";
-import SearchBar from "../components/SearchBar.vue";
+import SearchBar from "../components/Filtering/SearchBar.vue";
 import { Documents, getViewedDocument, loadFromDatabase, onEditorStart } from "../Documents/DocumentManager";
 import type { PDFdocument } from "@/components/PDFdocument";
 import Scoring from "@/components/Scoring.vue";

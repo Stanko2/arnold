@@ -30,23 +30,20 @@
       <div v-if="expanded" class="search-menu">
         <b-input-group>
           <b-form-input
-            @change="addtag"
-            v-model="currTag"
-            placeholder="Zadaj tagy ... "
-            :state="tagValid"
-            @update="checkValidity(currTag)"
-            list="taglist"
-          >
-          </b-form-input>
-          <datalist id="tagList">
-            <option
-              v-for="tag in availableTags"
-              :key="tag.id"
-              :value="tag.meno"
-            >
-              {{ tag.meno }}
-            </option>
-          </datalist>
+            v-model="currQuery"
+            placeholder="Filtrovacie kritéria ... "
+            @update="updateQuery(currQuery)"
+            size="sm"
+          />
+          <b-input-group-append>
+            <b-button variant="success" size="sm" class="material-icons" id="filter" v-b-modal.filterhelp>
+              help
+            </b-button>
+            <b-tooltip target="filter">
+              Pomoc k filtrovaniu
+            </b-tooltip>
+            <filter-help/>
+          </b-input-group-append>
         </b-input-group>
         <h6 v-if="categories.length > 1">
           <b-badge
@@ -63,7 +60,7 @@
             {{ tag }}
           </b-badge>
         </h6>
-        <transition-group name="tags">
+        <!-- <transition-group name="tags">
           <b-badge
             pill
             v-for="tag in searchTags"
@@ -79,11 +76,10 @@
               >{{ tag.meno }}
               <b-btn-close
                 class="ml-2"
-                @click="removeTag(tag.meno)"
               ></b-btn-close
             ></span>
           </b-badge>
-        </transition-group>
+        </transition-group> -->
       </div>
     </transition>
   </div>
@@ -94,74 +90,63 @@ import type { DocumentParser, Tag } from "@/@types";
 import Color from "color";
 import Vue from "vue";
 import Component from "vue-class-component";
+import filter from './Filter';
+import FilterHelp from './FilterHelp.vue';
 
-@Component({})
+@Component({components: {FilterHelp}})
 export default class SearchBar extends Vue {
   categories: string[] = [];
   categoriesVisible: boolean[] = [];
-  searchTags: Tag[] = [];
   tagValid: boolean | null = null;
-  currTag: string = "";
+  currQuery: string = "";
   availableTags: Tag[] = [];
   searchStr: string = "";
+  expanded = false;
 
   mounted() {
-    this.getTags();
-    this.eventHub.$on("tags:update", this.getTags);
     this.categories = JSON.parse(localStorage.getItem("categories") || "[]");
     this.categoriesVisible = this.categories.map(() => true);
+    
+    // @ts-ignore
+    const filter: string = this.$route.query.filter ?? '';
+    console.log(this.$route.query);
+    
+    setTimeout(() => {
+      if(filter != ''){
+        this.currQuery = filter
+        this.updateQuery(filter)
+      }
+    }, 200);
   }
-  data() {
-    return {
-      searchStr: "",
-      availableTags: [],
-      searchTags: [],
-      currTag: "",
-      expanded: false,
-      tagValid: null,
-      categoriesVisible: Array<Boolean>(),
-      categories: Array<String>(),
-    };
-  }
+
   search() {
+    const onlyLettersRegex = /[a-z]+/gi;
+    const query = this.searchStr.match(onlyLettersRegex)?.join("").toLowerCase() || "";
+    
     this.eventHub.$emit(
       "editor:search",
-      this.searchStr,
-      this.searchTags.map((e: Tag) => e.id),
+      query,
       this.categories.filter((e: String, i: number) => {
         return this.categoriesVisible[i];
       })
     );
   }
-  addtag() {
-    const tag = this.availableTags.find((e: Tag) => e.meno == this.currTag);
-    if (this.tagValid && tag) {
-      this.searchTags.push(tag);
-      this.currTag = "";
-      this.tagValid = null;
-      this.search();
+  updateQuery(query: string) {
+    try{
+      filter.updateQuery(query)
+      this.$router.replace({
+        query: {
+          filter: query
+        }
+      })
+      this.search()
+      this.tagValid = true
     }
-  }
-  removeTag(tag: string) {
-    this.searchTags.splice(
-      this.searchTags.findIndex((e: any) => e.id == tag),
-      1
-    );
-    this.search();
-  }
-  getTags() {
-    // const tags = JSON.parse(localStorage.getItem("tags") || "[]");
-    this.availableTags = this.$store.state.tags;
-  }
-  checkValidity(tag: string) {
-    if (
-      this.availableTags.every((e: any) => e.meno.match(tag) == null) ||
-      this.searchTags.findIndex((e: any) => e.meno == tag) != -1
-    )
+    catch(e){
       this.tagValid = false;
-    else if (this.availableTags.findIndex((e: any) => e.meno == tag) != -1)
-      this.tagValid = true;
-    else this.tagValid = null;
+      console.log(e);
+      
+    }
   }
   getContrastColor(color: string) {
     const c = new Color(color);
@@ -177,18 +162,19 @@ export default class SearchBar extends Vue {
 }
 </script>
 
-<style scoped>
-.slide-leave-active,
-.slide-enter-active {
-  transition: all 250ms ease-in-out;
-}
-.slide-enter {
-  transform: translate(0, -100%);
-  box-shadow: 0 0 0 transparent;
-}
-.slide-leave-to {
-  transform: translate(0, -100%);
-  box-shadow: 0 0 0 transparent;
+<style scoped lang="scss">
+.slide{
+  &-leave-active, &-enter-active {
+    transition: all 250ms ease-in-out;
+  }
+  &-enter{
+    transform: translate(0, -100%);
+    box-shadow: 0 0 0 transparent;
+  }
+  &-leave-to{
+    transform: translate(0, -100%);
+    box-shadow: 0 0 0 transparent;
+  }
 }
 .tags-leave-active {
   animation: bounce-in 500ms reverse;
