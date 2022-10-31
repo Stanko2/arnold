@@ -166,10 +166,19 @@ input.transparency-num:active {
 }
 </style>
 
-<style>
+<style lang="scss">
 
-.color-picker .vue-swatches__fallback__wrapper {
-  display: flex !important;
+.color-picker {
+
+  .vue-swatches__fallback__wrapper {
+    display: flex !important;
+  }
+  
+  .vue-swatches__fallback__input {
+    border: none !important;
+    background: transparent !important;
+  }
+
 }
 
 </style>
