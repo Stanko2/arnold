@@ -244,7 +244,6 @@ export default class Toolbar extends Vue {
 
   select(tool: Tool) {
     this.selectedTool = tool;
-    console.log(this.selectedTool);
     this.eventHub.$emit("tool:select", tool);
   }
 
