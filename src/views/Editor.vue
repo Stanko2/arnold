@@ -41,21 +41,20 @@
 </template>
 
 <script lang="ts">
-import { Vue } from "vue-property-decorator";
-import { Document, Settings, Shortcut } from "@/@types";
+import {Vue} from "vue-property-decorator";
+import {Document, Settings} from "@/@types";
 import Viewport from "../components/Viewport.vue";
 import Topbar from "../components/Topbar/Topbar.vue";
 import Toolbar from "../components/Tools/Toolbar.vue";
 import SearchBar from "../components/Filtering/SearchBar.vue";
-import { Documents, getViewedDocument, loadFromDatabase, onEditorStart } from "../Documents/DocumentManager";
-import type { PDFdocument } from "@/components/PDFdocument";
+import {Documents, getViewedDocument, loadFromDatabase, onEditorStart} from "../Documents/DocumentManager";
+import type {PDFdocument} from "@/components/PDFdocument";
 import Scoring from "@/components/Scoring.vue";
-import { loadFonts } from "@/components/Fonts";
+import {loadFonts} from "@/components/Fonts";
 import Tags from "@/components/Tags/Tagy.vue";
 import Component from "vue-class-component";
 import Sidebar from "@/components/Sidebar.vue";
 import Shortcuts from "@/Mixins/Keybindings.vue"
-import { Route } from "vue-router";
 
 @Component({
   components: {
@@ -110,6 +109,37 @@ export default class Editor extends Vue {
     this.Documents = Documents;
     this.documentsShown = Documents.map(() => true);
     this.pdf = getViewedDocument();
+  }
+
+  zoomKeyListener: undefined | ((e: KeyboardEvent) => void) = undefined;
+  zoomScrollListener: undefined | ((e: WheelEvent) => void) = undefined;
+
+  created() {
+    this.zoomKeyListener = (event: KeyboardEvent) => {
+      // disable zooming
+      if (event.ctrlKey && (event.key == "+" || event.key == "-")) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.eventHub.$emit('viewport:scale', 0.1 * (event.key == "+" ? 1 : -1));
+      }
+    }
+    this.zoomScrollListener = (event: WheelEvent) => {
+      // disable zooming
+      if (event.ctrlKey) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.eventHub.$emit('viewport:scale', 0.1 * (event.deltaY < 0 ? 1 : -1));
+      }
+    }
+    window.addEventListener("keydown", this.zoomKeyListener);
+    window.addEventListener("wheel", this.zoomScrollListener, { passive: false });
+  }
+
+  destroyed() {
+    if (this.zoomKeyListener) window.removeEventListener("keydown", this.zoomKeyListener);
+    if (this.zoomScrollListener) window.removeEventListener("wheel", this.zoomScrollListener);
+
+    this.zoomKeyListener = undefined; this.zoomScrollListener = undefined;
   }
 }
 </script>
@@ -184,7 +214,7 @@ export default class Editor extends Vue {
     &:hover {
       width: 30px;
     }
-  } 
+  }
 
   span {
     transition: all 250ms linear;
