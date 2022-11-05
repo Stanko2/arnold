@@ -108,14 +108,14 @@
 </template>
 
 <script lang="ts">
-import { Database } from "@/Db";
-import type { Document, ScoringCriteria } from "@/@types";
+import {Database} from "@/Db";
+import type {Document, ScoringCriteria} from "@/@types";
 import Vue from "vue";
-import { TextAnnotation } from "@/Annotation";
-import { PDFdocument } from "./PDFdocument";
+import {TextAnnotation} from "@/Annotation";
+import {PDFdocument} from "./PDFdocument";
 import Component from "vue-class-component";
-import { getViewedDocument } from "@/Documents/DocumentManager";
-import { BFormInput } from "bootstrap-vue";
+import {getViewedDocument} from "@/Documents/DocumentManager";
+import {BFormInput} from "bootstrap-vue";
 
 @Component({})
 export default class Scoring extends Vue {
@@ -168,8 +168,13 @@ export default class Scoring extends Vue {
   }
 
   pridajBodovanie() {
+    let id: string;
+    do {
+      id = Math.random().toString(36).substr(2, 9);
+    } while (this.pointCriterias.find(c => c.id == id));
+
     this.pointCriterias.push({
-      id: Math.random().toString(36).substr(2, 9),
+      id,
       points: 0,
       from: "",
     });
