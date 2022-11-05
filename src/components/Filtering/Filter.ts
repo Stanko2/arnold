@@ -1,5 +1,4 @@
 import {Document} from '@/@types'
-import store from '@/Store';
 import Commands from './Commands';
 import eventHub from '@/Mixins/EventHub';
 
@@ -17,9 +16,9 @@ export interface FilterCommand extends FilterCommandMeta {
 class FilterCommandParser {
     commands: FilterCommand[] = [];
     private query: string = '';
-    
 
-    
+
+
     parse() : FilterCommand[]{
         let curr: FilterCommandMeta = {
             name: '',
@@ -28,9 +27,9 @@ class FilterCommandParser {
         };
         let mode: 'name' | 'args' = 'name';
         const commands: FilterCommandMeta[] = []
-        for (const char of this.query) 
+        for (const char of this.query)
         {
-            if(char == ' ') continue;
+            if(char == ' ' && mode != 'args') continue;
             if(char == '('){
                 if(mode == 'name')
                     mode = 'args';
@@ -58,7 +57,7 @@ class FilterCommandParser {
                 if(char == '-'){
                     if(curr.name == '')
                         curr.inversed = true;
-                    else 
+                    else
                         throw new Error('Unexpected character -');
                     continue;
                 }
@@ -73,6 +72,10 @@ class FilterCommandParser {
             }
         }
 
+        for (const command of commands) {
+            command.args = command.args.map(arg => arg.trim());
+        }
+
         const out: FilterCommand[] = []
         for (const command of commands) {
             const parsed = Commands.find(c=>c.name == command.name);
@@ -85,6 +88,8 @@ class FilterCommandParser {
             });
         }
 
+        console.log(out);
+
         return out;
     }
 
@@ -96,7 +101,7 @@ class FilterCommandParser {
     }
 
     queryValid(): boolean{
-        try { 
+        try {
             this.parse();
             return true;
         }
