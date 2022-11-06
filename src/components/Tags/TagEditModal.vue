@@ -30,7 +30,7 @@
 </template>
 
 <script lang="ts">
-import { Tag } from "@/@types";
+import {Tag} from "@/@types";
 import Color from "color";
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -59,8 +59,13 @@ export default class TagEditModal extends Vue {
     this.availableTags.splice(i, 1);
   }
   addTag() {
+    let id: string;
+    do {
+      id = Math.random().toString(36).substr(2, 9);
+    } while (this.availableTags.find((tag) => tag.id == id));
+
     this.availableTags.push({
-      id: Math.random().toString(36).substr(2, 9),
+      id,
       meno: "",
       color: "blue",
     });
