@@ -1,10 +1,20 @@
-import { Canvas } from "@/Canvas";
-import { Annotation } from "./Annotation";
-import { EmbedFont } from "@/components/Fonts";
-import { getViewedDocument } from "@/Documents/DocumentManager";
+import {Canvas} from "@/Canvas";
+import {Annotation} from "./Annotation";
+import {EmbedFont} from "@/components/Fonts";
+import {getViewedDocument} from "@/Documents/DocumentManager";
 import Color from "color";
-import { fabric } from "fabric";
-import { concatTransformationMatrix, PDFFont, PDFPage, PDFPageDrawTextOptions, popGraphicsState, pushGraphicsState, rgb, scale, translate } from "pdf-lib";
+import {fabric} from "fabric";
+import {
+    concatTransformationMatrix,
+    PDFFont,
+    PDFPage,
+    PDFPageDrawTextOptions,
+    popGraphicsState,
+    pushGraphicsState,
+    rgb,
+    scale,
+    translate
+} from "pdf-lib";
 
 export interface TextStyle {
 
@@ -37,7 +47,7 @@ export class TextAnnotation extends Annotation {
         /*
          <g transform="matrix(1 0 0 1 200.67 340.73)" style=""  >
             <text xml:space="preserve" font-family="Helvetica" font-size="155" font-style="normal" font-weight="normal" style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-dashoffset: 0; stroke-linejoin: miter; stroke-miterlimit: 4; fill: rgb(28,160,133); fill-rule: nonzero; opacity: 1; white-space: pre;" ><tspan x="-146.52" y="-52.9" >text</tspan><tspan x="-146.52" y="150.28" >ahoj</tspan></text>
-        </g> 
+        </g>
          */
         const font = (this.object as fabric.Textbox).fontFamily || 'Open Sans';
         const doc = getViewedDocument();
@@ -73,7 +83,12 @@ export class TextAnnotation extends Annotation {
                 lineHeight: this.textbox._fontSizeMult * fontSize,
                 opacity: parseInt((this.object.fill as string).substring(7, 9), 16) / 255 || 1,
             }
-            page.drawText(tspan.innerHTML, options);
+
+            // unescape html in tspan.innerHTML
+            const dom = new DOMParser().parseFromString(tspan.innerHTML, 'text/html');
+            const text = dom.body.textContent || '';
+
+            page.drawText(text, options);
             page.pushOperators(popGraphicsState());
         });
         page.pushOperators(popGraphicsState());
