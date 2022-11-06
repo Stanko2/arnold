@@ -101,7 +101,7 @@ export class PDFdocument {
     }
 
 
-    initCanvases() {
+    initCanvases(callback: Function) {
         for (const canvas of this.pageCanvases) {
             canvas.initEvents();
         }
@@ -110,6 +110,7 @@ export class PDFdocument {
                 const data = doc.changes[i];
                 this.createAnotation(data.type, data.page, data);
             }
+            callback();
         });
         this.pageCanvases.forEach(c => {
             c.discardActiveObject();

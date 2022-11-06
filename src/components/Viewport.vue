@@ -183,7 +183,26 @@ export default class Viewport extends ViewportProps {
     }
 
     document.pageCanvases = pageCanvases;
-    document.initCanvases();
+    document.initCanvases(() => {
+      // this is a hack to force canvas to update after annotations are loaded
+      // without it signs and images are either invisible or behave weirdly or both
+      // TODO: find a better solution
+      let runs = 0;
+      let timer = setInterval(() => {
+        if (runs > 9) {
+          // only works if annotations are loaded and they might not be immediately, so we try 10 times
+          // reaches up to 5 seconds, by then it's probably safe to assume that annotations were loaded at some point and this function succeeded
+          clearInterval(timer);
+          return;
+        }
+        console.log("after init resize call", runs);
+        this.$nextTick().then(() => {
+          this.resize();
+        })
+        runs++;
+      }, 500);
+    });
+
     this.eventHub.$emit("tool:initCurrent");
     if (this.scale !== 1) {
       this.resize();
