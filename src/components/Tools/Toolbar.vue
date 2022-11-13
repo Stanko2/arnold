@@ -54,7 +54,7 @@
       <b-tooltip target="zoomOutButton" triggers="hover"> Oddialiť </b-tooltip>
       <b-tooltip target="zoomInButton" triggers="hover"> Priblížiť </b-tooltip>
       <b-tooltip target="repairButton" triggers="hover">
-        Opraviť zle nahraté PDFko (pridať prázdnu stranu a otočiť obrázky)
+        Otočiť obrázky alebo pridať prázdnu stranu
       </b-tooltip>
       <!-- <b-tooltip target="rotateButton" triggers="hover"> Otocit </b-tooltip> -->
       <b-button class="d-xl-none" @click="optionsMenuExpanded = !optionsMenuExpanded">
@@ -97,7 +97,7 @@ export default class Toolbar extends Vue {
   mounted() {
     this.eventHub.$emit("tool:init", this);
     Canvas.toolbarRef = this;
-   
+
     for (const tool of tools) {
       this.eventHub.$on(`shortcut:${tool.name}`, () => this.select(tool));
     }
@@ -121,7 +121,7 @@ export default class Toolbar extends Vue {
     if(util.name == 'copy' && objects)
       this.$bvToast.toast(`Skopírovaných ${objects.length} objektov`, {
         variant: 'success',
-        autoHideDelay: 50000,
+        autoHideDelay: 3000,
         title: 'Skopírované',
         appendToast: true,
         toaster: 'b-toaster-top-left'

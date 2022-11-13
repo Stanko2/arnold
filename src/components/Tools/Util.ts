@@ -1,16 +1,6 @@
 import {PDFdocument} from "@/components/PDFdocument";
-import {fabric} from "fabric";
-import {clipboard, ClipboardObject, Util} from "@/@types";
-import {
-    Annotation,
-    EllipseAnnotation,
-    ImageAnnotation,
-    LineAnnotation,
-    PathAnnotation,
-    RectAnnotation,
-    SignAnnotation,
-    TextAnnotation
-} from "@/Annotation";
+import {Util} from "@/@types";
+import {Annotation} from "@/Annotation";
 import store from '@/Store';
 
 /*

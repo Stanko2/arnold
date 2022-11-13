@@ -8,7 +8,7 @@ export class ScoreFilter implements FilterCommand {
         if(!doc.scoring) return false;
         return doc.scoring.points >= parseFloat(this.args[0]) && doc.scoring.points <= parseFloat(this.args[1]);
     }
-    name = 'body';
+    name = 'score';
     args = [];
     inversed = false;
 

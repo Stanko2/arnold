@@ -54,7 +54,7 @@
             >
           </div>
           <br />
-          <b-button v-b-modal.bodovanie size="sm">Upraviť Bodovanie</b-button>
+          <b-button v-b-modal.bodovanie size="sm">Upraviť bodovanie</b-button>
           <b-modal
             title="Bodovanie"
             id="bodovanie"

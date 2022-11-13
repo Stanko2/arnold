@@ -12,7 +12,7 @@
           <b-card bg-variant="success">
             Otáčanie PDFiek funguje bez komplikácii, opravené zväčšovanie
             otočených súborov ako aj urezávanie z obrázkov pri otáčaní. Veľkosť
-            pdf sa pri otáčaní výrazne zmenší, čo urýchli potom switchovanie
+            pdf sa pri otáčaní výrazne zmenší, čo urýchli potom prepínanie
             medzi obrázkovými riešeniami. Upload na stránky funguje 😉, stačí
             kliknúť Download All > stiahnuť pre stránky.
           </b-card>
@@ -23,11 +23,11 @@
         <b-collapse id="version2">
           <b-card bg-variant="success">
             <ul>
-              <li>Pridané kopírovanie objektov. Selectnuté objekty sa dajú kopírovať
-            pomocou <kbd>Ctrl+C</kbd> a prilepiť pomocou <kbd>Ctrl+V</kbd>, 
-            prípadne pomocou menu pri stlačení pravého tlačidla, alebo pomocou 
-            tlačítok v lište s nástrojmi. </li>
-            <li>Lišta s nástrojmi dostala trochu 
+              <li>Pridané kopírovanie objektov. Vybraté objekty sa dajú kopírovať
+            pomocou <kbd>Ctrl+C</kbd> a prilepiť pomocou <kbd>Ctrl+V</kbd>,
+            prípadne pomocou menu pri stlačení pravého tlačidla, alebo pomocou
+            tlačidiel v lište s nástrojmi. </li>
+            <li>Lišta s nástrojmi dostala trochu
             redesign, niektoré ikonky sú zmenené. </li>
               <li>🌙 Tmavý mód - aktivuj si ho v nastaveniach</li>
               <li>Použité P-mat farbičky 😁</li>
@@ -41,5 +41,6 @@
 
 <script lang="ts">
 import Vue from 'vue'
+
 export default Vue.extend({})
 </script>

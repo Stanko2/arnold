@@ -22,8 +22,8 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import { Component, Prop, Watch } from 'vue-property-decorator';
-import { Document } from '@/@types';
+import {Component} from 'vue-property-decorator';
+import {Document} from '@/@types';
 import Color from 'color';
 import PieChart from "./PieChart.js";
 
@@ -55,14 +55,14 @@ export default class ScoringChart extends Vue {
           uscores[`${doc.scoring.points}B`]++;
         else uscores[`${doc.scoring.points}B`] = 1;
       } else {
-        if (uscores["Neobodovane"]) uscores["Neobodovane"]++;
-        else uscores["Neobodovane"] = 1;
+        if (uscores["Neobodované"]) uscores["Neobodované"]++;
+        else uscores["Neobodované"] = 1;
       }
     }
 
     const keys = Object.keys(uscores).sort((a, b) => {
-      if (a === "Neobodovane") return -1;
-      if (b === "Neobodovane") return 1;
+      if (a === "Neobodované") return -1;
+      if (b === "Neobodované") return 1;
 
       const aPoints = parseFloat(a.split("B")[0]);
       const bPoints = parseFloat(b.split("B")[0]);

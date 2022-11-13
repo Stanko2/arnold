@@ -16,7 +16,7 @@
       Pre použitie v Arnoldovi
     </b-dropdown-item>
     <b-tooltip triggers="hover" target="downloadAll" placement="right">
-      Stiahne len obodované riešenia - pripravené na upload na stránky
+      Stiahne len obodované riešenia - pripravené na nahratie na stránky
     </b-tooltip>
     <b-tooltip triggers="hover" target="downloadAllArnold" placement="right">
       Stiahne úplne všetko - pôvodné riešenia, všetky opravené riešenia,
@@ -26,7 +26,7 @@
 </template>
 
 <script lang="ts">
-import { BModal } from 'bootstrap-vue';
+import {BModal} from 'bootstrap-vue';
 import Vue from 'vue'
 import Component from 'vue-class-component';
 

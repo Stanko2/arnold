@@ -19,13 +19,22 @@
         </b-input-group>
         <div class="tag-options">
           <color-picker :name="'tagcolor' + i" v-model="tag.color" :hasOpacity="false" class="color-picker"/>
-          <button @click="move(i, false)" :disabled="i == 0">expand_less</button>
-          <button @click="move(i, true)" :disabled="i == availableTags.length - 1">expand_more</button>
-          <button @click="removeTag(i)">close</button>
+          <button @click="move(i, false)" :disabled="i == 0" :id="'tagup' + i">expand_less</button>
+          <button @click="move(i, true)" :disabled="i == availableTags.length - 1" :id="'tagdown' + i">expand_more</button>
+          <button @click="removeTag(i)" :id="'remove' + i">close</button>
+          <b-tooltip :target="'tagup' + i" placement="top" triggers="hover">
+            Presunúť vyššie
+          </b-tooltip>
+          <b-tooltip :target="'tagdown' + i" placement="top" triggers="hover">
+            Presunúť nižšie
+          </b-tooltip>
+          <b-tooltip :target="'remove' + i" placement="top" triggers="hover">
+            Odstrániť tag
+          </b-tooltip>
         </div>
       </b-list-group-item>
     </b-list-group>
-    <b-button block @click="addTag()">Pridat novy Tag</b-button>
+    <b-button block @click="addTag()">Pridať nový tag</b-button>
   </b-modal>
 </template>
 

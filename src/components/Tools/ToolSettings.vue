@@ -14,7 +14,7 @@
         </b-dropdown>
       </div>
       <div class="form-inline" v-if="selectedOptions.hasText">
-        <p class="d-flex align-items-center">Veľkosť Písma</p>
+        <p class="d-flex align-items-center">Veľkosť písma</p>
         <input
           type="number"
           class="form-control"
@@ -74,7 +74,7 @@
             >{{ sign.name }}</b-dropdown-item
           >
           <b-dropdown-item v-if="signatures.length == 0" disabled>
-            Nie je nastavený žiaden podpis, pridaj si aspoň jeden
+            Nie je nastavený žiaden podpis, pridaj aspoň jeden
           </b-dropdown-item>
         </b-dropdown>
       </div>
@@ -96,20 +96,20 @@
       >
         <sign-modal :signs="getSigns" ref="signModal"></sign-modal>
       </b-modal>
-    </div>    
+    </div>
 </template>
 
 <script lang="ts">
-import { ITemplate, Tool, ToolOptions } from '@/@types';
-import { Database } from '@/Db';
-import { getViewedDocument } from '@/Documents/DocumentManager';
-import { BModal } from 'bootstrap-vue';
+import {ITemplate, Tool, ToolOptions} from '@/@types';
+import {Database} from '@/Db';
+import {getViewedDocument} from '@/Documents/DocumentManager';
+import {BModal} from 'bootstrap-vue';
 import Vue from 'vue'
 import Component from 'vue-class-component';
-import { Prop, Watch } from 'vue-property-decorator';
+import {Prop, Watch} from 'vue-property-decorator';
 import ColorPicker from '../ColorPicker.vue';
-import { FontsAvailable } from '../Fonts';
-import { PDFdocument } from '../PDFdocument';
+import {FontsAvailable} from '../Fonts';
+import {PDFdocument} from '../PDFdocument';
 import ImageModal from './ImageModal.vue';
 import SignModal from './SignModal.vue';
 
@@ -191,7 +191,7 @@ export default class ToolSettings extends Vue {
     return (
       this.signatures.find(
         (e) => e.id == (this.selectedTool.defaultOptions as any).sign
-      )?.name || "Vyber Podpis"
+      )?.name || "Vyber podpis"
     );
   }
 
@@ -202,7 +202,7 @@ export default class ToolSettings extends Vue {
       )?.name || "Vyber obrázok"
     );
   }
-  
+
   getSigns() {
     return new Promise<ITemplate[]>((resolve, reject) => {
       Database.getAllTemplates()

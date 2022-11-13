@@ -24,7 +24,7 @@
               >
               <b-nav-item class="ml-3 my-1" href="#Draw">Kreslenie</b-nav-item>
               <b-nav-item class="ml-3 my-1" href="#Arrow">Šípka</b-nav-item>
-              <b-nav-item class="ml-3 my-1" href="#Image">Obrázok</b-nav-item>
+              <b-nav-item class="ml-3 my-1" href="#Image">Obrázok / Pečiatka</b-nav-item>
             </b-nav>
             <b-nav-item href="#Settings">Nastavenia</b-nav-item>
             <b-nav pills vertical>
@@ -32,7 +32,7 @@
                 >Nástroje</b-nav-item
               >
               <b-nav-item class="ml-3 my-1" href="#Shortcuts"
-                >Klavesové skratky</b-nav-item
+                >Klávesové skratky</b-nav-item
               >
               <b-nav-item class="ml-3 my-1" href="#OtherSettings"
                 >Ostatné</b-nav-item
@@ -59,16 +59,16 @@
               <a href="https://interne.p-mat.sk">interných</a>(zip súbor netreba
               extrahovať, o to sa už postarám 😎).
             </li>
-            <li>Súbor nahrám do mojej hlavnej stránky.</li>
+            <li>Súbor nahráš do mojej hlavnej stránky.</li>
             <li>
-              Ak ma refreshneš, tak sa ti zobrazia všetky potriedené riešenia po
-              kategóriach, v ktorých si vyberieš tie, ktoré ideš opravaovať.
+              Po chvíli sa zobrazia všetky riešenia roztriedené po
+              kategóriach, z ktorých si vyberieš tie, ktoré ideš opravovať.
             </li>
-            <li>Klikneš začať opravovať a môžeš začať opravovať.</li>
+            <li>Klikneš začať opravovať a môžeš opravovať.</li>
           </ol>
           <i>
             Pokiaľ máš dosť rýchly počítač, tak vieš vybrať všetky kategórie,
-            ale pri viac ako 120 riešeniach načítaných naraz zvyknem byť celkom
+            ale pri viac ako 100 riešeniach načítaných naraz zvyknem byť celkom
             spomalený, takže ak chceš aby som bol rýchly🚀, otvor čo najmenej
             riešení naraz
           </i>
@@ -81,9 +81,9 @@
             aplikáciami ako aj na svojej pracovnej ploche.
           </p>
           <b-alert show variant="danger">
-            Ak si na chrome, tak je veľmi odporúčané si Arnolda nainštalovať a 
-            pridať do bookmarkov, inak v prípade málo miesta na disku vie Chrome 
-            automaticky premazať riešenia bez upozornenia. V prípade Firefoxu treba 
+            Ak si na chrome, tak je veľmi odporúčané si Arnolda nainštalovať a
+            pridať do záložiek, inak v prípade málo miesta na disku vie Chrome
+            automaticky premazať riešenia bez upozornenia. V prípade Firefoxu treba
             povoliť persistent storage.
           </b-alert>
           <img src="@/assets/Help/Install.png" class="img" />
@@ -102,7 +102,7 @@
           <h5 id="Topbar" style="">Horná lišta</h5>
           <p>Vysvetlenie jednotlivých tlačidiel:</p>
           <ul>
-            <li><b>Uzavriet opravovanie</b> - Zmaže všetky reišenia a pripraví Arnolda na použitie pri ďalšej sérii. Pri stlačení sa zobrazí varovný popup, takže sa nemusíte báť, že si to omylom zmažete</li>
+            <li><b>Uzavrieť opravovanie</b> - Zmaže všetky riešenia a pripraví Arnolda na použitie pri ďalšej sérii. Pri stlačení sa zobrazí varovný popup, takže sa nemusíte báť, že si to omylom zmažete</li>
             <li><b>Uložiť</b> - Uloží terajšie riešenie. Ekvivalent sa stane ak prepneš na ďalšie riešenie a máš zapnutý AutoSave, alebo stlačíš <kbd>CTRL+S</kbd>, alebo inú skratku akú si nastavíš</li>
             <li><b>Stiahnuť všetky</b> - Vyexportuje všetky <b>Obodované</b> riešenia a stiahne ti do počítača jeden zip</li>
             <li><b>Stiahnuť</b> - stiahne ti otvorené riešenie</li>
@@ -121,7 +121,7 @@
           <p>
             Keď mám vybratý nástroj text, tak kliknutím na riešenie viem pridať
             textové pole. Viem mu meniť veľkosť a dokonca aj otáčať. Text viem
-            meniť dvijkliknutím.
+            meniť dvojkliknutím.
           </p>
           <h5 id="Sign" style="">Podpis</h5>
           <p>
@@ -152,14 +152,14 @@
           </p>
           <h5 id="Arrow" style="">Šípka</h5>
           <p>
-            Dragnutím myši vytvorím šípku, potom viem ešte prípadne poposúvať
+            Potiahnutím myši vytvorím šípku, potom viem ešte prípadne poposúvať
             konce.
           </p>
           <h5 id="Arrow" style="">Obrázok</h5>
           <p>
             Obrázky fungujú podobne ako podpisy. Otvorím si menu s obrázkami a
-            môžem si tam pridať obrázok aký chcem. Formát obrázka ale musí byť 
-            PNG, inak nebude fungovať. Potom viem rovnako ako pri podpisoch 
+            môžem si tam pridať obrázok aký chcem. Formát obrázka ale musí byť
+            PNG, inak nebude fungovať. Potom viem rovnako ako pri podpisoch
             kliknúť na stránku a pridať obrázok do riešenia.
           </p>
           <h4 id="Settings" style="">Nastavenia</h4>
@@ -204,15 +204,15 @@
           </p>
           <h4 id="Tags" style="">Tagy</h4>
           <p>
-            Tagy slúžia hlavne na filtrovanie riešení. Pomocou tagov si viem každé 
-            riešenie označiť napríklad podľa toho, či to má riešiteľ dobre, alebo 
-            si ukladať riešenie na neskôr ak sa s ním práve nechcem zaoberať. Ak 
-            kliknem na upraviť tagy, tak viem jednoducho pridať tag, pomenovať ho 
-            a zmeniť mu aj farbu. Ak mám tagy definované viem ich pridavať do 
-            jednotlivých riešení. 
+            Tagy slúžia hlavne na filtrovanie riešení. Pomocou tagov si viem každé
+            riešenie označiť napríklad podľa toho, či to má riešiteľ dobre, alebo
+            si ukladať riešenie na neskôr ak sa s ním práve nechcem zaoberať. Ak
+            kliknem na upraviť tagy, tak viem jednoducho pridať tag, pomenovať ho
+            a zmeniť mu aj farbu. Ak mám tagy definované viem ich pridavať do
+            jednotlivých riešení.
           </p>
           <p>
-            Ak chcem zobraziť len riešenia s tagom "Super", tak stačí si rozbaliť 
+            Ak chcem zobraziť len riešenia s tagom "Super", tak stačí si rozbaliť
             vyhľadávanie a napísať tam moje tagy.
           </p>
           <h4 id="Stats" style="">Štatistiky</h4>
@@ -230,13 +230,10 @@
           <p>2 základné kroky:</p>
           <ul>
             <li>
-              Refresh stránky (<kbd>CTRL+R</kbd>). Ak by ste refreshovali moc
-              často kvôli tej istej veci, tak mi napíšte, a skúsim to čo najskôr
-              fixnúť ak sa podarí.😉
+              Obnovenie stránky (<kbd>CTRL+R</kbd>). Ak by ste obnovovali často kvôli tej istej veci, tak napíš na slack do kanálu #arnold.
             </li>
             <li>
-              Ak ani refresh nepomohol, tak asi jediná možnosť je napísať mi na
-              slack, alebo hocikam inam.
+              Ak ani refresh nepomohol, tak asi jediná možnosť je napísať na slack do kanálu #arnold.
             </li>
           </ul>
         </div>
