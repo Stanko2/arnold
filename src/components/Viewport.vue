@@ -159,6 +159,10 @@ export default class Viewport extends ViewportProps {
     })
   }
 
+  err(e: string){
+    console.log(e);
+  }
+
   changeActivePage(i: number, visible: boolean) {
     if (!visible) return;
     this.activePage = i - 1;

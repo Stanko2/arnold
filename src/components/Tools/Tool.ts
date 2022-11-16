@@ -8,6 +8,7 @@ import eventHub from "@/Mixins/EventHub";
 import type { Tool } from "@/@types";
 import store from '@/Store';
 import { ToolSettings, Settings } from '@/@types/Preferences';
+import { Canvas } from '../../Canvas';
 
 var vue: Vue | null = null;
 
@@ -48,6 +49,7 @@ function ApplySettings(settings: Settings){
             tool.shortcut = shortcut.shortcut;
         }
     });
+    Canvas.selectedTool = tools[prefs.defaultTool.value];
     selectTool(tools[prefs.defaultTool.value]);
 }
 
@@ -231,7 +233,7 @@ export const tools: Tool[] = [
         click: async (pdf: PDFdocument, page: number, position: { x: number, y: number }): Promise<fabric.Group> => {
             const sign = (selectedTool.defaultOptions as any).sign
             if(sign === undefined)
-                throw new Error('No sign Selected')
+                throw new Error('No sign Selected');
             const signTemplate = await Database.getTemplate(sign)
             const cnv = pdf.pageCanvases[page]
             const paths: fabric.Path[] = [];
