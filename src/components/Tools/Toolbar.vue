@@ -350,7 +350,7 @@ export default class Toolbar extends Vue {
   display: flex;
   flex-wrap: wrap;
   justify-content: left;
-  overflow-x: auto;
+  // overflow-x: auto;
   height: 60px;
 }
 .btn {

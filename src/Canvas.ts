@@ -63,10 +63,15 @@ export class Canvas extends fabric.Canvas {
                     (Canvas.selectedTool.defaultOptions as fabric.ILineOptions).y1 = pointerPos.y;
                 }
                 else {
-                    this.creating = await Canvas.selectedTool.click?.(this.pdf, this.page, pointerPos);
-                    this.setActiveObject(this.creating);
-                    this.requestRenderAll();
-                    eventHub.$emit('tool:select', tools[7]);
+                    try{
+                        this.creating = await Canvas.selectedTool.click?.(this.pdf, this.page, pointerPos);
+                        this.setActiveObject(this.creating);
+                        this.requestRenderAll();
+                        eventHub.$emit('tool:select', tools[7]);
+                    }
+                    catch(err){
+                        eventHub.$emit('canvas:error', err);   
+                    }
                 }
             }
 
