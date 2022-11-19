@@ -66,6 +66,7 @@
       <pdf-repairer ref="repairTool" />
       
       <tool-button
+        id="collapseButton"
         class="d-xl-none"
         :icon="optionsMenuExpanded ? 'expand_less' : 'expand_more'"
         variant="secondary"

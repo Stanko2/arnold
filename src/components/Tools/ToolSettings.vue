@@ -167,6 +167,7 @@ export default class ToolSettings extends Vue {
             obj.set(this.selectedTool.defaultOptions);
           });
         }
+        console.log(this.selectedTool.defaultOptions);
         PDFdocument.activeObject.set(this.selectedTool.defaultOptions);
         try {
           PDFdocument.activeObject.canvas?.renderAll();
