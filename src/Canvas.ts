@@ -50,6 +50,7 @@ export class Canvas extends fabric.Canvas {
             //         return;
             //     }
             // }
+            console.log(Canvas.selectedTool);
             if (Canvas.selectedTool && Canvas.selectedTool.name != 'Select' && this.getActiveObjects().length == 0 && Canvas.selectedTool.defaultOptions) {
                 var options = Canvas.selectedTool.defaultOptions as fabric.IObjectOptions;
                 const width = Canvas.selectedTool.defaultOptions.width || 0;
@@ -63,10 +64,15 @@ export class Canvas extends fabric.Canvas {
                     (Canvas.selectedTool.defaultOptions as fabric.ILineOptions).y1 = pointerPos.y;
                 }
                 else {
-                    this.creating = await Canvas.selectedTool.click?.(this.pdf, this.page, pointerPos);
-                    this.setActiveObject(this.creating);
-                    this.requestRenderAll();
-                    eventHub.$emit('tool:select', tools[7]);
+                    try{
+                        this.creating = await Canvas.selectedTool.click?.(this.pdf, this.page, pointerPos);
+                        this.setActiveObject(this.creating);
+                        this.requestRenderAll();
+                        eventHub.$emit('tool:select', tools[7]);
+                    }
+                    catch(err){
+                        eventHub.$emit('canvas:error', err);   
+                    }
                 }
             }
 

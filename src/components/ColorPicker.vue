@@ -17,11 +17,9 @@
       ref="popover"
     >
       <template #title>{{ label }}</template>
-      <v-swatches class="color-picker" v-model="color" inline @input="submit" backgroundColor="transparent" show-fallback fallback-input-type="color"></v-swatches>
+      <v-swatches class="color-picker" v-model="color" inline @input="submit" backgroundColor="transparent"></v-swatches>
       <div class="d-flex align-items-center justify-content-between" v-if="hasOpacity">
-        <p class="d-flex align-items-center transparency-text">
-          Nepriehľadnosť
-        </p>
+        <input type="color" v-model="color" class="fallbackInput" :style="{'opacity': opacity / 100}" @input="submit"/>
         <div class="form-control transparency-num">
           <input
             type="number"
@@ -52,7 +50,7 @@ const VSwatches = require("vue-swatches");
 import "vue-swatches/dist/vue-swatches.css";
 import Vue from "vue";
 import Component from "vue-class-component";
-import { Prop } from "vue-property-decorator";
+import { Prop, Watch } from "vue-property-decorator";
 import { BPopover } from "bootstrap-vue";
 
 @Component({
@@ -77,6 +75,22 @@ export default class ColorPicker extends Vue {
   }
 
   mounted() {
+    this.valueUpdated();
+    this.clickListener = (event) => {
+      if (this.show) {
+        let a: BPopover = this.$refs.popover;
+        if (!a) return;
+        let pop = a.$children[0].$children[0].$el;
+        if (event.target instanceof Element && !pop.contains(event.target)) {
+          this.show = false;
+        }
+      }
+    }
+    document.addEventListener("click", this.clickListener);
+  }
+  
+  @Watch('value')
+  valueUpdated(){
     if (this.value === undefined || this.value === null || this.value.startsWith("rgb")) {
       this.color = "#000000";
       this.opacity = 100;
@@ -85,17 +99,6 @@ export default class ColorPicker extends Vue {
     }
     this.color = this.value.substring(0, 7);
     this.opacity = Math.round((parseInt(this.value.substring(7, 9), 16) / 255) * 100) || 100;
-    this.clickListener = (event) => {
-      if (this.show) {
-        let a: any = this.$refs.popover;
-        if (!a) return;
-        let pop = a.$children[0].$children[0].$el;
-        if (!pop.contains(event.target)) {
-          this.show = false;
-        }
-      }
-    }
-    document.addEventListener("click", this.clickListener);
   }
 
   submit() {
@@ -119,8 +122,22 @@ export default class ColorPicker extends Vue {
   border: none;
 }
 
-p.transparency-text {
-  margin-right: 10px;
+.fallbackInput{
+  border: none;
+  outline: none;
+  color: transparent !important;
+  appearance: none;
+  width: 42px;
+  height: 42px;
+  background: transparent;
+  &::before{
+    content: "";
+    height: inherit;
+    width: inherit;
+    position: absolute;
+    border-radius: 11px;
+    background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
+  }
 }
 
 .transparency-num {
@@ -145,42 +162,35 @@ p.transparency-text {
   }
 }
 
-
-input.transparency-num::-webkit-outer-spin-button,
-input.transparency-num::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-input[type="number"].transparency-num {
-  -moz-appearance: textfield;
-}
 input.transparency-num {
-  width: 30px;
+
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    appearance: none;
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  appearance: textfield;
+  -moz-appearance: textfield;
+  width: 40px;
   margin-right: 10px;
   display: inline;
-}
-
-input.transparency-num,
-input.transparency-num:focus,
-input.transparency-num:active {
   border: none;
+  &:focus, &:active {
+    border: none;
+  }
 }
 </style>
 
 <style lang="scss">
-
 .color-picker {
-
-  .vue-swatches__fallback__wrapper {
-    display: flex !important;
+  .vue-swatches__wrapper{
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    .vue-swatches__swatch{
+      margin: 6px !important;
+    }
   }
-  
-  .vue-swatches__fallback__input {
-    border: none !important;
-    background: transparent !important;
-  }
-
 }
-
 </style>

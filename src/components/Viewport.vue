@@ -138,6 +138,7 @@ export default class Viewport extends ViewportProps {
     this.eventHub.$on("shortcut:zoomIn", () => this.setScale(0.1));
     this.eventHub.$on("shortcut:zoomOut", () => this.setScale(-0.1));
     this.eventHub.$on("shortcut:delete", this.deleteSelected);
+    this.eventHub.$on("canvas:error", this.showError);
     window.addEventListener("resize", this.resize);
     PDFdocument.initDocument = (task: any) => {
       if (this.allPagesLoaded) return;
@@ -150,9 +151,18 @@ export default class Viewport extends ViewportProps {
     };
     PDFdocument.viewport = this;
   }
-  err(err: any) {
-    console.log(err);
+  showError(err: Error) {
+    this.$bvToast.toast(`${err.message}`, {
+      variant: 'danger',
+      title: "Chyba pri pridaní objektu",
+      autoHideDelay: 1000
+    })
   }
+
+  err(e: string){
+    console.log(e);
+  }
+
   changeActivePage(i: number, visible: boolean) {
     if (!visible) return;
     this.activePage = i - 1;

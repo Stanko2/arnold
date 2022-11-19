@@ -7,6 +7,8 @@ import { Database } from "@/Db";
 import eventHub from "@/Mixins/EventHub";
 import type { Tool } from "@/@types";
 import store from '@/Store';
+import { ToolSettings, Settings } from '@/@types/Preferences';
+import { Canvas } from '../../Canvas';
 
 var vue: Vue | null = null;
 
@@ -21,27 +23,36 @@ function init(VueRef: Vue | undefined = undefined) {
     }
     const data = store.state.settings
     if (data) {
-        const prefs = data.tools.settings;
-        const shortcuts = data.shortcut.settings;
-        prefs.tools.forEach((tool: any, index: number) => {
-            if (index < tools.length - 1) {
-                tools[index].defaultOptions = Object.assign({}, tools[index].defaultOptions, tool.defaultOptions);
-            }
-        });
-        shortcuts.forEach((shortcut: any) => {
-            const tool = tools.find(e => e.name == shortcut.name)
-            if (tool) {
-                tool.shortcut = shortcut.shortcut;
-            }
-        });
-
-
-        selectTool(tools[prefs.defaultTool.value]);
+        ApplySettings(data);
+        store.subscribe((mut, state)=>{
+            if(mut.type !== 'applySettings' && mut.type !== 'loadData') return;
+            ApplySettings(state.settings);
+        })
     }
     else {
         selectTool(tools[0]);
     }
 }
+
+function ApplySettings(settings: Settings){
+    console.log('apply');
+    const prefs = settings.tools.settings;
+    const shortcuts = settings.shortcut.settings;
+    prefs.tools.forEach((tool: ToolSettings, index: number) => {
+        if (index < tools.length - 1) {
+            tools[index].defaultOptions = Object.assign({}, tools[index].defaultOptions, tool.defaultOptions);
+        }
+    });
+    shortcuts.forEach((shortcut: any) => {
+        const tool = tools.find(e => e.name == shortcut.name)
+        if (tool) {
+            tool.shortcut = shortcut.shortcut;
+        }
+    });
+    Canvas.selectedTool = tools[prefs.defaultTool.value];
+    selectTool(tools[prefs.defaultTool.value]);
+}
+
 eventHub.$on('editor:documentChanged', () => { selectTool(selectedTool); });
 
 export const tools: Tool[] = [
@@ -221,6 +232,8 @@ export const tools: Tool[] = [
         defaultOptions: {},
         click: async (pdf: PDFdocument, page: number, position: { x: number, y: number }): Promise<fabric.Group> => {
             const sign = (selectedTool.defaultOptions as any).sign
+            if(sign === undefined)
+                throw new Error('No sign Selected');
             const signTemplate = await Database.getTemplate(sign)
             const cnv = pdf.pageCanvases[page]
             const paths: fabric.Path[] = [];
@@ -229,8 +242,6 @@ export const tools: Tool[] = [
                 e.strokeWidth = selectedTool.defaultOptions.strokeWidth || 10;
                 const path = new fabric.Path(e.path, e);
                 paths.push(path);
-                // cnv.add(path);
-                // console.log(position);
             });
             const options = selectedTool.defaultOptions;
             const grp = new fabric.Group(paths, { left: position.x, top: position.y, ...options });
