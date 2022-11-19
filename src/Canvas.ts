@@ -20,12 +20,12 @@ export class Canvas extends fabric.Canvas {
     creating: fabric.Object | null = null;
     pageIndex = 0;
     drawnShapes: fabric.Path[] = [];
-    static selectedTool: Tool | undefined = undefined;
+    static selectedTool: Tool<fabric.IObjectOptions> | undefined = undefined;
     initialized = false;
     constructor(el: any, private pdf: PDFdocument, private page: number) {
         super(el);
         this.selection = false;
-        eventHub.$on('tool:select', (tool: Tool) => Canvas.selectedTool = tool);
+        eventHub.$on('tool:select', (tool: Tool<fabric.IObjectOptions>) => Canvas.selectedTool = tool);
     }
 
 

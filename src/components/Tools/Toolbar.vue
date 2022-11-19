@@ -2,64 +2,49 @@
   <div class="toolbar">
     <div cols="3" class="d-flex p-0">
       <div :key="tool.name" v-for="tool in tools">
-        <button
+        <tool-button
           :id="tool.name"
-          class="btn"
-          :class="{
-            'btn-primary': selectedTool.name == tool.name,
-            'btn-outline-primary': selectedTool.name != tool.name,
-          }"
+          :icon="tool.icon"
+          :outline="selectedTool.name != tool.name"
+          :tooltip="tool.tooltip + '(' + tool.shortcut + ')'"
           @click="select(tool)"
-        >
-          <span class="material-icons d-block">{{ tool.icon }}</span>
-        </button>
-        <b-tooltip :target="tool.name" triggers="hover">
-          {{ tool.tooltip }} ({{ tool.shortcut }})
-        </b-tooltip>
+          variant='primary'
+        />
       </div>
     </div>
     <tool-settings :selectedOptions="selectedOptions" :selectedTool="selectedTool" class="d-xl-flex d-none" />
     <div cols="2" class="right-controls">
       <div :key="util.name" v-for="util in utils">
-        <button
+        <tool-button
             :id="util.name"
             class="btn"
-            :class="util.style"
+            :variant="util.style"
             @click="useUtil(util)"
-        >
-          <span class="material-icons d-block">{{ util.icon }}</span>
-        </button>
-        <b-tooltip :target="util.name" triggers="hover">
-          {{ util.tooltip }} ({{ util.shortcut }})
-        </b-tooltip>
+            :icon="util.icon"
+            :outline="true"
+            :tooltip="util.tooltip + '(' + util.shortcut + ')'"
+        />
       </div>
-      <button
+      <tool-button
         id="zoomInButton"
-        class="btn btn-outline-primary"
         @click="eventHub.$emit('viewport:scale', 0.1)"
-      >
-        <span class="material-icons d-block">add</span>
-      </button>
-      <button
+        icon="add"
+        :outline="true"
+        tooltip="Priblížiť"
+      />
+      <tool-button
         id="zoomOutButton"
-        class="btn btn-outline-primary"
         @click="eventHub.$emit('viewport:scale', -0.1)"
-      >
-        <span class="material-icons d-block">remove</span>
-      </button>
-      <b-button id="repairButton" @click="$refs.repairTool.Open()">
-        <span class="material-icons d-block">build</span>
-      </b-button>
+        icon="remove"
+        :outline="true"
+        tooltip="Oddialiť"
+      />
+      <tool-button id="repairButton" @click="$refs.repairTool.Open()" icon="build" variant="secondary" :outline="false" tooltip="Opraviť zle nahraté PDFko (pridať prázdnu stranu a otočiť obrázky)"/>
       <pdf-repairer ref="repairTool" />
-      <b-tooltip target="zoomOutButton" triggers="hover"> Oddialiť </b-tooltip>
-      <b-tooltip target="zoomInButton" triggers="hover"> Priblížiť </b-tooltip>
-      <b-tooltip target="repairButton" triggers="hover">
-        Opraviť zle nahraté PDFko (pridať prázdnu stranu a otočiť obrázky)
-      </b-tooltip>
-      <!-- <b-tooltip target="rotateButton" triggers="hover"> Otocit </b-tooltip> -->
-      <b-button class="d-xl-none" @click="optionsMenuExpanded = !optionsMenuExpanded">
+      
+      <tool-button class="d-xl-none" @click="optionsMenuExpanded = !optionsMenuExpanded" :icon="optionsMenuExpanded ? 'expand_less' : 'expand_more'" variant="secondary">
         <span class="material-icons d-block">{{ optionsMenuExpanded ? 'expand_less' : 'expand_more' }}</span>
-      </b-button>
+      </tool-button>
     </div>
     <div class="toolSettingsSm" v-if="optionsMenuExpanded">
       <tool-settings :selectedOptions="selectedOptions" :selectedTool="selectedTool"/>
@@ -77,11 +62,13 @@ import {Component} from "vue-property-decorator";
 import Vue from "vue";
 import {Tool, Util} from "@/@types";
 import ToolSettings from "./ToolSettings.vue";
+import ToolButton from "./Toolbutton.vue";
 
 @Component({
   components: {
     PdfRepairer,
-    ToolSettings
+    ToolSettings,
+    ToolButton
   },
 })
 export default class Toolbar extends Vue {
@@ -128,7 +115,7 @@ export default class Toolbar extends Vue {
       })
   }
 
-  select(tool: Tool) {
+  select(tool: Tool<fabric.IObjectOptions>) {
     this.selectedTool = tool;
     this.eventHub.$emit("tool:select", tool);
   }
@@ -153,13 +140,6 @@ $toolbar-height: 60px;
   // overflow-x: auto;
   height: $toolbar-height;
 }
-.btn {
-  margin: 0 2px;
-  width: 2.8rem;
-  height: 2.8rem;
-  padding: 0;
-}
-
 .right-controls {
   display: flex;
   flex-direction: row;

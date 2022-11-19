@@ -1,28 +1,6 @@
 <template>
     <div cols="7" class="tool-controls">
-      <div class="" v-if="selectedOptions.hasText">
-        <b-dropdown :text="selectedTool.defaultOptions.fontFamily">
-          <b-dropdown-item
-            v-for="font in fonts"
-            :key="font.viewport"
-            :style="{ 'font-family': font.viewport }"
-            @click.native="
-              selectedTool.defaultOptions.fontFamily = font.viewport
-            "
-            >{{ font.viewport }}</b-dropdown-item
-          >
-        </b-dropdown>
-      </div>
-      <div class="form-inline" v-if="selectedOptions.hasText">
-        <p class="d-flex align-items-center">Veľkosť Písma</p>
-        <input
-          type="number"
-          class="form-control"
-          min="0"
-          style="width: 100px"
-          v-model.number="selectedTool.defaultOptions.fontSize"
-        />
-      </div>
+      <text-settings v-if="selectedOptions.hasText" :selectedTool="selectedTool" />
       <div v-if="selectedOptions.hasStrokeWidth">
         <p>Hrúbka čiary</p>
         <input
@@ -112,17 +90,19 @@ import { FontsAvailable } from '../Fonts';
 import { PDFdocument } from '../PDFdocument';
 import ImageModal from './ImageModal.vue';
 import SignModal from './SignModal.vue';
+import TextSettings from './TextSettings.vue';
 
 @Component({
   components: {
     ColorPicker,
     SignModal,
-    ImageModal
+    ImageModal,
+    TextSettings
   },
 })
 export default class ToolSettings extends Vue {
   @Prop({required: true})
-  selectedTool!: Tool;
+  selectedTool!: Tool<fabric.IObjectOptions>;
   @Prop({required: true})
   selectedOptions!: ToolOptions;
   fonts = FontsAvailable;

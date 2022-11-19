@@ -1,9 +1,10 @@
 import { StandardFonts } from 'pdf-lib';
 import { PDFdocument } from './PDFdocument';
+import { Font } from '@/@types';
 declare let FontFace: any;
 
 
-export const FontsAvailable: Record<string, any> = {
+export const FontsAvailable: Record<string, Font> = {
     'Open Sans': {
         url: 'https://fonts.googleapis.com/css2?family=Open+Sans&display=swap',
         pdf: '/fonts/OpenSans.otf',
