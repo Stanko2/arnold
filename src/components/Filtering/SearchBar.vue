@@ -2,47 +2,63 @@
   <div>
     <b-input-group style="z-index: 4">
       <b-form-input
+        v-model="searchStr"
         type="text"
         placeholder="Hľadať v riešeniach"
-        v-model="searchStr"
         size="lg"
       />
       <b-input-group-append>
-        <b-button variant="success" @click="search" size="md">
+        <b-button
+          variant="success"
+          size="md"
+          @click="search"
+        >
           <span class="material-icons">search</span>
         </b-button>
         <b-button
-          variant="primary"
           id="expand"
-          @click="expanded = !expanded"
+          variant="primary"
           size="md"
+          @click="expanded = !expanded"
         >
           <span class="material-icons">{{
             expanded ? "expand_less" : "expand_more"
           }}</span>
         </b-button>
-        <b-tooltip target="expand" triggers="hover"
-          >Dalšie možnosti hľadania</b-tooltip
+        <b-tooltip
+          target="expand"
+          triggers="hover"
         >
+          Dalšie možnosti hľadania
+        </b-tooltip>
       </b-input-group-append>
     </b-input-group>
     <transition name="slide">
-      <div v-if="expanded" class="search-menu">
+      <div
+        v-if="expanded"
+        class="search-menu"
+      >
         <b-input-group>
           <b-form-input
             v-model="currQuery"
             placeholder="Filtrovacie kritéria ... "
-            @update="updateQuery(currQuery)"
             size="sm"
+            @update="updateQuery(currQuery)"
           />
           <b-input-group-append>
-            <b-button variant="success" size="sm" class="material-icons" id="filter" v-b-modal.filterhelp>
+            <b-button
+              id="filter"
+              v-b-modal.filterhelp
+              variant="success"
+              size="sm"
+              class="material-icons"
+            >
               help
             </b-button>
             <b-tooltip target="filter">
               Pomoc k filtrovaniu
             </b-tooltip>
-            <filter-help/>
+            <filter-help />
           </b-input-group-append>
         </b-input-group>
         <h6 v-if="categories.length > 1">
@@ -50,12 +66,12 @@
             v-for="(tag, i) in categories"
             :key="tag"
             class="m-1 category-toggle"
-            @click="toggleSearchCategory(tag)"
             size="lg"
             style=""
             :style="{
               opacity: categoriesVisible[i] ? 1 : 0.5,
             }"
+            @click="toggleSearchCategory(tag)"
           >
             {{ tag }}
           </b-badge>

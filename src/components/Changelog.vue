@@ -1,11 +1,19 @@
 <template>
   <div>
-    <b-button block variant="primary" v-b-toggle.changelog>
+    <b-button
+      v-b-toggle.changelog
+      block
+      variant="primary"
+    >
       <h2>Čo je nové?</h2>
     </b-button>
     <b-collapse id="changelog">
       <b-card bg-variant="success">
-        <b-button variant="secondary" v-b-toggle.version1 block>
+        <b-button
+          v-b-toggle.version1
+          variant="secondary"
+          block
+        >
           <h6>3.Letná séria 2022</h6>
         </b-button>
         <b-collapse id="version1">
@@ -17,18 +25,26 @@
             kliknúť Download All > stiahnuť pre stránky.
           </b-card>
         </b-collapse>
-        <b-button variant="secondary" v-b-toggle.version2 block>
+        <b-button
+          v-b-toggle.version2
+          variant="secondary"
+          block
+        >
           <h6>1.Zimná séria 2023</h6>
         </b-button>
         <b-collapse id="version2">
           <b-card bg-variant="success">
             <ul>
-              <li>Pridané kopírovanie objektov. Selectnuté objekty sa dajú kopírovať
-            pomocou <kbd>Ctrl+C</kbd> a prilepiť pomocou <kbd>Ctrl+V</kbd>, 
-            prípadne pomocou menu pri stlačení pravého tlačidla, alebo pomocou 
-            tlačítok v lište s nástrojmi. </li>
-            <li>Lišta s nástrojmi dostala trochu 
-            redesign, niektoré ikonky sú zmenené. </li>
+              <li>
+                Pridané kopírovanie objektov. Selectnuté objekty sa dajú kopírovať
+                pomocou <kbd>Ctrl+C</kbd> a prilepiť pomocou <kbd>Ctrl+V</kbd>, 
+                prípadne pomocou menu pri stlačení pravého tlačidla, alebo pomocou 
+                tlačítok v lište s nástrojmi.
+              </li>
+              <li>
+                Lišta s nástrojmi dostala trochu 
+                redesign, niektoré ikonky sú zmenené.
+              </li>
               <li>🌙 Tmavý mód - aktivuj si ho v nastaveniach</li>
               <li>Použité P-mat farbičky 😁</li>
             </ul>

@@ -1,29 +1,32 @@
 <template>
+  <div>
     <div>
-        <div>
-        <b-dropdown :text="selectedTool.defaultOptions.fontFamily">
-          <b-dropdown-item
-            v-for="font in fonts"
-            :key="font.viewport"
-            :style="{ 'font-family': font.viewport }"
-            @click.native="
-              selectedTool.defaultOptions.fontFamily = font.viewport
-            "
-            >{{ font.viewport }}</b-dropdown-item
-          >
-        </b-dropdown>
-      </div>
-      <div class="form-inline">
-        <p class="d-flex align-items-center">Veľkosť Písma</p>
-        <input
-          type="number"
-          class="form-control"
-          min="0"
-          style="width: 100px"
-          v-model.number="selectedTool.defaultOptions.fontSize"
-        />
-      </div>
+      <b-dropdown :text="selectedTool.defaultOptions.fontFamily">
+        <b-dropdown-item
+          v-for="font in fonts"
+          :key="font.viewport"
+          :style="{ 'font-family': font.viewport }"
+          @click.native="
+            selectedTool.defaultOptions.fontFamily = font.viewport
+          "
+        >
+          {{ font.viewport }}
+        </b-dropdown-item>
+      </b-dropdown>
     </div>
+    <div class="form-inline">
+      <p class="d-flex align-items-center">
+        Veľkosť Písma
+      </p>
+      <input
+        v-model.number="selectedTool.defaultOptions.fontSize"
+        type="number"
+        class="form-control"
+        min="0"
+        style="width: 100px"
+      >
+    </div>
+  </div>
 </template>
 
 <script lang="ts">

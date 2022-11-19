@@ -1,71 +1,95 @@
 <template>
   <div class="bodovanie">
     <div class="position-relative">
-      <h4 class="btn btn-primary" @click="toggle()">
+      <h4
+        class="btn btn-primary"
+        @click="toggle()"
+      >
         Bodovanie
         <span class="material-icons d-inline position-absolute">{{
           showScoringPanel ? "expand_more" : "expand_less"
         }}</span>
       </h4>
       <transition name="slide">
-        <div v-if="showScoringPanel" class="bodovanie_okno bg-primary">
+        <div
+          v-if="showScoringPanel"
+          class="bodovanie_okno bg-primary"
+        >
           <div class="d-flex flex-row">
-            <h3 class="w-50">Body:</h3>
+            <h3 class="w-50">
+              Body:
+            </h3>
             <b-form-input
+              ref="pointInput"
+              v-model.number="$data.points"
               type="number"
               class="w-50"
               placeholder="Zadaj body ..."
-              v-model.number="$data.points"
-              ref="pointInput"
               @change="saveScoring"
             />
-            <div class="d-flex flex-row mr-2"></div>
+            <div class="d-flex flex-row mr-2" />
           </div>
           <div>
             <div
-              class="form-check w-100 d-flex justify-content-between"
               v-for="(criteria, i) in pointCriterias"
               :key="criteria.id"
+              class="form-check w-100 d-flex justify-content-between"
             >
               <b-form-checkbox
-                class="form-check-input"
-                type="checkbox"
                 :id="criteria.id"
                 v-model="acceptedCriteria[i]"
+                class="form-check-input"
+                type="checkbox"
                 @change="calculatePoints"
               />
-              <label class="form-check-label" :for="criteria.id">
+              <label
+                class="form-check-label"
+                :for="criteria.id"
+              >
                 {{ criteria.from }}
-                <b-badge pill variant="warning">{{ criteria.points }}</b-badge>
+                <b-badge
+                  pill
+                  variant="warning"
+                >{{ criteria.points }}</b-badge>
               </label>
             </div>
           </div>
           <div class="m-2">
             <b-button
+              v-if="!final"
               variant="success"
               size="lg"
-              @click="finalScoringChange()"
-              v-if="!final"
               :disabled="$data.points == undefined"
-              >Zfinalizuj hodnotenie</b-button
+              @click="finalScoringChange()"
             >
-            <b-button variant="danger" @click="finalScoringChange()" v-else
-              >Zruš hodnotenie</b-button
+              Zfinalizuj hodnotenie
+            </b-button>
+            <b-button
+              v-else
+              variant="danger"
+              @click="finalScoringChange()"
             >
+              Zruš hodnotenie
+            </b-button>
           </div>
-          <br />
-          <b-button v-b-modal.bodovanie size="sm">Upraviť Bodovanie</b-button>
+          <br>
+          <b-button
+            v-b-modal.bodovanie
+            size="sm"
+          >
+            Upraviť Bodovanie
+          </b-button>
           <b-modal
-            title="Bodovanie"
             id="bodovanie"
-            @ok="updatepointCriterias"
+            title="Bodovanie"
             size="lg"
+            @ok="updatepointCriterias"
           >
             <ul class="list-group m-2">
               <li
-                class="list-group-item"
                 v-for="criteria in pointCriterias"
                 :key="criteria.id"
+                class="list-group-item"
               >
                 <div
                   class="
@@ -77,13 +101,13 @@
                 >
                   <div class="w-100">
                     <b-form-input
+                      v-model.number="criteria.points"
                       type="number"
                       class="kriteria-body d-inline"
-                      v-model.number="criteria.points"
                     />B - za
                     <b-form-input
-                      type="text"
                       v-model="criteria.from"
+                      type="text"
                       style="width: 80%"
                       class="form-control d-inline"
                     />
@@ -97,7 +121,10 @@
                 </div>
               </li>
             </ul>
-            <button @click="pridajBodovanie" class="btn btn-primary btn-block">
+            <button
+              class="btn btn-primary btn-block"
+              @click="pridajBodovanie"
+            >
               Pridať ďalšie kritérium
             </button>
           </b-modal>

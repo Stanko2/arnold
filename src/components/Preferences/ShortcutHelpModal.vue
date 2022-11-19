@@ -1,5 +1,8 @@
 <template>
-  <b-modal ok-only ref="modal">
+  <b-modal
+    ref="modal"
+    ok-only
+  >
     <p>
       Skratku vieš nastaviť tak, že do textového poľa napíšeš patričné klávesy,
       čo chceš zmačknúť. Viacero klávesov naraz vieš oddelovať "+" (ctrl+b).

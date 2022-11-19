@@ -18,8 +18,12 @@
       :color="color('#6610f2')"
       label="Obodované"
       @click.native="updateScoringData"
-      ><scoring-chart ref="scoringChart" :stats="stats"
-    /></stats-entry>
+    >
+      <scoring-chart
+        ref="scoringChart"
+        :stats="stats"
+      />
+    </stats-entry>
     <stats-entry
       :max="stats.celkovo"
       :value="stats.hotovo"

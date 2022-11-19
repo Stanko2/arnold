@@ -1,53 +1,87 @@
 <template>
   <div class="toolbar">
-    <div cols="3" class="d-flex p-0">
-      <div :key="tool.name" v-for="tool in tools">
+    <div
+      cols="3"
+      class="d-flex p-0"
+    >
+      <div
+        v-for="tool in tools"
+        :key="tool.name"
+      >
         <tool-button
           :id="tool.name"
           :icon="tool.icon"
           :outline="selectedTool.name != tool.name"
           :tooltip="tool.tooltip + '(' + tool.shortcut + ')'"
+          variant="primary"
           @click="select(tool)"
-          variant='primary'
         />
       </div>
     </div>
-    <tool-settings :selectedOptions="selectedOptions" :selectedTool="selectedTool" class="d-xl-flex d-none" />
-    <div cols="2" class="right-controls">
-      <div :key="util.name" v-for="util in utils">
+    <tool-settings
+      :selected-options="selectedOptions"
+      :selected-tool="selectedTool"
+      class="d-xl-flex d-none"
+    />
+    <div
+      cols="2"
+      class="right-controls"
+    >
+      <div
+        v-for="util in utils"
+        :key="util.name"
+      >
         <tool-button
-            :id="util.name"
-            class="btn"
-            :variant="util.style"
-            @click="useUtil(util)"
-            :icon="util.icon"
-            :outline="true"
-            :tooltip="util.tooltip + '(' + util.shortcut + ')'"
+          :id="util.name"
+          class="btn"
+          :variant="util.style"
+          :icon="util.icon"
+          :outline="true"
+          :tooltip="util.tooltip + '(' + util.shortcut + ')'"
+          @click="useUtil(util)"
         />
       </div>
       <tool-button
         id="zoomInButton"
-        @click="eventHub.$emit('viewport:scale', 0.1)"
         icon="add"
         :outline="true"
         tooltip="Priblížiť"
+        @click="eventHub.$emit('viewport:scale', 0.1)"
       />
       <tool-button
         id="zoomOutButton"
-        @click="eventHub.$emit('viewport:scale', -0.1)"
         icon="remove"
         :outline="true"
         tooltip="Oddialiť"
+        @click="eventHub.$emit('viewport:scale', -0.1)"
       />
-      <tool-button id="repairButton" @click="$refs.repairTool.Open()" icon="build" variant="secondary" :outline="false" tooltip="Opraviť zle nahraté PDFko (pridať prázdnu stranu a otočiť obrázky)"/>
+      <tool-button
+        id="repairButton"
+        icon="build"
+        variant="secondary"
+        :outline="false"
+        tooltip="Opraviť zle nahraté PDFko (pridať prázdnu stranu a otočiť obrázky)"
+        @click="$refs.repairTool.Open()"
+      />
       <pdf-repairer ref="repairTool" />
       
-      <tool-button class="d-xl-none" @click="optionsMenuExpanded = !optionsMenuExpanded" :icon="optionsMenuExpanded ? 'expand_less' : 'expand_more'" variant="secondary">
+      <tool-button
+        class="d-xl-none"
+        :icon="optionsMenuExpanded ? 'expand_less' : 'expand_more'"
+        variant="secondary"
+        @click="optionsMenuExpanded = !optionsMenuExpanded"
+      >
         <span class="material-icons d-block">{{ optionsMenuExpanded ? 'expand_less' : 'expand_more' }}</span>
       </tool-button>
     </div>
-    <div class="toolSettingsSm" v-if="optionsMenuExpanded">
-      <tool-settings :selectedOptions="selectedOptions" :selectedTool="selectedTool"/>
+    <div
+      v-if="optionsMenuExpanded"
+      class="toolSettingsSm"
+    >
+      <tool-settings
+        :selected-options="selectedOptions"
+        :selected-tool="selectedTool"
+      />
     </div>
   </div>
 </template>

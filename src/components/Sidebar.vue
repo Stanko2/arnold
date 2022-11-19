@@ -1,7 +1,10 @@
 <template>
   <div class="right-bar position-relative">
     <search-bar ref="searchBar" />
-    <ul ref="previews" class="list-group document-list p-0">
+    <ul
+      ref="previews"
+      class="list-group document-list p-0"
+    >
       <transition
         v-for="(document, i) in documents"
         :key="document.id"
@@ -10,15 +13,17 @@
         <document-preview
           v-show="documentsShown[i]"
           ref="documentList"
-          :showPDFPreview="showPreviews"
-          :documentID="document.id"
-          :showTimer="showTimer"
+          :show-p-d-f-preview="showPreviews"
+          :document-i-d="document.id"
+          :show-timer="showTimer"
           :index="i + 1"
           @click.native="selectIndex(document.id)"
-        ></document-preview>
+        />
       </transition>
       <li v-if="!documentsShown.some((e) => e)">
-        <p class="text-danger">Nenašli sa žiadne riešenia</p>
+        <p class="text-danger">
+          Nenašli sa žiadne riešenia
+        </p>
       </li>
     </ul>
   </div>

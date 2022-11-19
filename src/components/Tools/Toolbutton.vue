@@ -1,8 +1,19 @@
 <template>
-    <b-button @click="$emit('click')" class="btn" :variant="getVariant()" :id="id">
-        <span class="material-icons d-block">{{ icon }}</span>
-        <b-tooltip v-if="tooltip" triggers="hover" :target="id">{{ tooltip }}</b-tooltip>
-    </b-button>
+  <b-button
+    :id="id"
+    class="btn"
+    :variant="getVariant()"
+    @click="$emit('click')"
+  >
+    <span class="material-icons d-block">{{ icon }}</span>
+    <b-tooltip
+      v-if="tooltip"
+      triggers="hover"
+      :target="id"
+    >
+      {{ tooltip }}
+    </b-tooltip>
+  </b-button>
 </template>
 
 <script lang="ts">

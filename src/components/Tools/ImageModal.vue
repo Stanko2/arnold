@@ -2,18 +2,18 @@
   <div class="d-flex flex-row flex-wrap justify-content-around">
     <b-file
       ref="imageInput"
+      v-model="file"
       type="file"
       style="display: none"
       accept=".png"
-      @input="addImage"
-      v-model="file"
       plain
+      @input="addImage"
     />
     <div
-      class="card d-flex justify-content-center align-items-center btn"
-      style="width: 300px; height: 150px"
       v-for="image in images"
       :key="image.id"
+      class="card d-flex justify-content-center align-items-center btn"
+      style="width: 300px; height: 150px"
       @mouseover="image.hover = true"
       @mouseleave="image.hover = false"
     >
@@ -34,21 +34,30 @@
             <!-- <button class="btn btn-primary" @click="edit(image.id)">
               <span class="material-icons">edit</span>
             </button> -->
-            <button class="btn btn-danger" @click="remove(image.id)">
+            <button
+              class="btn btn-danger"
+              @click="remove(image.id)"
+            >
               <span class="material-icons"> delete </span>
             </button>
           </div>
         </div>
-        <div class="position-absolute w-100" style="bottom: 0">
+        <div
+          class="position-absolute w-100"
+          style="bottom: 0"
+        >
           <input
+            v-model="image.name"
             type="text"
             class="w-100 form-control"
             placeholder="Meno obrázku"
-            v-model="image.name"
-          />
+          >
         </div>
       </div>
-      <b-img :src="image.data.img" class="mw-100 mh-100" />
+      <b-img
+        :src="image.data.img"
+        class="mw-100 mh-100"
+      />
     </div>
     <div
       class="card d-flex justify-content-center align-items-center btn"

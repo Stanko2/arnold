@@ -1,24 +1,44 @@
 <template>
   <b-nav-item v-if="downloading">
     <b-spinner
-        variant="secondary"
-        label="Loading..."
-        v-if="downloading"
-        small
-    ></b-spinner>
+      v-if="downloading"
+      variant="secondary"
+      label="Loading..."
+      small
+    />
     Komprimujem
   </b-nav-item>
-  <b-nav-item-dropdown text="Stiahnuť všetky" v-else :disabled="downloading">
-    <b-dropdown-item @click="downloadAll(false)" id="downloadAll" :disabled="downloading">
+  <b-nav-item-dropdown
+    v-else
+    text="Stiahnuť všetky"
+    :disabled="downloading"
+  >
+    <b-dropdown-item
+      id="downloadAll"
+      :disabled="downloading"
+      @click="downloadAll(false)"
+    >
       Pre stránky
     </b-dropdown-item>
-    <b-dropdown-item @click="downloadAll(true)" id="downloadAllArnold" :disabled="downloading">
+    <b-dropdown-item
+      id="downloadAllArnold"
+      :disabled="downloading"
+      @click="downloadAll(true)"
+    >
       Pre použitie v Arnoldovi
     </b-dropdown-item>
-    <b-tooltip triggers="hover" target="downloadAll" placement="right">
+    <b-tooltip
+      triggers="hover"
+      target="downloadAll"
+      placement="right"
+    >
       Stiahne len obodované riešenia - pripravené na upload na stránky
     </b-tooltip>
-    <b-tooltip triggers="hover" target="downloadAllArnold" placement="right">
+    <b-tooltip
+      triggers="hover"
+      target="downloadAllArnold"
+      placement="right"
+    >
       Stiahne úplne všetko - pôvodné riešenia, všetky opravené riešenia,
       komentáre, aby sa to dalo ďalej editovať v Arnoldovi.
     </b-tooltip>

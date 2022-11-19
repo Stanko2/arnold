@@ -5,7 +5,7 @@
       :key="action.name"
       v-shortkey.once="getActionKeys(action.shortcut)"
       @shortkey="invokeAction(action.name)"
-    ></div>
+    />
   </div>
 </template>
 

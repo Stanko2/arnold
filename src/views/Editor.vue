@@ -1,18 +1,24 @@
 <template>
   <div id="app">
-    <nav class="navbar navbar-light bg-primary" style="padding: 0">
-      <topbar class="pdf" ref="topbar"></topbar>
+    <nav
+      class="navbar navbar-light bg-primary"
+      style="padding: 0"
+    >
+      <topbar
+        ref="topbar"
+        class="pdf"
+      />
     </nav>
     <div class="d-flex main">
       <transition name="sidebar">
         <sidebar
           v-if="loadedDocuments"
           v-show="sidebarVisible"
-          :autoSave="prefs && prefs.other.settings.autoSave"
-          :showPreviews="prefs && prefs.other.settings.showPreviews"
-          :showTimer="prefs && prefs.other.settings.showTimer"
-          :documents="Documents"
           ref="sidebar"
+          :auto-save="prefs && prefs.other.settings.autoSave"
+          :show-previews="prefs && prefs.other.settings.showPreviews"
+          :show-timer="prefs && prefs.other.settings.showTimer"
+          :documents="Documents"
         />
       </transition>
       <div
@@ -25,13 +31,25 @@
         <span class="material-icons">arrow_forward_ios</span>
       </div>
       <div style="width: 100%">
-        <toolbar :pdf="pdf"></toolbar>
-        <div class="viewportWrapper" v-if="pdf != null">
+        <toolbar :pdf="pdf" />
+        <div
+          v-if="pdf != null"
+          class="viewportWrapper"
+        >
           <keep-alive :max="10">
-            <Viewport :pdf="pdf" :key="pdf.id" ref="viewport"></Viewport>
+            <Viewport
+              :key="pdf.id"
+              ref="viewport"
+              :pdf="pdf"
+            />
           </keep-alive>
         </div>
-        <div v-else class="empty-text">Nie je vybraté žiadne riešenie</div>
+        <div
+          v-else
+          class="empty-text"
+        >
+          Nie je vybraté žiadne riešenie
+        </div>
       </div>
     </div>
     <scoring />

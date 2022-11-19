@@ -5,14 +5,14 @@
       id="noveRiesenie"
       size="lg"
       title="Pridat nové riešenie"
-      @ok="pridajRiesenia"
       :ok-disabled="noveRiesenia.length == 0"
+      @ok="pridajRiesenia"
     >
       <b-form-file
-        accept=".pdf"
-        multiple
         id="rieseniaInput"
         v-model="noveRiesenia"
+        accept=".pdf"
+        multiple
         :file-name-formatter="formatNames"
       />
     </b-modal>
