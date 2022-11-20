@@ -34,4 +34,5 @@ export interface Font {
     pdf: string;
     bold?: string;
     italic?: string; 
+    boldItalic?: string;
 }

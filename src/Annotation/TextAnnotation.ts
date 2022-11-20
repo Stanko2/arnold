@@ -60,15 +60,18 @@ export class TextAnnotation extends Annotation {
         const parser = new DOMParser(),
             data = parser.parseFromString(this.object.toSVG(), "image/svg+xml"),
             transform = data.querySelector('g')?.getAttribute('transform')?.match(/-?[0-9]+(\.[0-9]*)?/gm)?.map(e => parseFloat(e)) || [1, 0, 0, 0, 1, 0];
-
+        console.log(this.object.toSVG());
+        
         page.pushOperators(
             pushGraphicsState(),
             translate(0, height),
             scale(1, -1),
             concatTransformationMatrix(transform[0], transform[1], transform[2], transform[3], transform[4], transform[5])
         );
-        data.querySelectorAll('tspan').forEach((tspan: { getAttribute: (arg0: string) => any; innerHTML: string; }) => {
+        data.querySelectorAll('tspan').forEach((tspan: SVGTSpanElement) => {
             const translation = new fabric.Point(parseFloat(tspan.getAttribute('x') || '0'), parseFloat(tspan.getAttribute('y') || '0'));
+            console.log(this.parseTextStyle(tspan.getAttribute('style') || ''));
+            
             page.pushOperators(
                 pushGraphicsState(),
                 translate(translation.x, translation.y),
@@ -95,7 +98,7 @@ export class TextAnnotation extends Annotation {
     }
     serialize(): any {
         return {
-            text: this.textbox.textLines.join('\n'),
+            text: this.textbox.text,
             top: this.object.top,
             left: this.object.left,
             fontFamily: this.textbox.fontFamily,
@@ -106,6 +109,30 @@ export class TextAnnotation extends Annotation {
             hasControls: this.object.hasControls,
             editable: this.textbox.editable,
             angle: this.textbox.angle,
+            styles: this.textbox.styles
         };
+    }
+
+    parseTextStyle(style: string): any {
+        style = style.replaceAll(' ', '');
+        style = style.replaceAll('\'', '');
+        const ret: any = {};
+        for (const s of style.split(';')) {
+            if(s == '') continue;
+            const data = s.split(':');
+            ret[data[0]] = data[1];
+        }
+        return ret;
+    }
+
+    getFontFromParsedStyle(parsedStyle: any): string {
+        if(parsedStyle['font-style'] == 'italic' && parsedStyle['font-weight'] == '600')
+            return 'bolditalic';
+        else if (parsedStyle['font-style'] == 'italic')
+            return 'italic';
+        else if (parsedStyle['font-weight'] == '600')
+            return 'bold';
+        else
+            return 'normal'
     }
 }
