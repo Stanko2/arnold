@@ -51,8 +51,6 @@ export class TextAnnotation extends Annotation {
          */
         const font = (this.object as fabric.Textbox).fontFamily || 'Open Sans';
         const doc = getViewedDocument();
-        await EmbedFont(doc, font);
-
         const height = page.getHeight();
         if (this.object == null || this.object.top == null || this.object.left == null || this.textbox.fontSize == null) return;
         const fontSize: number = this.textbox.fontSize || 14;
@@ -68,10 +66,13 @@ export class TextAnnotation extends Annotation {
             scale(1, -1),
             concatTransformationMatrix(transform[0], transform[1], transform[2], transform[3], transform[4], transform[5])
         );
-        data.querySelectorAll('tspan').forEach((tspan: SVGTSpanElement) => {
+        
+        for (const tspan of data.querySelectorAll('tspan').values()) {
             const translation = new fabric.Point(parseFloat(tspan.getAttribute('x') || '0'), parseFloat(tspan.getAttribute('y') || '0'));
-            console.log(this.parseTextStyle(tspan.getAttribute('style') || ''));
-            
+            const textStyle = this.parseTextStyle(tspan.getAttribute('style') || '');
+            const fontStyle = this.getFontFromParsedStyle(textStyle);
+            const fontFamily = textStyle['font-family'] || this.textbox.fontFamily;
+            await EmbedFont(doc, fontFamily, fontStyle);
             page.pushOperators(
                 pushGraphicsState(),
                 translate(translation.x, translation.y),
@@ -81,19 +82,19 @@ export class TextAnnotation extends Annotation {
                 x: 0,
                 y: 0,
                 size: fontSize,
-                font: doc?.embeddedResources[font],
+                font: doc?.embeddedResources[fontFamily+fontStyle],
                 color: rgb(color.r / 255, color.g / 255, color.b / 255),
                 lineHeight: this.textbox._fontSizeMult * fontSize,
                 opacity: parseInt((this.object.fill as string).substring(7, 9), 16) / 255 || 1,
             }
-
+    
             // unescape html in tspan.innerHTML
             const dom = new DOMParser().parseFromString(tspan.innerHTML, 'text/html');
             const text = dom.body.textContent || '';
-
+    
             page.drawText(text, options);
             page.pushOperators(popGraphicsState());
-        });
+        }
         page.pushOperators(popGraphicsState());
     }
     serialize(): any {
@@ -114,20 +115,26 @@ export class TextAnnotation extends Annotation {
     }
 
     parseTextStyle(style: string): any {
-        style = style.replaceAll(' ', '');
+        // style = style.replaceAll(' ', '');
         style = style.replaceAll('\'', '');
         const ret: any = {};
         for (const s of style.split(';')) {
             if(s == '') continue;
             const data = s.split(':');
+            if(data[0].length == 1 || data[1].length == 1)
+                continue;
+            if(data[0].startsWith(' '))
+                data[0] = data[0].substring(1);
+            if(data[1].startsWith(' '))
+                data[1] = data[1].substring(1);
             ret[data[0]] = data[1];
         }
         return ret;
     }
 
-    getFontFromParsedStyle(parsedStyle: any): string {
+    getFontFromParsedStyle(parsedStyle: any): 'normal' | 'bold' | 'italic' | 'boldItalic' {
         if(parsedStyle['font-style'] == 'italic' && parsedStyle['font-weight'] == '600')
-            return 'bolditalic';
+            return 'boldItalic';
         else if (parsedStyle['font-style'] == 'italic')
             return 'italic';
         else if (parsedStyle['font-weight'] == '600')

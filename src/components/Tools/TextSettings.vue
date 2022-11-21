@@ -25,7 +25,7 @@
       >
     </div>
     <tool-button
-      v-if="activeFont.bold !== undefined"
+      v-if="activeFont.bold !== undefined && selectedTool.name == 'Select'"
       id="bold"
       icon="format_bold"
       variant="secondary"
@@ -33,7 +33,7 @@
       @click="toggleBold()"
     />
     <tool-button
-      v-if="activeFont.italic !== undefined"
+      v-if="activeFont.italic !== undefined && selectedTool.name == 'Select'"
       id="italic"
       variant="secondary"
       icon="format_italic"

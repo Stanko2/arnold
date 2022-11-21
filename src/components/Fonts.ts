@@ -77,7 +77,7 @@ export async function EmbedFont(pdf: PDFdocument | null, font: string, fontStyle
         return;
     }
     if (!FontsAvailable[font].pdf || Object.keys(pdf.embeddedResources).includes(font + fontStyle)) {
-        console.log(`font ${font} is already embedded`);
+        console.log(`font ${font+fontStyle} is already embedded`);
         return;
     }
     const fontbytes = await fetch(getURL(font, fontStyle)).then(res => {
