@@ -68,10 +68,14 @@ export class TextAnnotation extends Annotation {
         );
         
         for (const tspan of data.querySelectorAll('tspan').values()) {
-            const translation = new fabric.Point(parseFloat(tspan.getAttribute('x') || '0'), parseFloat(tspan.getAttribute('y') || '0'));
+            const translation = new fabric.Point(parseFloat(tspan.getAttribute('x') || '0') + parseFloat(tspan.getAttribute('dx') || '0'), 
+            parseFloat(tspan.getAttribute('y') || '0') + parseFloat(tspan.getAttribute('dy') || '0'));
             const textStyle = this.parseTextStyle(tspan.getAttribute('style') || '');
             const fontStyle = this.getFontFromParsedStyle(textStyle);
             const fontFamily = textStyle['font-family'] || this.textbox.fontFamily;
+            if(textStyle['font-size'] != undefined){
+                textStyle['font-size'] = parseFloat(textStyle['font-size'].substring(0, textStyle['font-size'].length - 2));
+            }
             await EmbedFont(doc, fontFamily, fontStyle);
             page.pushOperators(
                 pushGraphicsState(),
@@ -81,7 +85,7 @@ export class TextAnnotation extends Annotation {
             const options = <PDFPageDrawTextOptions>{
                 x: 0,
                 y: 0,
-                size: fontSize,
+                size: textStyle['font-size'] || fontSize,
                 font: doc?.embeddedResources[fontFamily+fontStyle],
                 color: rgb(color.r / 255, color.g / 255, color.b / 255),
                 lineHeight: this.textbox._fontSizeMult * fontSize,

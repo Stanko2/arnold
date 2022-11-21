@@ -40,6 +40,14 @@
       :outline="!italic"
       @click="toggleItalic()"
     />
+    <tool-button
+      v-if="selectedTool.name = 'Select'"
+      id="subscript"
+      variant="secondary"
+      icon="format_subscript"
+      :outline="!subscript"
+      @click="toggleSubscript()"
+    />
   </div>
 </template>
 
@@ -65,6 +73,7 @@ export default class TextSettings extends Vue {
   activeFont = FontsAvailable['Open Sans'];
   fontWeight = 400;
   italic = false;
+  subscript = false;
   updateInterval!: NodeJS.Timer;
   mounted(){
     this.updateInterval = setInterval(this.updateStatus, 300);
@@ -87,6 +96,19 @@ export default class TextSettings extends Vue {
     this.italic = !this.italic;
     this.$forceUpdate();
     this.setStyle({fontStyle: this.italic ? 'italic' : 'normal'});
+  }
+
+  toggleSubscript(){
+    this.subscript = !this.subscript;
+    const obj = PDFdocument.activeObject as fabric.Textbox;
+    if(obj.getSelectionStyles().some(x=>(Object as any).hasOwn(x, 'fontSize')))
+      obj.setSelectionStyles({
+        fontSize: undefined,
+        deltaY: undefined
+      });
+    else
+      obj.setSuperscript(obj.selectionStart || 0, obj.selectionEnd || 0);
+    obj.canvas?.requestRenderAll();
   }
 
   updateFont(font: string){
@@ -134,12 +156,14 @@ export default class TextSettings extends Vue {
   updateStatus(){
     if(PDFdocument.activeObject == undefined || !(PDFdocument.activeObject instanceof fabric.Textbox)) return;
     const obj = PDFdocument.activeObject as fabric.Textbox;
-    const isBold = obj.getSelectionStyles(obj.selectionStart, obj.selectionEnd).some(x => {
+    const styles = obj.getSelectionStyles(obj.selectionStart, obj.selectionEnd)
+    const isBold = styles.some(x => {
       return (Object as any).hasOwn(x, 'fontWeight') && x.fontWeight === 600;
     });
-    const isItalic = obj.getSelectionStyles(obj.selectionStart, obj.selectionEnd).some(x => {
+    const isItalic = styles.some(x => {
       return (Object as any).hasOwn(x, 'fontStyle') && x.fontStyle === 'italic';
     });
+    this.subscript = styles.some(x=>(Object as any).hasOwn(x, 'fontSize'));
     this.fontWeight = isBold ? 600 : 400;
     this.italic = isItalic;
   }
