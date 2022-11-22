@@ -39,12 +39,14 @@
       </color-picker>
     </div>
     <div v-if="selectedTool.name == 'Photo'">
-      <b-button
-        variant="primary"
+      <tool-button
+        id="photoButton"
+        variant="secondary"
+        icon="add_photo_alternate"
+        :outline="true"
+        tooltip="Pridať obrázky"
         @click="openImageModal"
-      >
-        <span class="material-icons d-block">add_photo_alternate</span>
-      </b-button>
+      />
       <b-dropdown
         :text="getImageDropdownText()"
         class="dropdown"
@@ -123,13 +125,15 @@ import { PDFdocument } from '../PDFdocument';
 import ImageModal from './ImageModal.vue';
 import SignModal from './SignModal.vue';
 import TextSettings from './TextSettings.vue';
+import ToolButton from './Toolbutton.vue';
 
 @Component({
   components: {
     ColorPicker,
     SignModal,
     ImageModal,
-    TextSettings
+    TextSettings,
+    ToolButton
   },
 })
 export default class ToolSettings extends Vue {

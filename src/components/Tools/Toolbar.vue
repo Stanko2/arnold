@@ -174,6 +174,7 @@ $toolbar-height: 60px;
   display: flex;
   flex-wrap: wrap;
   justify-content: left;
+  align-items: center;
   // overflow-x: auto;
   height: $toolbar-height;
 }
@@ -183,6 +184,7 @@ $toolbar-height: 60px;
   margin-left:auto;
   justify-content: flex-end;
   padding: 0;
+  align-items: center;
 }
 .toolSettingsSm {
   position: absolute;

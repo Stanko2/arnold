@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="d-flex">
     <div>
       <b-dropdown :text="selectedTool.defaultOptions.fontFamily">
         <b-dropdown-item
@@ -12,18 +12,22 @@
         </b-dropdown-item>
       </b-dropdown>
     </div>
-    <div class="form-inline">
-      <p class="d-flex align-items-center">
-        Veľkosť Písma
-      </p>
-      <input
+    <b-input-group 
+      class="ml-2"
+      style="max-width: 100px"
+    >
+      <template #prepend>
+        <b-input-group-text class="material-icons bg-secondary">
+          format_size
+        </b-input-group-text>
+      </template>
+      <b-form-input
         v-model.number="selectedTool.defaultOptions.fontSize"
         type="number"
         class="form-control"
-        min="0"
-        style="width: 100px"
-      >
-    </div>
+        min="0"    
+      />
+    </b-input-group>
     <tool-button
       v-if="activeFont.bold !== undefined && selectedTool.name == 'Select'"
       id="bold"
@@ -85,6 +89,10 @@ export default class TextSettings extends Vue {
   superscript = false;
   updateInterval!: NodeJS.Timer;
   mounted(){
+    this.eventHub.$on('shortcut:bold', this.toggleBold);
+    this.eventHub.$on('shortcut:italic', this.toggleItalic);
+    this.eventHub.$on('shortcut:superscript', ()=> this.toggleScript(false));
+    this.eventHub.$on('shortcut:subscript', ()=> this.toggleScript(true));
     this.updateInterval = setInterval(this.updateStatus, 300);
   }
 

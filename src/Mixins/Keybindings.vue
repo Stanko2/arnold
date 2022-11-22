@@ -40,6 +40,10 @@ export const nameMap: Record<string, string> = {
   "copy": "Kopírovať",
   "paste": "Vložiť",
   "cut": "Vystrihnúť",
+  "bold": "Prepnúť bold",
+  "italic": "Prepnúť italic",
+  "subscript": "Dolný Index",
+  "superscript": "Horný Index"
 }
 
 
@@ -59,6 +63,8 @@ export default class Shortcuts extends Vue {
   }
 
   invokeAction(action: string) {
+    const actionObject = this.actionMap.find(a=>a.name == action);
+    if(!actionObject) return;
     this.eventHub.$emit(`shortcut:${action}`);
   }
 

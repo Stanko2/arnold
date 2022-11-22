@@ -43,8 +43,8 @@ export default class ToolButton extends Vue{
 <style scoped>
 .btn {
   margin: 0 2px;
-  width: 2.8rem;
-  height: 2.8rem;
+  width: 2.5rem;
+  height: 2.5rem;
   padding: 0;
 }
 </style>

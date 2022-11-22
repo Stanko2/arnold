@@ -341,6 +341,10 @@ export default class Preferences extends Vue {
           { name: "cut", shortcut: "ctrl+x" },
           { name: "copy", shortcut: "ctrl+c" },
           { name: "paste", shortcut: "ctrl+v" },
+          { name: "bold", shortcut: "ctrl+b" },
+          { name: "italic", shortcut: "ctrl+i" },
+          { name: "subscript", shortcut: "ctrl+." },
+          { name: "superscript", shortcut: "ctrl+," }
         ],
         name: "shortcut",
       } as ShortcutCategory,
