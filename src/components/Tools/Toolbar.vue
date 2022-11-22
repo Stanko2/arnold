@@ -117,6 +117,8 @@ export default class Toolbar extends Vue {
   }
 
   mounted() {
+    console.log(this.tools[0].name);
+    
     this.eventHub.$emit("tool:init", this);
     Canvas.toolbarRef = this;
    

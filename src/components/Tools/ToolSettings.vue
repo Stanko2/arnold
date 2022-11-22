@@ -5,6 +5,7 @@
   >
     <text-settings
       v-if="selectedOptions.hasText"
+      :key="selectedTool.name"
       :selected-tool="selectedTool"
     />
     <div v-if="selectedOptions.hasStrokeWidth">

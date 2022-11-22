@@ -41,12 +41,20 @@
       @click="toggleItalic()"
     />
     <tool-button
-      v-if="selectedTool.name = 'Select'"
+      v-if="selectedTool.name == 'Select'"
       id="subscript"
       variant="secondary"
-      icon="format_subscript"
+      icon="subscript"
       :outline="!subscript"
-      @click="toggleSubscript()"
+      @click="toggleScript(true)"
+    />
+    <tool-button
+      v-if="selectedTool.name == 'Select'"
+      id="superscript"
+      variant="secondary"
+      icon="superscript"
+      :outline="!superscript"
+      @click="toggleScript(false)"
     />
   </div>
 </template>
@@ -74,6 +82,7 @@ export default class TextSettings extends Vue {
   fontWeight = 400;
   italic = false;
   subscript = false;
+  superscript = false;
   updateInterval!: NodeJS.Timer;
   mounted(){
     this.updateInterval = setInterval(this.updateStatus, 300);
@@ -98,16 +107,29 @@ export default class TextSettings extends Vue {
     this.setStyle({fontStyle: this.italic ? 'italic' : 'normal'});
   }
 
-  toggleSubscript(){
-    this.subscript = !this.subscript;
+  toggleScript(subscript: boolean){
+    if(subscript)
+      this.subscript = !this.subscript;
+    else 
+      this.superscript = !this.superscript;
     const obj = PDFdocument.activeObject as fabric.Textbox;
     if(obj.getSelectionStyles().some(x=>(Object as any).hasOwn(x, 'fontSize')))
       obj.setSelectionStyles({
-        fontSize: undefined,
-        deltaY: undefined
+        fontSize: obj.fontSize,
+        deltaY: 0
       });
-    else
-      obj.setSuperscript(obj.selectionStart || 0, obj.selectionEnd || 0);
+    else{
+      if(obj.selectionStart == 0 && obj.selectionEnd == obj.text?.length)
+        return;
+      if(subscript){
+        obj.setSubscript(obj.selectionStart || 0, obj.selectionEnd || 0);
+      }
+      else {
+        obj.setSuperscript(obj.selectionStart || 0, obj.selectionEnd || 0);
+      }
+    }
+    obj.cleanStyle('fontSize');
+    obj.cleanStyle('deltaY');
     obj.canvas?.requestRenderAll();
   }
 
@@ -163,9 +185,24 @@ export default class TextSettings extends Vue {
     const isItalic = styles.some(x => {
       return (Object as any).hasOwn(x, 'fontStyle') && x.fontStyle === 'italic';
     });
-    this.subscript = styles.some(x=>(Object as any).hasOwn(x, 'fontSize'));
+    this.subscript = styles.some(x=>this.isSubscript(x,obj));
+    this.superscript = styles.some(x=>this.isSuperscript(x,obj));
     this.fontWeight = isBold ? 600 : 400;
     this.italic = isItalic;
+  }
+
+  isSubscript(x:any, obj: fabric.Textbox): boolean {
+    const keys = Object.keys(x);
+    if(!keys.includes('fontSize') || !keys.includes('deltaY'))
+      return false;
+    return x['fontSize'] < (obj.fontSize || 0) && x['deltaY'] > 0;
+  }
+
+  isSuperscript(x:any, obj: fabric.Textbox): boolean {
+    const keys = Object.keys(x);
+    if(!keys.includes('fontSize') || !keys.includes('deltaY'))
+      return false;
+    return x['fontSize'] < (obj.fontSize || 0) && x['deltaY'] < 0;
   }
 }
 </script>
