@@ -34,26 +34,24 @@
         <h2 class="text-center m-2">
           Defaultné nastavenia pre jednotlivé nástroje
         </h2>
-        <b-card
+        <div
           v-for="tool in selectedCategory.settings.tools.filter((e) =>
             hasSettings(e)
           )"
           :key="tool.name"
-          :no-body="!tool.expanded"
+          class="card"
         >
-          <template
-            #header
-            class="p-0"
+          <div
+            class="card-header"
+            @click="tool.expanded = !tool.expanded"
           >
-            <div
-              class="w-100 h-100"
-              @click="tool.expanded = !tool.expanded"
-            >
-              {{ shortcutNameMap[tool.name] }}
-            </div>
-          </template>
+            {{ shortcutNameMap[tool.name] }}
+          </div>
           <transition name="slide">
-            <div v-if="tool.expanded">
+            <div 
+              v-if="tool.expanded"
+              class="card-body p-4"
+            >
               <b-row
                 v-if="tool.options.hasText"
                 class="setting"
@@ -65,6 +63,7 @@
                   <b-dropdown
                     :text="tool.defaultOptions.fontFamily"
                     class="float-right"
+                    right
                   >
                     <b-dropdown-item
                       v-for="font in fonts"
@@ -150,9 +149,12 @@
                   />
                 </b-col>
               </b-row>
+              <score-templates
+                v-if="tool.name == 'scoring'"
+              />
             </div>
           </transition>
-        </b-card>
+        </div>
       </div>
       <div v-else-if="selectedCategory.name == 'other'">
         <b-row>
@@ -263,11 +265,13 @@ import {
 } from "@/@types";
 import { Settings } from "@/@types/Preferences";
 import { nameMap } from "@/Mixins/Keybindings.vue"
+import ScoreTemplates from "./ScoreTemplates.vue";
 
 @Component({
   components: {
     ColorPicker,
     ShortcutHelpModal,
+    ScoreTemplates
   },
 })
 export default class Preferences extends Vue {
@@ -276,6 +280,7 @@ export default class Preferences extends Vue {
   selectedCategory!: SettingsCategory;
   shortcutNameMap = nameMap;
   fonts = FontsAvailable;
+  scoringExpanded = false;
   $refs!: {
     shortcutHelp: ShortcutHelpModal;
   };
@@ -301,6 +306,7 @@ export default class Preferences extends Vue {
           fontFamily: "Helvetica",
           fill: "#000000",
           fontSize: 12,
+          scoreMap: {}
         },
         name: "scoring",
         expanded: false,
@@ -415,10 +421,16 @@ export default class Preferences extends Vue {
 }
 .slide-enter {
   transform: translate(0, -100%);
+  opacity: 0;
+  z-index: -1;
 }
+
 .slide-leave-to {
   transform: translate(0, -100%);
+  opacity: 0;
+  z-index: -1;
 }
+
 .window {
   height: 75vh;
   max-height: 75vh;

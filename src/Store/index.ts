@@ -6,6 +6,7 @@ import Clipboard from './clipboard';
 import defaultSettings from '@/components/Preferences/DefaultSettings';
 export interface State {
     settings: Settings;
+    scoringEntries: {id: string, points: number}[];
     tags: Tag[];
     documents: Document[];
     scoringCriteria: ScoringCriteria[];
@@ -22,7 +23,8 @@ const store = new Store<State>({
         documents: [],
         scoringCriteria: [],
         currentProblem: '',
-        loadedProblems: new Set<string>()
+        loadedProblems: new Set<string>(),
+        scoringEntries: []
     },
     mutations: {
         loadData: (state) => {
@@ -31,6 +33,7 @@ const store = new Store<State>({
                 state.settings = JSON.parse(data) as Settings;
                 state.tags = JSON.parse(localStorage.getItem('tags') || '[]');
                 state.scoringCriteria = JSON.parse(localStorage.getItem('bodovanie') || "[]");
+                state.scoringEntries = JSON.parse(localStorage.getItem('scoringEntries') || '[]');
             }
             for (const problem of JSON.parse(localStorage.getItem('problems') || '[]')) {
                 state.loadedProblems.add(problem);
@@ -55,6 +58,10 @@ const store = new Store<State>({
         setCriteria(state, payload) {
             localStorage.setItem('bodovanie', JSON.stringify(payload));
             state.scoringCriteria = payload;
+        },
+        setScoringEntries(state, payload){
+            localStorage.setItem('scoringEntries', JSON.stringify(payload));
+            state.scoringEntries = payload;
         },
         setTags(state, payload) {
             localStorage.setItem('tags', JSON.stringify(payload));
