@@ -16,7 +16,7 @@ export class Canvas extends fabric.Canvas {
         }
     }
     static toolbarRef: any;
-
+    static active: boolean = true;
     creating: fabric.Object | null = null;
     pageIndex = 0;
     drawnShapes: fabric.Path[] = [];
@@ -45,6 +45,8 @@ export class Canvas extends fabric.Canvas {
         this.on('mouse:down', async (e) => {
             if (e.absolutePointer == null) return;
             if (this.isDrawingMode) return;
+            eventHub.$emit('canvas:tap', this, e.e);
+            if(!Canvas.active) return;
             // for (const annotation of this.pdf.annotations) {
             //     if (annotation.object.containsPoint(e.absolutePointer)) {
             //         return;

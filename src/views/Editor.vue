@@ -67,7 +67,7 @@ import Toolbar from "../components/Tools/Toolbar.vue";
 import SearchBar from "../components/Filtering/SearchBar.vue";
 import {Documents, getViewedDocument, loadFromDatabase, onEditorStart} from "../Documents/DocumentManager";
 import type {PDFdocument} from "@/components/PDFdocument";
-import Scoring from "@/components/Scoring.vue";
+import Scoring from "@/components/Scoring/Scoring.vue";
 import {loadFonts} from "@/components/Fonts";
 import Tags from "@/components/Tags/Tagy.vue";
 import Component from "vue-class-component";

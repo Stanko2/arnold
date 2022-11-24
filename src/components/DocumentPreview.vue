@@ -95,7 +95,7 @@
           </b-row>
           <b-row>
             <b-col class="border-right">
-              <div v-if="document.scoring">
+              <div v-if="document.scoring && document.scoring.points != undefined">
                 {{ document.scoring.points }}B
               </div>
               <div v-else>

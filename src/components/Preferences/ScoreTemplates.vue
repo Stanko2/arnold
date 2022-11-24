@@ -23,6 +23,7 @@
             type="number"
             min="0" 
             style="width: 60px"
+            :state="isValid(i)"
           />
         </b-col>
         <b-col class="p-1 d-flex justify-content-between">
@@ -70,42 +71,58 @@ interface ScoreEntry {
 
 @Component
 export default class ScoreTemplates extends Vue {
-    templates: ITemplate[] = []
-    scoreEntries: ScoreEntry[] = [];
+  templates: ITemplate[] = []
+  scoreEntries: ScoreEntry[] = [];
 
-    mounted(){
-        Database.getAllTemplates().then(templates=> {
-            this.templates = templates;
-            this.load(this.$store.state.scoringEntries);
-        });
-    }
+  mounted(){
+    Database.getAllTemplates().then(templates=> {
+      this.templates = templates;
+      this.load(this.$store.state.scoringEntries);
+    });
+  }
 
-    @Watch('scoreEntries', {deep: true})
-    save(){
-        this.$store.commit('setScoringEntries', this.scoreEntries.map(e => {
-            return {
-                points: e.points,
-                id: e.template.id
-            }
-        }))
-    }
+  @Watch('scoreEntries', {deep: true})
+  save(){
+    this.$store.commit('setScoringEntries', this.scoreEntries.map(e => {
+      return {
+        points: e.points,
+        id: e.template.id
+      }
+    }))
+  }
 
-    load(data: {id: string, points: number}[]){
-        for (const entry of data) {
-            const template = this.templates.find(t=> t.id == entry.id);
-            if(!template) continue;
-            this.scoreEntries.push({
-                points: entry.points, 
-                template
-            })
-        }
+  load(data: {id: string, points: number}[]){
+    for (const entry of data) {
+      const template = this.templates.find(t=> t.id == entry.id);
+      if(!template) continue;
+      this.scoreEntries.push({
+        points: entry.points, 
+        template
+      })
     }
+  }
 
-    addEntry(){
-        this.scoreEntries.push({
-            points: 0,
-            template: this.templates[0]
-        })
-    }
+  addEntry(){
+    this.scoreEntries.push({
+      points: 0,
+      template: this.templates[0]
+    })
+  }
+
+  isValid(i: number){
+    const ret = this.scoreEntries.every((e, idx)=> {
+      if(idx == i) return true;
+      return e.points != this.scoreEntries[i].points
+    })
+    return ret ? null : false
+  }
 }
 </script>
+
+<style>
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+</style>
