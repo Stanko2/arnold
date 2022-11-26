@@ -58,7 +58,6 @@ export class TextAnnotation extends Annotation {
         const parser = new DOMParser(),
             data = parser.parseFromString(this.object.toSVG(), "image/svg+xml"),
             transform = data.querySelector('g')?.getAttribute('transform')?.match(/-?[0-9]+(\.[0-9]*)?/gm)?.map(e => parseFloat(e)) || [1, 0, 0, 0, 1, 0];
-        console.log(this.object.toSVG());
         
         page.pushOperators(
             pushGraphicsState(),

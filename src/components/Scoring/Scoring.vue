@@ -25,6 +25,7 @@
               type="number"
               class="w-50"
               placeholder="Zadaj body ..."
+              :disabled="currentScore.final"
               @change="saveScoring"
             />
             <div class="d-flex flex-row mr-2" />
@@ -40,6 +41,7 @@
                 v-model="acceptedCriteria[i]"
                 class="form-check-input"
                 type="checkbox"
+                :disabled="currentScore.final"
                 @change="calculatePoints"
               />
               <label
@@ -83,6 +85,20 @@
         </div>
       </transition>
     </div>
+    <b-alert
+      v-model="finalizingScoring"
+      class="position-fixed fixed-top m-0 rounded-0 d-flex justify-content-center flex-column"
+      style="z-index: 2000;"
+      variant="success"
+    >
+      <p>Klikni, kam mám pridať body do riešenia.</p> 
+      <b-button 
+        variant="success" 
+        @click="cancelFinalizing()"
+      >
+        Zrušiť
+      </b-button>
+    </b-alert>
   </div>
 </template>
 
@@ -111,8 +127,9 @@ export default class Scoring extends Vue {
   pdf: PDFdocument | null = null;
   doc: Document | null = null;
   showScoringPanel: boolean = false;
+  finalizingScoring = false;
 
-  $refs!: {
+$refs!: {
     pointInput: BFormInput
   }
 
@@ -196,40 +213,25 @@ export default class Scoring extends Vue {
 
   finalScoringChange() {
     if (!this.pdf) return;
-    scorer.finalizeScoring().then(()=>{
-      if(this.currentScore)
-        this.currentScore.final = !this.currentScore?.final;
-    });
-    // const pdf: PDFdocument = this.pdf;
-    // this.final = !this.final;
-    // if (this.final) {
-    //   const options = JSON.parse(
-    //     localStorage.getItem("preferences") || "{}"
-    //   ).tools.settings.tools.find(
-    //     (e: any) => e.name == "scoring"
-    //   )?.defaultOptions;
-    //   const pointsAnnot = new TextAnnotation(
-    //     0,
-    //     {
-    //       ...options,
-    //       text: `${this.points}B`,
-    //       top: 30,
-    //       left: 300,
-    //       hasControls: false,
-    //       editable: false,
-    //     },
-    //     pdf.pageCanvases[0]
-    //   );
-    //   pdf.pageCanvases[0].discardActiveObject();
-    //   pdf.addAnnotation(pointsAnnot);
-    //   this.annotName = pointsAnnot.object.name || "";
-    //   this.eventHub.$emit("document:save");
-    // } else if (this.annotName) {
-    //   pdf.deleteAnnotation(this.annotName);
-    //   this.annotName = "";
-    //   this.final = false;
-    // }
-    // this.saveScoring();
+    if(!this.currentScore?.final){
+      this.finalizingScoring = true;
+      scorer.finalizeScoring().then((id: string)=>{
+        this.finalizingScoring = false;
+        if(this.currentScore){
+          this.currentScore.final = !this.currentScore?.final;
+          this.currentScore.annotName = id;
+          scorer.saveScoring(this.currentScore);
+        }
+      }).catch(err=>console.log(err))
+    }
+    else {
+      scorer.removeFinalScoring();
+    }
+  }
+
+  cancelFinalizing(){
+    this.finalizingScoring = false;
+    scorer.cancel();
   }
 }
 </script>

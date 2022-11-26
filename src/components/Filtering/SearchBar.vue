@@ -1,13 +1,14 @@
 <template>
   <div>
-    <b-input-group style="z-index: 4">
+    <b-input-group style="z-index: 0; position: static;">
       <b-form-input
         v-model="searchStr"
         type="text"
         placeholder="Hľadať v riešeniach"
+        style="z-index: 0; position: relative;"
         size="lg"
       />
-      <b-input-group-append>
+      <b-input-group-append style="z-index: 0; position: relative">
         <b-button
           variant="success"
           size="md"
@@ -217,7 +218,7 @@ export default class SearchBar extends Vue {
   transition: opacity 250ms linear;
 }
 .search-menu {
-  z-index: 3;
+  z-index: 1;
   position: absolute;
   left: 0;
   right: 0;

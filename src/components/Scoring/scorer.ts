@@ -1,5 +1,4 @@
 import { Document, IScoring } from '@/@types';
-import { BIconThreeDotsVertical } from 'bootstrap-vue';
 import { Database } from '@/Db';
 import { getViewedDocument } from '@/Documents/DocumentManager';
 import store from '@/Store';
@@ -7,14 +6,13 @@ import eventHub from '@/Mixins/EventHub';
 import { Annotation, TextAnnotation, ImageAnnotation } from '@/Annotation';
 import { PDFdocument } from '../PDFdocument';
 import { Canvas } from '@/Canvas';
-import { canBeConvertedToUint8Array } from 'pdf-lib';
-
-
 
 class Scorer {
     activeDoc: Document | undefined;
     pdf: PDFdocument | null = null;
     adding = false;
+    cancelled = false;
+
     getScoring(doc: Document): IScoring {
         this.activeDoc = doc
         
@@ -38,11 +36,10 @@ class Scorer {
         Database.updateDocument(this.activeDoc.id, this.activeDoc);
     }
 
-    async finalizeScoring(){
+    async finalizeScoring(): Promise<string>{
         this.pdf = getViewedDocument();
-        if(!this.pdf || this.adding || this.activeDoc?.scoring?.annotName) return;
-        return new Promise((resolve, reject)=>{
-            console.log('click to add');
+        return new Promise<string>((resolve, reject)=>{
+            if(!this.pdf || this.adding || this.activeDoc?.scoring?.annotName) reject('');
             this.adding = true;
             eventHub.$once('canvas:tap', (canvas: Canvas, e: Event) => {
                 if(!this.activeDoc || !this.activeDoc.scoring || this.activeDoc.scoring.points == undefined){
@@ -50,17 +47,30 @@ class Scorer {
                     return;
                 }
                 this.onCanvasClicked(canvas, e, this.activeDoc.scoring.points).then((id)=>{
-                    resolve(id);
+                    if(id == 'cancelled')
+                        reject(id);
+                    else 
+                        resolve(id);
                 })
             });
             Canvas.active = false;
         })
     }
 
+    cancel(){
+        if(this.adding){
+            this.cancelled = true;
+        }
+    }
+
     async onCanvasClicked(canvas: Canvas, e: Event, points: number): Promise<string> {
         console.log(this.activeDoc);
         const pos = canvas.getPointer(e);
         this.adding = false;
+        if(this.cancelled){
+            Canvas.active = true;
+            return 'cancelled';    
+        }
         const annot = await this.getAnnotation(points, canvas.pageIndex, { originX: 'canter', originY: 'center', top: pos.y, left: pos.x }).catch(()=>{
             throw new Error("Error finalizing scoring");
         });
@@ -87,6 +97,18 @@ class Scorer {
             // }
         }
         throw new Error('Invalid Annotation type')
+    }
+
+    removeFinalScoring(){
+        this.pdf = getViewedDocument();
+        if(!this.activeDoc || this.activeDoc.scoring?.annotName == undefined || !this.pdf){
+            console.log(this.activeDoc);
+            throw new Error('trying to remove unexistent scoring');
+        }
+        this.pdf.deleteAnnotation(this.activeDoc.scoring.annotName);
+        this.activeDoc.scoring.final = false;
+        delete this.activeDoc.scoring.annotName;
+        Database.updateDocument(this.activeDoc.id, this.activeDoc);
     }
 }
 

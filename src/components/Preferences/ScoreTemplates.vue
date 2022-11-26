@@ -3,7 +3,10 @@
     <h4 class="text-center mb-3">
       Bodovacie podpisy a obrázky
     </h4>
-    <div class="card">
+    <div 
+      v-if="templates.length > 0"
+      class="card"
+    >
       <b-row class="border-bottom mr-1 ml-1">
         <b-col class="text-center p-2">
           <h6>Body</h6>
@@ -54,6 +57,14 @@
         <span class="material-icons d-block">add</span>
       </b-button>
     </div>
+    <b-alert 
+      v-else
+      variant="danger" 
+      show 
+      class="text-center"
+    >
+      <p>Importuj obrázky ak chceš ich pridávať pri bodovaní</p>
+    </b-alert>
   </div>
 </template>
 
