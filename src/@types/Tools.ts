@@ -1,7 +1,7 @@
 import { PDFdocument } from "@/components/PDFdocument";
 
-export interface Tool {
-    defaultOptions: fabric.IObjectOptions,
+export interface Tool<T extends fabric.IObjectOptions> {
+    defaultOptions: T,
     click(pdf: PDFdocument, page: number, position: { x: number, y: number }): Promise<fabric.Object>,
     mouseMove: Function,
     mouseUp: Function,
@@ -26,4 +26,13 @@ export interface ScoringCriteria {
     id: string;
     points: number;
     from: string;
+}
+
+export interface Font {
+    url: string;
+    viewport: string;
+    pdf: string;
+    bold?: string;
+    italic?: string; 
+    boldItalic?: string;
 }

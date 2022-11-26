@@ -24,7 +24,7 @@ export const utils: Util[] = [
         icon: 'content_copy',
         tooltip: 'Kopírovať',
         shortcut: 'ctrl+c',
-        style: 'btn-outline-primary',
+        style: 'primary',
         use(pdf: PDFdocument, page: number) {
             const selected = pdf?.pageCanvases[page]?.getActiveObjects();
             console.log(selected);
@@ -57,7 +57,7 @@ export const utils: Util[] = [
         icon: 'content_paste',
         tooltip: 'Prilepiť',
         shortcut: 'ctrl+v',
-        style: 'btn-outline-primary',
+        style: 'primary',
         use(pdf: PDFdocument, page: number, useMouse: boolean = false) {
             store.dispatch('Clipboard/paste', {
                 useMouse,
@@ -71,7 +71,7 @@ export const utils: Util[] = [
         icon: 'content_cut',
         tooltip: 'Vystrihnúť',
         shortcut: 'ctrl+x',
-        style: 'btn-outline-danger',
+        style: 'danger',
         use(pdf: PDFdocument, page: number) {
             const objects = utils[0].use(pdf, page);
             if(objects) {

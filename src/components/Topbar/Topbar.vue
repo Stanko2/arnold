@@ -1,13 +1,25 @@
 <template>
   <!-- create navbar -->
-  <b-navbar type="dark" variant="dark" style="width: 100%">
+  <b-navbar
+    type="dark"
+    variant="dark"
+    style="width: 100%"
+  >
     <b-navbar-brand
-      @click="$router.push({ path: '/' })"
       :active="$route.path === '/'"
+      @click="$router.push({ path: '/' })"
     >
-      <img class="logo" src="@/assets/Icon.png" alt="Arnold" height="30" />
+      <img
+        class="logo"
+        src="@/assets/Icon.png"
+        alt="Arnold"
+        height="30"
+      >
     </b-navbar-brand>
-    <b-collapse id="nav-collapse" is-nav>
+    <b-collapse
+      id="nav-collapse"
+      is-nav
+    >
       <b-navbar-nav>
         <!-- session destroy button -->
         <session-destroy-button :disabled="downloading" />
@@ -48,7 +60,8 @@
             size="xl"
             ok-only
             scrollable
-            ><stats ref="stat"></stats>
+          >
+            <stats ref="stat" />
           </b-modal>
         </b-nav-item>
 
@@ -63,7 +76,8 @@
             size="xl"
             ok-only
             @ok="$refs.preferences.save()"
-            ><preferences ref="preferences"></preferences>
+          >
+            <preferences ref="preferences" />
           </b-modal>
         </b-nav-item>
 
@@ -76,9 +90,20 @@
       </b-navbar-nav>
     </b-collapse>
 
-    <div class="bottom-progress-bar" v-if="downloading">
-      <b-progress max="100" show-progress animated class="h-100 w-100">
-        <b-progress-bar :value="progress" animated>
+    <div
+      v-if="downloading"
+      class="bottom-progress-bar"
+    >
+      <b-progress
+        max="100"
+        show-progress
+        animated
+        class="h-100 w-100"
+      >
+        <b-progress-bar
+          :value="progress"
+          animated
+        >
           <span>{{ progress.toFixed(2) }}%</span>
         </b-progress-bar>
       </b-progress>

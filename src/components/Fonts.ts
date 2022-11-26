@@ -1,22 +1,30 @@
 import { StandardFonts } from 'pdf-lib';
 import { PDFdocument } from './PDFdocument';
+import { Font } from '@/@types';
 declare let FontFace: any;
 
 
-export const FontsAvailable: Record<string, any> = {
+export const FontsAvailable: Record<string, Font> = {
     'Open Sans': {
         url: 'https://fonts.googleapis.com/css2?family=Open+Sans&display=swap',
-        pdf: '/fonts/OpenSans.otf',
+        pdf: '/fonts/OpenSans/OpenSans.otf',
+        bold: '/fonts/OpenSans/OpenSans-SemiBold.otf',
+        italic: '/fonts/OpenSans/OpenSans-Italic.otf',
+        boldItalic: '/fonts/OpenSans/OpenSans-SemiBoldItalic.otf',
         viewport: 'Open Sans',
     },
     'Ubuntu': {
         url: 'https://fonts.googleapis.com/css2?family=Ubuntu&display=swap',
-        pdf: '/fonts/Ubuntu.otf',
+        pdf: '/fonts/Ubuntu/Ubuntu.otf',
+        bold: '/fonts/Ubuntu/Ubuntu-SemiBold.otf',
+        italic: '/fonts/Ubuntu/Ubuntu-Italic.otf',
+        boldItalic: '/fonts/Ubuntu/Ubuntu-SemiBoldItalic.otf',
         viewport: 'Ubuntu',
     },
     'Noto Sans Mono': {
         url: 'https://fonts.googleapis.com/css2?family=Noto+Sans+Mono&display=swap',
-        pdf: '/fonts/NotoSansMono.otf',
+        pdf: '/fonts/NotoSansMono/NotoSansMono.otf',
+        bold: '/fonts/NotoSansMono/NotoSansMono-SemiBold.otf',
         viewport: 'Noto Sans Mono',
     },
     'Gloria Hallelujah': {
@@ -59,7 +67,7 @@ function LoadFont(e: string, url: RegExpMatchArray | string) {
     }).catch((err: any) => console.log(err));
 }
 
-export async function EmbedFont(pdf: PDFdocument | null, font: string) {
+export async function EmbedFont(pdf: PDFdocument | null, font: string, fontStyle: 'normal' | 'bold' | 'italic' | 'boldItalic' = 'normal') {
     if (!pdf || !pdf.modifyRef) {
         console.log('Document not yet initialized');
         return;
@@ -68,12 +76,31 @@ export async function EmbedFont(pdf: PDFdocument | null, font: string) {
         console.log('Trying to embed unavailable font');
         return;
     }
-    if (!FontsAvailable[font].pdf || Object.keys(pdf.embeddedResources).includes(font)) {
-        console.log(`font ${font} is already embedded`);
+    if (!FontsAvailable[font].pdf || Object.keys(pdf.embeddedResources).includes(font + fontStyle)) {
+        console.log(`font ${font+fontStyle} is already embedded`);
         return;
     }
-    const fontbytes = await fetch(FontsAvailable[font].pdf).then(res => {
+    const fontbytes = await fetch(getURL(font, fontStyle)).then(res => {
         return res.arrayBuffer()
     })
-    pdf.embeddedResources[font] = await pdf.modifyRef.embedFont(fontbytes);
+    pdf.embeddedResources[font + fontStyle] = await pdf.modifyRef.embedFont(fontbytes);
+}
+
+function getURL(fontName: string, style: 'normal' | 'bold' | 'italic' | 'boldItalic'){
+    let ret;
+    switch(style){
+        case 'bold':
+            ret = FontsAvailable[fontName].bold;
+            break;
+        case 'boldItalic':
+            ret = FontsAvailable[fontName].boldItalic;
+            break;
+        case 'italic':
+            ret = FontsAvailable[fontName].italic;
+            break;
+        default:
+            ret = FontsAvailable[fontName].pdf;
+            break;
+    }
+    return ret || '';
 }

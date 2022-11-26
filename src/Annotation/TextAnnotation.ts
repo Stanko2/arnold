@@ -51,8 +51,6 @@ export class TextAnnotation extends Annotation {
          */
         const font = (this.object as fabric.Textbox).fontFamily || 'Open Sans';
         const doc = getViewedDocument();
-        await EmbedFont(doc, font);
-
         const height = page.getHeight();
         if (this.object == null || this.object.top == null || this.object.left == null || this.textbox.fontSize == null) return;
         const fontSize: number = this.textbox.fontSize || 14;
@@ -60,15 +58,24 @@ export class TextAnnotation extends Annotation {
         const parser = new DOMParser(),
             data = parser.parseFromString(this.object.toSVG(), "image/svg+xml"),
             transform = data.querySelector('g')?.getAttribute('transform')?.match(/-?[0-9]+(\.[0-9]*)?/gm)?.map(e => parseFloat(e)) || [1, 0, 0, 0, 1, 0];
-
+        
         page.pushOperators(
             pushGraphicsState(),
             translate(0, height),
             scale(1, -1),
             concatTransformationMatrix(transform[0], transform[1], transform[2], transform[3], transform[4], transform[5])
         );
-        data.querySelectorAll('tspan').forEach((tspan: { getAttribute: (arg0: string) => any; innerHTML: string; }) => {
-            const translation = new fabric.Point(parseFloat(tspan.getAttribute('x') || '0'), parseFloat(tspan.getAttribute('y') || '0'));
+        
+        for (const tspan of data.querySelectorAll('tspan').values()) {
+            const translation = new fabric.Point(parseFloat(tspan.getAttribute('x') || '0') + parseFloat(tspan.getAttribute('dx') || '0'), 
+            parseFloat(tspan.getAttribute('y') || '0') + parseFloat(tspan.getAttribute('dy') || '0'));
+            const textStyle = this.parseTextStyle(tspan.getAttribute('style') || '');
+            const fontStyle = this.getFontFromParsedStyle(textStyle);
+            const fontFamily = textStyle['font-family'] || this.textbox.fontFamily;
+            if(textStyle['font-size'] != undefined){
+                textStyle['font-size'] = parseFloat(textStyle['font-size'].substring(0, textStyle['font-size'].length - 2));
+            }
+            await EmbedFont(doc, fontFamily, fontStyle);
             page.pushOperators(
                 pushGraphicsState(),
                 translate(translation.x, translation.y),
@@ -77,25 +84,25 @@ export class TextAnnotation extends Annotation {
             const options = <PDFPageDrawTextOptions>{
                 x: 0,
                 y: 0,
-                size: fontSize,
-                font: doc?.embeddedResources[font],
+                size: textStyle['font-size'] || fontSize,
+                font: doc?.embeddedResources[fontFamily+fontStyle],
                 color: rgb(color.r / 255, color.g / 255, color.b / 255),
                 lineHeight: this.textbox._fontSizeMult * fontSize,
                 opacity: parseInt((this.object.fill as string).substring(7, 9), 16) / 255 || 1,
             }
-
+    
             // unescape html in tspan.innerHTML
             const dom = new DOMParser().parseFromString(tspan.innerHTML, 'text/html');
             const text = dom.body.textContent || '';
-
+    
             page.drawText(text, options);
             page.pushOperators(popGraphicsState());
-        });
+        }
         page.pushOperators(popGraphicsState());
     }
     serialize(): any {
         return {
-            text: this.textbox.textLines.join('\n'),
+            text: this.textbox.text,
             top: this.object.top,
             left: this.object.left,
             fontFamily: this.textbox.fontFamily,
@@ -106,6 +113,36 @@ export class TextAnnotation extends Annotation {
             hasControls: this.object.hasControls,
             editable: this.textbox.editable,
             angle: this.textbox.angle,
+            styles: this.textbox.styles
         };
+    }
+
+    parseTextStyle(style: string): any {
+        // style = style.replaceAll(' ', '');
+        style = style.replaceAll('\'', '');
+        const ret: any = {};
+        for (const s of style.split(';')) {
+            if(s == '') continue;
+            const data = s.split(':');
+            if(data[0].length == 1 || data[1].length == 1)
+                continue;
+            if(data[0].startsWith(' '))
+                data[0] = data[0].substring(1);
+            if(data[1].startsWith(' '))
+                data[1] = data[1].substring(1);
+            ret[data[0]] = data[1];
+        }
+        return ret;
+    }
+
+    getFontFromParsedStyle(parsedStyle: any): 'normal' | 'bold' | 'italic' | 'boldItalic' {
+        if(parsedStyle['font-style'] == 'italic' && parsedStyle['font-weight'] == '600')
+            return 'boldItalic';
+        else if (parsedStyle['font-style'] == 'italic')
+            return 'italic';
+        else if (parsedStyle['font-weight'] == '600')
+            return 'bold';
+        else
+            return 'normal'
     }
 }

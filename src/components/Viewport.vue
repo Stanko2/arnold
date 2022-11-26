@@ -1,67 +1,97 @@
 <template>
   <div class="viewportSpace">
-    <div class="loadingOverlay" v-if="!loaded">
+    <div
+      v-if="!loaded"
+      class="loadingOverlay"
+    >
       <div>
-        <b-spinner variant="primary" label="loading..."></b-spinner>
+        <b-spinner
+          variant="primary"
+          label="loading..."
+        />
         <p>Načítavam...</p>
       </div>
     </div>
 
-    <div class="viewport" @contextmenu="openCtxMenu">
+    <div
+      class="viewport"
+      @contextmenu="openCtxMenu"
+    >
       <context-menu
         id="context-menu"
         ref="ctxMenu"
         class="list-group ctxmenu"
       >
-        <li class="list-group-item-action p-1" @click="deleteSelected">
+        <li
+          class="list-group-item-action p-1"
+          @click="deleteSelected"
+        >
           Zmazať
         </li>
-        <li class="list-group-item-action p-1" @click="moveToFront">
+        <li
+          class="list-group-item-action p-1"
+          @click="moveToFront"
+        >
           Presunúť dopredu
         </li>
-        <li class="list-group-item-action p-1" @click="moveToBack">
+        <li
+          class="list-group-item-action p-1"
+          @click="moveToBack"
+        >
           Presunúť dozadu
         </li>
-        <li class="list-group-item-action p-1" @click="eventHub.$emit('shortcut:copy')">
+        <li
+          class="list-group-item-action p-1"
+          @click="eventHub.$emit('shortcut:copy')"
+        >
           Kopírovať
         </li>
-        <li class="list-group-item-action p-1" @click="eventHub.$emit('shortcut:paste')" v-if="$store.state.Clipboard.object !== null">
+        <li
+          v-if="$store.state.Clipboard.object !== null"
+          class="list-group-item-action p-1"
+          @click="eventHub.$emit('shortcut:paste')"
+        >
           Prilepiť
         </li>
-        <li class="list-group-item-action p-1" @click="eventHub.$emit('shortcut:cut')">
+        <li
+          class="list-group-item-action p-1"
+          @click="eventHub.$emit('shortcut:cut')"
+        >
           Vystrihnúť
         </li>
       </context-menu>
-      <div class="pdf" ref="pdf">
+      <div
+        ref="pdf"
+        class="pdf"
+      >
         <div
           v-for="i in pageCount"
           :key="i"
-          class="page-wrapper"
           ref="pages"
           v-b-visible="(visible) => changeActivePage(i, visible)"
+          class="page-wrapper"
           :style="getPageStyle(i - 1)"
         >
           <pdf
-              :key="i.toString() + id.toString()"
-              :src="src"
-              :page="i"
-              :rotate="(rotation[i - 1] || 0) * 90"
-              :text="false"
-              class="card page-data"
-              :style="{ transform: `translate(-50%, -50%) scale(${scale})` }"
-              ref="pagePDFs"
-              @error="err"
-              @loading="(loading) => documentLoaded(!loading, i - 1)"
-            >
+            :key="i.toString() + id.toString()"
+            ref="pagePDFs"
+            :src="src"
+            :page="i"
+            :rotate="(rotation[i - 1] || 0) * 90"
+            :text="false"
+            class="card page-data"
+            :style="{ transform: `translate(-50%, -50%) scale(${scale})` }"
+            @error="err"
+            @loading="(loading) => documentLoaded(!loading, i - 1)"
+          >
             <!-- <template #loading>
               <b-skeleton-img width="100%" height="100%" class="position-relative"/>
               <div>loading</div>
             </template> -->
           </pdf>
-            <div class="pageAnnot">
-              <canvas ref="canvases"></canvas>
-            </div>
-          
+          <div class="pageAnnot">
+            <canvas ref="canvases" />
+          </div>
         </div>
       </div>
     </div>
@@ -80,16 +110,13 @@ const contextMenu = require("vue-context-menu");
 
 var pdfDocument = null;
 
-const ViewportProps = Vue.extend({
-  props: ["pdf"],
-});
 @Component({
   components: {
     pdf: pdf.default,
     contextMenu,
   },
 })
-export default class Viewport extends ViewportProps {
+export default class Viewport extends Vue {
   loaded: (boolean | null)[] = [];
   src: any;
   pageCount: number = 0;

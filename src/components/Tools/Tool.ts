@@ -35,7 +35,6 @@ function init(VueRef: Vue | undefined = undefined) {
 }
 
 function ApplySettings(settings: Settings){
-    console.log('apply');
     const prefs = settings.tools.settings;
     const shortcuts = settings.shortcut.settings;
     prefs.tools.forEach((tool: ToolSettings, index: number) => {
@@ -55,8 +54,8 @@ function ApplySettings(settings: Settings){
 
 eventHub.$on('editor:documentChanged', () => { selectTool(selectedTool); });
 
-export const tools: Tool[] = [
-    <Tool>{
+export const tools: Tool<fabric.IObjectOptions>[] = [
+    <Tool<fabric.ITextboxOptions>>{
         name: 'Text',
         cursor: 'pointer',
         click: async (pdf: PDFdocument, page: number, position: { x: number, y: number }): Promise<fabric.Object> => {
@@ -87,7 +86,7 @@ export const tools: Tool[] = [
         },
         shortcut: 'q',
     },
-    <Tool>{
+    <Tool<fabric.IObjectOptions>>{
         name: 'Draw',
         cursor: 'pointer',
         icon: 'brush',
@@ -117,7 +116,7 @@ export const tools: Tool[] = [
         },
         shortcut: 'w'
     },
-    <Tool><unknown>{
+    <Tool<fabric.IObjectOptions>><unknown>{
         name: 'Photo',
         cursor: 'pointer',
         icon: 'image',
@@ -131,7 +130,7 @@ export const tools: Tool[] = [
             const img = new Image();
             img.src = template.data.img;
             (options as any).image = template.data.img;
-            const annot = new ImageAnnotation(page, options, pdf.pageCanvases[page]);
+            const annot = new ImageAnnotation(page, { ...options, ...template.templateOptions}, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
             return annot.object;
         },
@@ -142,13 +141,13 @@ export const tools: Tool[] = [
             hasStrokeWidth: false,
         }
     },
-    <Tool>{
+    <Tool<fabric.ILineOptions>>{
         name: 'Arrow',
         cursor: 'pointer',
         icon: 'north_east',
         tooltip: 'Pridat sipku',
         shortcut: 'r',
-        defaultOptions: <fabric.ILineOptions>{
+        defaultOptions: {
             stroke: '#000000',
             strokeWidth: 5,
         },
@@ -171,7 +170,7 @@ export const tools: Tool[] = [
             hasText: false,
         }
     },
-    <Tool>{
+    <Tool<fabric.IEllipseOptions>>{
         name: 'Circle',
         cursor: 'pointer',
         icon: 'circle',
@@ -198,7 +197,7 @@ export const tools: Tool[] = [
             hasStrokeWidth: true,
         }
     },
-    <Tool>{
+    <Tool<fabric.IRectOptions>>{
         name: 'Rect',
         cursor: 'pointer',
         icon: 'crop_3_2',
@@ -223,7 +222,7 @@ export const tools: Tool[] = [
         },
         shortcut: 'y',
     },
-    <Tool>{
+    <Tool<fabric.IObjectOptions>>{
         name: 'Sign',
         cursor: 'pointer',
         icon: 'edit',
@@ -262,7 +261,7 @@ export const tools: Tool[] = [
         mouseMove: (e: fabric.IEvent) => { },
         mouseUp: (e: fabric.IEvent) => { },
     },
-    <Tool>{
+    <Tool<fabric.IObjectOptions>>{
         name: 'Select',
         cursor: 'pointer',
         icon: 'select_all',
@@ -286,11 +285,11 @@ export const tools: Tool[] = [
     },
 ]
 
-let selectedTool: Tool = tools[1];
+let selectedTool: Tool<fabric.IObjectOptions> = tools[1];
 
 eventHub.$on('tool:select', selectTool);
 eventHub.$on('tool:initCurrent', () => selectTool(selectedTool));
-function selectTool(tool: Tool) {
+function selectTool(tool: Tool<fabric.IObjectOptions>) {
     selectedTool?.onDeselect?.();
     selectedTool = tool;
     PDFdocument.activeObject = undefined;

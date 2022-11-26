@@ -1,31 +1,58 @@
 <template>
-  <b-modal size="lg" id="tag-modal" title="Upraviť tagy" @ok="tagUpdate">
+  <b-modal
+    id="tag-modal"
+    size="lg"
+    title="Upraviť tagy"
+    @ok="tagUpdate"
+  >
     <b-list-group>
       <b-list-group-item
-        pill
         v-for="(tag, i) in availableTags"
         :key="tag.id"
+        pill
         class="tag"
         :style="{ background: lighten(tag.color) }"
       >
         <b-input-group class="mr-3 d-flex align-items-center">
           <b-form-input
+            v-model="tag.meno"
             class="w-75 tag-edit"
             type="text"
-            v-model="tag.meno"
             placeholder="Zadaj meno"
             :style="{ color: getContrastColor(tag.color) }"
           />
         </b-input-group>
         <div class="tag-options">
-          <color-picker :name="'tagcolor' + i" v-model="tag.color" :hasOpacity="false" class="color-picker"/>
-          <button @click="move(i, false)" :disabled="i == 0">expand_less</button>
-          <button @click="move(i, true)" :disabled="i == availableTags.length - 1">expand_more</button>
-          <button @click="removeTag(i)">close</button>
+          <color-picker
+            v-model="tag.color"
+            :name="'tagcolor' + i"
+            :has-opacity="false"
+            class="color-picker"
+          />
+          <button
+            :disabled="i == 0"
+            @click="move(i, false)"
+          >
+            expand_less
+          </button>
+          <button
+            :disabled="i == availableTags.length - 1"
+            @click="move(i, true)"
+          >
+            expand_more
+          </button>
+          <button @click="removeTag(i)">
+            close
+          </button>
         </div>
       </b-list-group-item>
     </b-list-group>
-    <b-button block @click="addTag()">Pridat novy Tag</b-button>
+    <b-button
+      block
+      @click="addTag()"
+    >
+      Pridat novy Tag
+    </b-button>
   </b-modal>
 </template>
 

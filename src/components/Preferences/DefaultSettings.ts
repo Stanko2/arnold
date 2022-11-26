@@ -247,6 +247,22 @@ export default <Settings>{
             {
                 "name": "paste",
                 "shortcut": "ctrl+v"
+            },
+            {
+                "name": "bold",
+                "shortcut": "ctrl+b"
+            },
+            {
+                "name": "italic",
+                "shortcut": "ctrl+i"
+            },
+            {
+                "name": "subscript",
+                "shortcut": "ctrl+."
+            },
+            {
+                "name": "superscript",
+                "shortcut": "ctrl+,"
             }
         ],
         "name": "shortcut"

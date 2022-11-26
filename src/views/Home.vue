@@ -5,7 +5,9 @@
       text-variant="white"
       border-variant="dark"
     >
-      <template #header>Vitaj v Arnoldovi</template>
+      <template #header>
+        Vitaj v Arnoldovi
+      </template>
 
       <template #lead>
         Arnold je jednoduchá aplikácia na pomoc pri opravovaní riešení v
@@ -21,35 +23,62 @@
       </p>
       <p>
         Potrebuješ s niečím pomôcť? Klikni
-        <router-link to="Help">sem</router-link>
+        <router-link to="Help">
+          sem
+        </router-link>
       </p>
       <p>
         Pri zapnutí po dlhšom čase ma nezabudni
-        <b-link @click="reload()">aktualizovať</b-link>
+        <b-link @click="reload()">
+          aktualizovať
+        </b-link>
       </p>
       <changelog class="p-2" />
     </b-jumbotron>
     <!-- <label for="mainInput" class="inputWrapper"> </label> -->
-    <b-alert :show="getDocumentCount() > 120" dismissible variant="warning">
+    <b-alert
+      :show="getDocumentCount() > 120"
+      dismissible
+      variant="warning"
+    >
       Pri takýchto vysokých počtoch riešení som nestabilný a spomalený. Prosím
       otvor radšej menej kategórii naraz a potom sa možeš prepnúť cez túto
       stránku.
     </b-alert>
-    <b-card v-if="hasDocuments" header="Vyber si kategórie, ktoré ideš opravovať" header-tag="h3" header-bg-variant="primary">
-      <b-row v-if="$store.state.loadedProblems.size > 1" class="mb-3" align-v="center">
-        <b-col :cols="4"><h5 class="m-auto">Úloha:</h5></b-col>
+    <b-card
+      v-if="hasDocuments"
+      header="Vyber si kategórie, ktoré ideš opravovať"
+      header-tag="h3"
+      header-bg-variant="primary"
+    >
+      <b-row
+        v-if="$store.state.loadedProblems.size > 1"
+        class="mb-3"
+        align-v="center"
+      >
+        <b-col :cols="4">
+          <h5 class="m-auto">
+            Úloha:
+          </h5>
+        </b-col>
         <b-col :cols="8">
           <b-form-select v-model="problem">
-            <b-form-select-option v-for="p in $store.state.loadedProblems" :key="p" :value="p">{{ p }}</b-form-select-option>
+            <b-form-select-option
+              v-for="p in $store.state.loadedProblems"
+              :key="p"
+              :value="p"
+            >
+              {{ p }}
+            </b-form-select-option>
           </b-form-select>
         </b-col>
       </b-row>
       <div v-if="categories !== undefined && categories[problem] !== undefined">
-        <b-list-group >
+        <b-list-group>
           <b-list-group-item
-            :active="category.enabled"
             v-for="category in categories[problem].filter((e) => e.count > 0)"
             :key="problem + category.name"
+            :active="category.enabled"
             @click="toggleCategory(category)"
           >
             <div class="categoryEntry">
@@ -66,19 +95,28 @@
         </p>
       </div>
     </b-card>
-    <div v-if="hasDocuments == null" class="text-center">
-      <b-spinner variant="primary"></b-spinner>
+    <div
+      v-if="hasDocuments == null"
+      class="text-center"
+    >
+      <b-spinner variant="primary" />
     </div>
-    <b-card header="Pridať novú úlohu" header-tag="h2" header-bg-variant="secondary">
+    <b-card
+      header="Pridať novú úlohu"
+      header-tag="h2"
+      header-bg-variant="secondary"
+    >
       <p>{{ fileName }}</p>
       <b-form-file
+        id="mainInput"
         v-model="fileInput"
         accept=".zip"
-        id="mainInput"
         size="lg"
         placeholder="Vlož zip, v ktorom sú všetky riešenia"
       />
-      <b-button @click="start">Načítaj</b-button>
+      <b-button @click="start">
+        Načítaj
+      </b-button>
     </b-card>
     <hr>
     <b-button
@@ -88,8 +126,9 @@
       variant="primary"
       class="text"
       @click="openEditor()"
-      >Opravovať {{ problem }}</b-button
     >
+      Opravovať {{ problem }}
+    </b-button>
   </div>
 </template>
 

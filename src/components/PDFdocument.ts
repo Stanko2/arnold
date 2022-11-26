@@ -158,7 +158,7 @@ export class PDFdocument {
         this.annotations.push(annotation);
     }
 
-    onToolSelect(tool: Tool) {
+    onToolSelect(tool: Tool<fabric.IObjectOptions>) {
         tool.onSelect();
     }
     async rotatePage(i: number) {
