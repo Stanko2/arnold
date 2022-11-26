@@ -5,7 +5,7 @@ export class ScoreFilter implements FilterCommand {
     matches(doc: Document): boolean {
         if(this.args.length == 0)
             return doc.scoring?.points != undefined;
-        if(!doc.scoring) return false;
+        if(!doc.scoring || !doc.scoring.points) return false;
         return doc.scoring.points >= parseFloat(this.args[0]) && doc.scoring.points <= parseFloat(this.args[1]);
     }
     name = 'score';

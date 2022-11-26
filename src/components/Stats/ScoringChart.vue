@@ -1,13 +1,30 @@
 <template>
   <b-row>
-    <b-col v-if="scoringChartData">
+    <b-col
+      v-if="scoringChartData"
+      class="d-flex"
+      cols="8"
+    >
       <pie-chart
         class="pie-chart"
         :data="scoringChartData.chartData"
         :options="scoringChartData.chartOptions"
       />
+      <div class="d-flex flex-column justify-content-center ml-2">
+        <div
+          v-for="(item, i) in scoringChartData.chartData.datasets[0].data"
+          :key="i"
+          class="d-flex align-items-center"
+        >
+          <span
+            :style="{ 'background-color': scoringChartData.chartData.datasets[0].backgroundColor[i] }"
+            class="legend-badge"
+          />
+          {{ scoringChartData.chartData.labels[i] }}
+        </div>
+      </div>
     </b-col>
-    <b-col>
+    <b-col cols="4">
       <div class="numberStats">
         <h2>{{ averagePoints }}</h2>
         <p>Priemerný počet bodov</p>
@@ -22,10 +39,11 @@
 
 <script lang="ts">
 import Vue from 'vue'
-import {Component} from 'vue-property-decorator';
-import {Document} from '@/@types';
+import { Component, Prop, Watch } from 'vue-property-decorator';
+import { Document } from '@/@types';
 import Color from 'color';
 import PieChart from "./PieChart.js";
+import { IText } from 'fabric/fabric-impl';
 
 @Component({
   components: {
@@ -77,8 +95,12 @@ export default class ScoringChart extends Vue {
     }
 
     this.scoringChartData = {
+      color: '#000',
       chartOptions: {
         hoverBorderWidth: 20,
+        legend: {
+          display: false
+        },
       },
       chartData: {
         hoverBackgroundColor: "red",
@@ -97,12 +119,13 @@ export default class ScoringChart extends Vue {
     };
     let sum = 0;
     let sumTime = 0;
-    for (const doc of Documents) {
+    for (const doc of Documents.filter(d=>d.opened)) {
       sum += doc.scoring?.points || 0;
       sumTime += doc.timeOpened || 0;
     }
-    this.averagePoints = (sum / Documents.length).toFixed(2);
-    this.averageTime = sumTime / Documents.length;
+    this.averagePoints = (sum / Documents.filter(d=>d.scoring?.points != undefined).length).toFixed(2);
+    if(this.averagePoints == 'NaN') this.averagePoints = '0.00';
+    this.averageTime = sumTime / Documents.filter(d=>d.opened).length;
   }
   randomColor(seed: string): string {
     return Color.hsl(Math.random() * 360, 90, 50).hex();
@@ -127,6 +150,7 @@ export default class ScoringChart extends Vue {
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: .5rem;
 }
 .numberStats {
   display: flex;
@@ -138,5 +162,12 @@ export default class ScoringChart extends Vue {
 .numberStats h2 {
   font-size: 5em;
   font-weight: bold;
+}
+.legend-badge {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  margin-right: .5rem;
+  border: 2px solid #fff;
 }
 </style>

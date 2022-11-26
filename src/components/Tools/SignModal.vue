@@ -3,19 +3,25 @@
     class="d-flex flex-row flex-wrap justify-content-around"
     @mousedown="deselectAll"
   >
-    <div v-for="signature in signatures" :key="signature.id">
+    <div
+      v-for="signature in signatures"
+      :key="signature.id"
+    >
       <div
         class="card position-relative"
         style="width: 300px; height: 150px"
         @mouseover="signature.hover = true"
         @mouseleave="signature.hover = false"
       >
-        <canvas :id="'canvas_' + signature.id" class="w-100 h-100"></canvas>
+        <canvas
+          :id="'canvas_' + signature.id"
+          class="w-100 h-100"
+        />
         <div
           v-if="
             signature.hover &&
-            signature.canvas &&
-            !signature.canvas.isDrawingMode
+              signature.canvas &&
+              !signature.canvas.isDrawingMode
           "
           class="
             d-flex
@@ -29,21 +35,30 @@
         >
           <div class="d-flex flex-column">
             <div class="btn-group">
-              <button class="btn btn-primary" @click="edit(signature.id)">
+              <button
+                class="btn btn-primary"
+                @click="edit(signature.id)"
+              >
                 <span class="material-icons">edit</span>
               </button>
-              <button class="btn btn-danger" @click="remove(signature.id)">
+              <button
+                class="btn btn-danger"
+                @click="remove(signature.id)"
+              >
                 <span class="material-icons"> delete </span>
               </button>
             </div>
           </div>
-          <div class="position-absolute w-100" style="bottom: 0">
+          <div
+            class="position-absolute w-100"
+            style="bottom: 0"
+          >
             <input
+              v-model="signature.name"
               type="text"
               class="w-100 form-control"
               placeholder="Meno podpisu"
-              v-model="signature.name"
-            />
+            >
           </div>
         </div>
       </div>
@@ -64,13 +79,11 @@ import { fabric } from "fabric";
 import type { ITemplate } from "@/@types";
 import { Database } from "@/Db";
 import Component from "vue-class-component";
-
-const SignModalProps = Vue.extend({
-  props: ["signs"],
-});
+import { Prop } from "vue-property-decorator";
 
 @Component({})
-export default class SignModal extends SignModalProps {
+export default class SignModal extends Vue {
+  @Prop({required: true}) signs!: () => Promise<ITemplate[]>;
   signatures!: {
     hover: boolean;
     canvas?: fabric.Canvas;

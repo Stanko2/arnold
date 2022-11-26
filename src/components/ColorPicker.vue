@@ -6,37 +6,54 @@
       :style="{
         'background-color': color,
       }"
-    ><slot />
-
+    >
+      <slot />
     </b-button>
     <b-popover
+      ref="popover"
       :show.sync="show"
       :target="name"
       triggers="click"
       placement="bottom"
-      ref="popover"
     >
-      <template #title>{{ label }}</template>
-      <v-swatches class="color-picker" v-model="color" inline @input="submit" backgroundColor="transparent"></v-swatches>
-      <div class="d-flex align-items-center justify-content-between" v-if="hasOpacity">
-        <input type="color" v-model="color" class="fallbackInput" :style="{'opacity': opacity / 100}" @input="submit"/>
+      <template #title>
+        {{ label }}
+      </template>
+      <v-swatches
+        v-model="color"
+        class="color-picker"
+        inline
+        background-color="transparent"
+        @input="submit"
+      />
+      <div
+        v-if="hasOpacity"
+        class="d-flex align-items-center justify-content-between"
+      >
+        <input
+          v-model="color"
+          type="color"
+          class="fallbackInput"
+          :style="{'opacity': opacity / 100}"
+          @input="submit"
+        >
         <div class="form-control transparency-num">
           <input
+            v-model.number="opacity"
             type="number"
             class="transparency-num"
             min="7"
             max="100"
-            v-model.number="opacity"
             @input="submit"
-          />
+          >
         </div>
         <b-form-input
+          v-model.number="opacity"
           min="7"
           style="width: 80px"
           type="range"
           max="100"
           step="1"
-          v-model.number="opacity"
           @input="submit"
         />
       </div>

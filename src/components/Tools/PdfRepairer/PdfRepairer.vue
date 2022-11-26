@@ -12,59 +12,97 @@
       Otáčanie strán je dostupné len pri riešeniach, kde sú len obrázky.
     </p>
     <div v-if="ImageSources">
-      <b-button v-b-toggle.rotate-collapse variant="primary" block
-        >Otáčanie strán</b-button
+      <b-button
+        v-b-toggle.rotate-collapse
+        variant="primary"
+        block
       >
-      <b-collapse id="rotate-collapse" @show="renderRotateUI">
+        Otáčanie strán
+      </b-button>
+      <b-collapse
+        id="rotate-collapse"
+        @show="renderRotateUI"
+      >
         <div v-if="ImageSources.length > 0">
-          <b-alert show variant="warning">
-            <p>Otáčaj, len ak riešenie obsahuje iba fotky, inak prídeš o všetok text a zmeny, ktorý v ňom boli!<br>
-            Riešenie otočíš kliknutím na obrázok nižšie a otočenie uložíš stlačením <b>Vygeneruj</b>.</p>
+          <b-alert
+            show
+            variant="warning"
+          >
+            <p>
+              Otáčaj, len ak riešenie obsahuje iba fotky, inak prídeš o všetok text a zmeny, ktorý v ňom boli!<br>
+              Riešenie otočíš kliknutím na obrázok nižšie a otočenie uložíš stlačením <b>Vygeneruj</b>.
+            </p>
           </b-alert>
           <div class="pages">
-            <b-spinner v-if="imagesLoading"></b-spinner>
+            <b-spinner v-if="imagesLoading" />
             <b-card
-              v-else
               v-for="image in ImageSources"
+              v-else
               :key="image.id"
               class="m-2"
             >
               <div ref="images">
-                <canvas ref="pageCanvases" class="image"></canvas>
+                <canvas
+                  ref="pageCanvases"
+                  class="image"
+                />
               </div>
             </b-card>
           </div>
         </div>
-        <b-alert v-else show variant="success">
+        <b-alert
+          v-else
+          show
+          variant="success"
+        >
           <p>V tomto riešení nie sú obrázky, nie je možné otáčanie</p>
         </b-alert>
       </b-collapse>
     </div>
     <div v-if="err">
-      <b-alert show variant="danger">
+      <b-alert
+        show
+        variant="danger"
+      >
         {{ err }}
       </b-alert>
     </div>
-    <b-button v-b-toggle.new-page variant="primary" block>Nová strana</b-button>
+    <b-button
+      v-b-toggle.new-page
+      variant="primary"
+      block
+    >
+      Nová strana
+    </b-button>
     <b-collapse id="new-page">
       <b-card>
         <b-row class="p-2 w-100">
           <b-col>Pridať novú stranu na koniec</b-col>
-          <b-col
-            ><b-form-checkbox class="float-right" switch v-model="newPage"
-          /></b-col>
+          <b-col>
+            <b-form-checkbox
+              v-model="newPage"
+              class="float-right"
+              switch
+            />
+          </b-col>
         </b-row>
       </b-card>
     </b-collapse>
 
     <template #modal-footer="{ cancel }">
       <b-button
-        @click="generate()"
         size="md"
         :disabled="(ImageSources.length === 0 && !newPage) || busy"
-        ><b-spinner v-if="busy" /><span v-else>Vygeneruj</span></b-button
+        @click="generate()"
       >
-      <b-button size="md" variant="danger" @click="cancel()" :disabled="busy">
+        <b-spinner v-if="busy" /><span v-else>Vygeneruj</span>
+      </b-button>
+      <b-button
+        size="md"
+        variant="danger"
+        :disabled="busy"
+        @click="cancel()"
+      >
         Zrušiť
       </b-button>
     </template>
@@ -72,13 +110,13 @@
 </template>
 
 <script lang="ts">
-import {Database} from "@/Db";
-import {getViewedDocument} from "@/Documents/DocumentManager";
-import {BCard, BModal} from "bootstrap-vue";
-import {fabric} from "fabric";
+import { Database } from "@/Db";
+import { getViewedDocument } from "@/Documents/DocumentManager";
+import { BCard, BModal } from "bootstrap-vue";
+import { fabric } from "fabric";
 import Vue from "vue";
 import Component from "vue-class-component";
-import {AddTrailingPage, ExtractImages, GeneratePDF, GetA4Dimensions, PDFImage} from "./PdfModifier";
+import { AddTrailingPage, ExtractImages, GeneratePDF, GetA4Dimensions, PDFImage } from "./PdfModifier";
 
 @Component
 export default class PDFRepairer extends Vue {

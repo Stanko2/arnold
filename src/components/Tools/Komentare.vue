@@ -1,15 +1,24 @@
 <template>
   <div class="emoji">
     <div class="position-relative">
-      <h4 class="btn btn-success" @click="ukazMenu = !ukazMenu">
+      <h4
+        class="btn btn-success"
+        @click="ukazMenu = !ukazMenu"
+      >
         Komentare
         <span class="material-icons d-inline position-absolute">{{
           ukazMenu ? "expand_more" : "expand_less"
         }}</span>
       </h4>
       <transition name="slide">
-        <div v-if="ukazMenu" class="emoji_okno bg-success">
-          <b-card v-for="template in data" :key="template.text">
+        <div
+          v-if="ukazMenu"
+          class="emoji_okno bg-success"
+        >
+          <b-card
+            v-for="template in data"
+            :key="template.text"
+          >
             <p
               :style="{
                 color: template.color.hex(),
@@ -30,6 +39,16 @@ import Color from "color";
 import Vue from "vue";
 import { FontsAvailable } from "../Fonts";
 export default Vue.extend({
+  data() {
+    return {
+      ukazMenu: false,
+      comments: [
+        "Ahoj , tvoje riesenie je super \n len tak dalej :)",
+        "Mas to cele nahovno",
+      ],
+      data: Array<any>(),
+    };
+  },
   mounted() {
     const fonts = Object.keys(FontsAvailable);
     this.data = this.comments.map((e) => {
@@ -43,16 +62,6 @@ export default Vue.extend({
         ),
       };
     });
-  },
-  data() {
-    return {
-      ukazMenu: false,
-      comments: [
-        "Ahoj , tvoje riesenie je super \n len tak dalej :)",
-        "Mas to cele nahovno",
-      ],
-      data: Array<any>(),
-    };
   },
 });
 </script>

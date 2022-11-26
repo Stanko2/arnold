@@ -8,14 +8,14 @@
       id="noveRiesenie"
       size="lg"
       title="Pridať nové riešenie"
-      @ok="pridajRiesenia"
       :ok-disabled="noveRiesenia.length == 0"
+      @ok="pridajRiesenia"
     >
       <b-form-file
-        accept=".pdf"
-        multiple
         id="rieseniaInput"
         v-model="noveRiesenia"
+        accept=".pdf"
+        multiple
         :file-name-formatter="formatNames"
       />
     </b-modal>
@@ -23,8 +23,8 @@
 </template>
 
 <script lang="ts">
-import {Database} from '@/Db';
-import {activeParser, AddDocument, Documents} from '@/Documents/DocumentManager';
+import { Database } from '@/Db';
+import { activeParser, AddDocument, Documents } from '@/Documents/DocumentManager';
 import Vue from 'vue'
 import Component from 'vue-class-component';
 

@@ -1,128 +1,144 @@
 <template>
-    <div cols="7" class="tool-controls">
-      <div class="" v-if="selectedOptions.hasText">
-        <b-dropdown :text="selectedTool.defaultOptions.fontFamily">
-          <b-dropdown-item
-            v-for="font in fonts"
-            :key="font.viewport"
-            :style="{ 'font-family': font.viewport }"
-            @click.native="
-              selectedTool.defaultOptions.fontFamily = font.viewport
-            "
-            >{{ font.viewport }}</b-dropdown-item
-          >
-        </b-dropdown>
-      </div>
-      <div class="form-inline" v-if="selectedOptions.hasText">
-        <p class="d-flex align-items-center">Veľkosť písma</p>
-        <input
-          type="number"
-          class="form-control"
-          min="0"
-          style="width: 100px"
-          v-model.number="selectedTool.defaultOptions.fontSize"
-        />
-      </div>
-      <div v-if="selectedOptions.hasStrokeWidth">
-        <p>Hrúbka čiary</p>
-        <input
-          class=""
-          min="1"
-          style="width: 100px"
-          type="range"
-          max="20"
-          v-model.number="selectedTool.defaultOptions.strokeWidth"
-        />
-        {{ selectedTool.defaultOptions.strokeWidth || 0 }}
-      </div>
-      <div v-if="selectedOptions.hasFill">
-        <color-picker
-          name="fill"
-          v-model="selectedTool.defaultOptions.fill"
-          :value="selectedTool.defaultOptions.fill"
-        ><span class="material-icons d-block">format_color_fill</span></color-picker>
-      </div>
-      <div v-if="selectedOptions.hasStroke">
-        <color-picker
-          name="stroke"
-          v-model="selectedTool.defaultOptions.stroke"
-          :value="selectedTool.defaultOptions.stroke"
-        ><span class="material-icons d-block">gesture</span></color-picker>
-      </div>
-      <div v-if="selectedTool.name == 'Photo'">
-        <b-button variant="primary" @click="openImageModal">
-          <span class="material-icons d-block">add_photo_alternate</span></b-button
-        >
-        <b-dropdown :text="getImageDropdownText()" class="dropdown">
-          <b-dropdown-item
-            v-for="image in images"
-            :key="image.id"
-            @click.native="selectedTool.defaultOptions.image = image.id"
-            >{{ image.name }}</b-dropdown-item
-          >
-        </b-dropdown>
-      </div>
-      <div v-if="selectedTool.name == 'Sign'">
-        <b-button variant="primary" @click="openSignModal" class="w-auto p-2"
-          >Otvoriť menu s podpismi</b-button
-        >
-        <b-dropdown :text="getSignDropdownText()" class="dropdown">
-          <b-dropdown-item
-            v-for="sign in signatures"
-            :key="sign.id"
-            @click.native="selectedTool.defaultOptions.sign = sign.id"
-            >{{ sign.name }}</b-dropdown-item
-          >
-          <b-dropdown-item v-if="signatures.length == 0" disabled>
-            Nie je nastavený žiaden podpis, pridaj aspoň jeden
-          </b-dropdown-item>
-        </b-dropdown>
-      </div>
-      <b-modal
-        ref="imageMenu"
-        centered
-        title="Obrázky"
-        size="lg"
-        @ok="imageModalAccepted"
+  <div
+    cols="7"
+    class="tool-controls"
+  >
+    <text-settings
+      v-if="selectedOptions.hasText"
+      :key="selectedTool.name"
+      :selected-tool="selectedTool"
+    />
+    <div v-if="selectedOptions.hasStrokeWidth">
+      <p>Hrúbka čiary</p>
+      <input
+        v-model.number="selectedTool.defaultOptions.strokeWidth"
+        class=""
+        min="1"
+        style="width: 100px"
+        type="range"
+        max="20"
       >
-        <image-modal ref="imageModal"></image-modal>
-      </b-modal>
-      <b-modal
-        ref="signMenu"
-        centered
-        title="Podpisy"
-        size="lg"
-        @ok="signModalAccepted"
-      >
-        <sign-modal :signs="getSigns" ref="signModal"></sign-modal>
-      </b-modal>
+      {{ selectedTool.defaultOptions.strokeWidth || 0 }}
     </div>
+    <div v-if="selectedOptions.hasFill">
+      <color-picker
+        v-model="selectedTool.defaultOptions.fill"
+        name="fill"
+        :value="selectedTool.defaultOptions.fill"
+      >
+        <span class="material-icons d-block">format_color_fill</span>
+      </color-picker>
+    </div>
+    <div v-if="selectedOptions.hasStroke">
+      <color-picker
+        v-model="selectedTool.defaultOptions.stroke"
+        name="stroke"
+        :value="selectedTool.defaultOptions.stroke"
+      >
+        <span class="material-icons d-block">gesture</span>
+      </color-picker>
+    </div>
+    <div v-if="selectedTool.name == 'Photo'">
+      <tool-button
+        id="photoButton"
+        variant="secondary"
+        icon="add_photo_alternate"
+        :outline="true"
+        tooltip="Pridať obrázky"
+        @click="openImageModal"
+      />
+      <b-dropdown
+        :text="getImageDropdownText()"
+        class="dropdown"
+      >
+        <b-dropdown-item
+          v-for="image in images"
+          :key="image.id"
+          @click.native="selectedTool.defaultOptions.image = image.id"
+        >
+          {{ image.name }}
+        </b-dropdown-item>
+      </b-dropdown>
+    </div>
+    <div v-if="selectedTool.name == 'Sign'">
+      <b-button
+        variant="primary"
+        class="w-auto p-2"
+        @click="openSignModal"
+      >
+        Otvoriť menu s podpismi
+      </b-button>
+      <b-dropdown
+        :text="getSignDropdownText()"
+        class="dropdown"
+      >
+        <b-dropdown-item
+          v-for="sign in signatures"
+          :key="sign.id"
+          @click.native="selectedTool.defaultOptions.sign = sign.id"
+        >
+          {{ sign.name }}
+        </b-dropdown-item>
+        <b-dropdown-item
+          v-if="signatures.length == 0"
+          disabled
+        >
+          Nie je nastavený žiaden podpis, pridaj aspoň jeden
+        </b-dropdown-item>
+      </b-dropdown>
+    </div>
+    <b-modal
+      ref="imageMenu"
+      centered
+      title="Obrázky"
+      size="lg"
+      @ok="imageModalAccepted"
+    >
+      <image-modal ref="imageModal" />
+    </b-modal>
+    <b-modal
+      ref="signMenu"
+      centered
+      title="Podpisy"
+      size="lg"
+      @ok="signModalAccepted"
+    >
+      <sign-modal
+        ref="signModal"
+        :signs="getSigns"
+      />
+    </b-modal>
+  </div>
 </template>
 
 <script lang="ts">
-import {ITemplate, Tool, ToolOptions} from '@/@types';
-import {Database} from '@/Db';
-import {getViewedDocument} from '@/Documents/DocumentManager';
-import {BModal} from 'bootstrap-vue';
+import { ITemplate, Tool, ToolOptions } from '@/@types';
+import { Database } from '@/Db';
+import { getViewedDocument } from '@/Documents/DocumentManager';
+import { BModal } from 'bootstrap-vue';
 import Vue from 'vue'
 import Component from 'vue-class-component';
-import {Prop, Watch} from 'vue-property-decorator';
+import { Prop, Watch } from 'vue-property-decorator';
 import ColorPicker from '../ColorPicker.vue';
-import {FontsAvailable} from '../Fonts';
-import {PDFdocument} from '../PDFdocument';
+import { FontsAvailable } from '../Fonts';
+import { PDFdocument } from '../PDFdocument';
 import ImageModal from './ImageModal.vue';
 import SignModal from './SignModal.vue';
+import TextSettings from './TextSettings.vue';
+import ToolButton from './Toolbutton.vue';
 
 @Component({
   components: {
     ColorPicker,
     SignModal,
-    ImageModal
+    ImageModal,
+    TextSettings,
+    ToolButton
   },
 })
 export default class ToolSettings extends Vue {
   @Prop({required: true})
-  selectedTool!: Tool;
+  selectedTool!: Tool<fabric.IObjectOptions>;
   @Prop({required: true})
   selectedOptions!: ToolOptions;
   fonts = FontsAvailable;
@@ -148,7 +164,7 @@ export default class ToolSettings extends Vue {
   onOptionsChanged() {
     if (
       this.selectedTool.name == "Select" &&
-      this.selectedTool.defaultOptions
+    this.selectedTool.defaultOptions
     ) {
       if (PDFdocument.activeObject != null) {
         if (PDFdocument.activeObject.type == "group") {

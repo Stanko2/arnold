@@ -1,68 +1,88 @@
 <template>
   <div class="toolbar">
-    <div cols="3" class="d-flex p-0">
-      <div :key="tool.name" v-for="tool in tools">
-        <button
+    <div
+      cols="3"
+      class="d-flex p-0"
+    >
+      <div
+        v-for="tool in tools"
+        :key="tool.name"
+      >
+        <tool-button
           :id="tool.name"
-          class="btn"
-          :class="{
-            'btn-primary': selectedTool.name == tool.name,
-            'btn-outline-primary': selectedTool.name != tool.name,
-          }"
+          :icon="tool.icon"
+          :outline="selectedTool.name != tool.name"
+          :tooltip="tool.tooltip + '(' + tool.shortcut + ')'"
+          variant="primary"
           @click="select(tool)"
-        >
-          <span class="material-icons d-block">{{ tool.icon }}</span>
-        </button>
-        <b-tooltip :target="tool.name" triggers="hover">
-          {{ tool.tooltip }} ({{ tool.shortcut }})
-        </b-tooltip>
+        />
       </div>
     </div>
-    <tool-settings :selectedOptions="selectedOptions" :selectedTool="selectedTool" class="d-xl-flex d-none" />
-    <div cols="2" class="right-controls">
-      <div :key="util.name" v-for="util in utils">
-        <button
-            :id="util.name"
-            class="btn"
-            :class="util.style"
-            @click="useUtil(util)"
-        >
-          <span class="material-icons d-block">{{ util.icon }}</span>
-        </button>
-        <b-tooltip :target="util.name" triggers="hover">
-          {{ util.tooltip }} ({{ util.shortcut }})
-        </b-tooltip>
+    <tool-settings
+      :selected-options="selectedOptions"
+      :selected-tool="selectedTool"
+      class="d-xl-flex d-none"
+    />
+    <div
+      cols="2"
+      class="right-controls"
+    >
+      <div
+        v-for="util in utils"
+        :key="util.name"
+      >
+        <tool-button
+          :id="util.name"
+          class="btn"
+          :variant="util.style"
+          :icon="util.icon"
+          :outline="true"
+          :tooltip="util.tooltip + '(' + util.shortcut + ')'"
+          @click="useUtil(util)"
+        />
       </div>
-      <button
+      <tool-button
         id="zoomInButton"
-        class="btn btn-outline-primary"
+        icon="add"
+        :outline="true"
+        tooltip="Priblížiť"
         @click="eventHub.$emit('viewport:scale', 0.1)"
-      >
-        <span class="material-icons d-block">add</span>
-      </button>
-      <button
+      />
+      <tool-button
         id="zoomOutButton"
-        class="btn btn-outline-primary"
+        icon="remove"
+        :outline="true"
+        tooltip="Oddialiť"
         @click="eventHub.$emit('viewport:scale', -0.1)"
-      >
-        <span class="material-icons d-block">remove</span>
-      </button>
-      <b-button id="repairButton" @click="$refs.repairTool.Open()">
-        <span class="material-icons d-block">build</span>
-      </b-button>
+      />
+      <tool-button
+        id="repairButton"
+        icon="build"
+        variant="secondary"
+        :outline="false"
+        tooltip="Opraviť zle nahraté PDFko (pridať prázdnu stranu a otočiť obrázky)"
+        @click="$refs.repairTool.Open()"
+      />
       <pdf-repairer ref="repairTool" />
-      <b-tooltip target="zoomOutButton" triggers="hover"> Oddialiť </b-tooltip>
-      <b-tooltip target="zoomInButton" triggers="hover"> Priblížiť </b-tooltip>
-      <b-tooltip target="repairButton" triggers="hover">
-        Otočiť obrázky alebo pridať prázdnu stranu
-      </b-tooltip>
-      <!-- <b-tooltip target="rotateButton" triggers="hover"> Otocit </b-tooltip> -->
-      <b-button class="d-xl-none" @click="optionsMenuExpanded = !optionsMenuExpanded">
+
+      <tool-button
+        id="collapseButton"
+        class="d-xl-none"
+        :icon="optionsMenuExpanded ? 'expand_less' : 'expand_more'"
+        variant="secondary"
+        @click="optionsMenuExpanded = !optionsMenuExpanded"
+      >
         <span class="material-icons d-block">{{ optionsMenuExpanded ? 'expand_less' : 'expand_more' }}</span>
-      </b-button>
+      </tool-button>
     </div>
-    <div class="toolSettingsSm" v-if="optionsMenuExpanded">
-      <tool-settings :selectedOptions="selectedOptions" :selectedTool="selectedTool"/>
+    <div
+      v-if="optionsMenuExpanded"
+      class="toolSettingsSm"
+    >
+      <tool-settings
+        :selected-options="selectedOptions"
+        :selected-tool="selectedTool"
+      />
     </div>
   </div>
 </template>
@@ -77,11 +97,13 @@ import {Component} from "vue-property-decorator";
 import Vue from "vue";
 import {Tool, Util} from "@/@types";
 import ToolSettings from "./ToolSettings.vue";
+import ToolButton from "./Toolbutton.vue";
 
 @Component({
   components: {
     PdfRepairer,
-    ToolSettings
+    ToolSettings,
+    ToolButton
   },
 })
 export default class Toolbar extends Vue {
@@ -95,6 +117,8 @@ export default class Toolbar extends Vue {
   }
 
   mounted() {
+    console.log(this.tools[0].name);
+
     this.eventHub.$emit("tool:init", this);
     Canvas.toolbarRef = this;
 
@@ -128,7 +152,7 @@ export default class Toolbar extends Vue {
       })
   }
 
-  select(tool: Tool) {
+  select(tool: Tool<fabric.IObjectOptions>) {
     this.selectedTool = tool;
     this.eventHub.$emit("tool:select", tool);
   }
@@ -150,22 +174,17 @@ $toolbar-height: 60px;
   display: flex;
   flex-wrap: wrap;
   justify-content: left;
+  align-items: center;
   // overflow-x: auto;
   height: $toolbar-height;
 }
-.btn {
-  margin: 0 2px;
-  width: 2.8rem;
-  height: 2.8rem;
-  padding: 0;
-}
-
 .right-controls {
   display: flex;
   flex-direction: row;
   margin-left:auto;
   justify-content: flex-end;
   padding: 0;
+  align-items: center;
 }
 .toolSettingsSm {
   position: absolute;
