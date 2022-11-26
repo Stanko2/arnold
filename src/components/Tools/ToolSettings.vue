@@ -164,7 +164,7 @@ export default class ToolSettings extends Vue {
   onOptionsChanged() {
     if (
       this.selectedTool.name == "Select" &&
-      this.selectedTool.defaultOptions
+    this.selectedTool.defaultOptions
     ) {
       if (PDFdocument.activeObject != null) {
         if (PDFdocument.activeObject.type == "group") {
@@ -172,7 +172,6 @@ export default class ToolSettings extends Vue {
             obj.set(this.selectedTool.defaultOptions);
           });
         }
-        console.log(this.selectedTool.defaultOptions);
         PDFdocument.activeObject.set(this.selectedTool.defaultOptions);
         try {
           PDFdocument.activeObject.canvas?.renderAll();
