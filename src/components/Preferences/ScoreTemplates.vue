@@ -3,7 +3,7 @@
     <h4 class="text-center mb-3">
       Bodovacie podpisy a obrázky
     </h4>
-    <div 
+    <div
       v-if="templates.length > 0"
       class="card"
     >
@@ -12,39 +12,39 @@
           <h6>Body</h6>
         </b-col>
         <b-col class="text-center p-2">
-          <h6>Template</h6>
+          <h6>Obrázok / Podpis</h6>
         </b-col>
       </b-row>
-      <b-row 
-        v-for="(entry, i) in scoreEntries" 
+      <b-row
+        v-for="(entry, i) in scoreEntries"
         :key="i"
         class="mr-1 ml-1 p-0"
       >
         <b-col class="border-right p-1">
-          <b-form-input 
-            v-model.number="entry.points" 
+          <b-form-input
+            v-model.number="entry.points"
             type="number"
-            min="0" 
+            min="0"
             step="0.5"
             style="width: 60px"
             :state="isValid(i)"
           />
         </b-col>
         <b-col class="p-1 d-flex justify-content-between">
-          <b-dropdown 
+          <b-dropdown
             right
             :text="entry.template.name"
           >
-            <b-dropdown-item 
-              v-for="template in templates" 
+            <b-dropdown-item
+              v-for="template in templates"
               :key="template.id"
               @click="entry.template = template"
             >
               {{ template.name }}
             </b-dropdown-item>
           </b-dropdown>
-          <b-button 
-            variant="danger" 
+          <b-button
+            variant="danger"
             @click="scoreEntries.splice(i,1)"
           >
             <span class="material-icons d-block">delete</span>
@@ -58,23 +58,23 @@
         <span class="material-icons d-block">add</span>
       </b-button>
     </div>
-    <b-alert 
+    <b-alert
       v-else
-      variant="danger" 
-      show 
+      variant="danger"
+      show
       class="text-center"
     >
-      <p>Importuj obrázky ak chceš ich pridávať pri bodovaní</p>
+      <p>Importuj obrázky ak ich chceš pridávať pri bodovaní</p>
     </b-alert>
   </div>
 </template>
 
 <script lang="ts">
-import { ITemplate } from '@/@types';
-import { Database } from '@/Db';
+import {ITemplate} from '@/@types';
+import {Database} from '@/Db';
 import Vue from 'vue'
 import Component from 'vue-class-component';
-import { Watch } from 'vue-property-decorator';
+import {Watch} from 'vue-property-decorator';
 
 interface ScoreEntry {
     points: number;
@@ -108,7 +108,7 @@ export default class ScoreTemplates extends Vue {
       const template = this.templates.find(t=> t.id == entry.id);
       if(!template) continue;
       this.scoreEntries.push({
-        points: entry.points, 
+        points: entry.points,
         template
       })
     }

@@ -7,7 +7,7 @@
     no-close-on-backdrop
   >
     <p>
-      Nie je miesto na Komentár, alebo pdfko je divne otočené? Tu to vieš vyriešiť.
+      Nie je miesto na komentár, alebo pdfko je divne otočené? Tu to vieš vyriešiť.
       <br>
       Otáčanie strán je dostupné len pri riešeniach, kde sú len obrázky.
     </p>
@@ -110,13 +110,13 @@
 </template>
 
 <script lang="ts">
-import { Database } from "@/Db";
-import { getViewedDocument } from "@/Documents/DocumentManager";
-import { BCard, BModal } from "bootstrap-vue";
-import { fabric } from "fabric";
+import {Database} from "@/Db";
+import {getViewedDocument} from "@/Documents/DocumentManager";
+import {BCard, BModal} from "bootstrap-vue";
+import {fabric} from "fabric";
 import Vue from "vue";
 import Component from "vue-class-component";
-import { AddTrailingPage, ExtractImages, GeneratePDF, GetA4Dimensions, PDFImage } from "./PdfModifier";
+import {AddTrailingPage, ExtractImages, GeneratePDF, GetA4Dimensions, PDFImage} from "./PdfModifier";
 
 @Component
 export default class PDFRepairer extends Vue {

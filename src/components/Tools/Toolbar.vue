@@ -60,7 +60,7 @@
         icon="build"
         variant="secondary"
         :outline="false"
-        tooltip="Opraviť zle nahraté PDFko (pridať prázdnu stranu a otočiť obrázky)"
+        tooltip="Otočiť obrázky alebo pridať prázdnu stranu"
         @click="$refs.repairTool.Open()"
       />
       <pdf-repairer ref="repairTool" />

@@ -85,7 +85,7 @@
                 class="setting"
               >
                 <b-col align-self="center">
-                  Veľkosť Písma
+                  Veľkosť písma
                 </b-col>
                 <b-col align-self="center">
                   <input
@@ -254,19 +254,14 @@
 
 <script lang="ts">
 import Vue from "vue";
-import { tools } from "../Tools/Tool";
-import { FontsAvailable } from "../Fonts";
+import {tools} from "../Tools/Tool";
+import {FontsAvailable} from "../Fonts";
 import ColorPicker from "../ColorPicker.vue";
 import Component from "vue-class-component";
 import ShortcutHelpModal from "./ShortcutHelpModal.vue";
-import {
-  OthersCategory,
-  SettingsCategory,
-  ShortcutCategory,
-  ToolsCategory,
-} from "@/@types";
-import { Settings } from "@/@types/Preferences";
-import { nameMap } from "@/Mixins/Keybindings.vue"
+import {OthersCategory, SettingsCategory, ShortcutCategory, ToolsCategory,} from "@/@types";
+import {Settings} from "@/@types/Preferences";
+import {nameMap} from "@/Mixins/Keybindings.vue"
 import ScoreTemplates from "./ScoreTemplates.vue";
 
 @Component({
