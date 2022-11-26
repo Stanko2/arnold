@@ -83,7 +83,7 @@
           v-if="signatures.length == 0"
           disabled
         >
-          Nie je nastavený žiaden podpis, pridaj si aspoň jeden
+          Nie je nastavený žiaden podpis, pridaj aspoň jeden
         </b-dropdown-item>
       </b-dropdown>
     </div>
@@ -108,7 +108,7 @@
         :signs="getSigns"
       />
     </b-modal>
-  </div>    
+  </div>
 </template>
 
 <script lang="ts">
@@ -207,7 +207,7 @@ export default class ToolSettings extends Vue {
     return (
       this.signatures.find(
         (e) => e.id == (this.selectedTool.defaultOptions as any).sign
-      )?.name || "Vyber Podpis"
+      )?.name || "Vyber podpis"
     );
   }
 
@@ -218,7 +218,7 @@ export default class ToolSettings extends Vue {
       )?.name || "Vyber obrázok"
     );
   }
-  
+
   getSigns() {
     return new Promise<ITemplate[]>((resolve, reject) => {
       Database.getAllTemplates()

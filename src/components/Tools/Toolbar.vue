@@ -60,11 +60,11 @@
         icon="build"
         variant="secondary"
         :outline="false"
-        tooltip="Opraviť zle nahraté PDFko (pridať prázdnu stranu a otočiť obrázky)"
+        tooltip="Otočiť obrázky alebo pridať prázdnu stranu"
         @click="$refs.repairTool.Open()"
       />
       <pdf-repairer ref="repairTool" />
-      
+
       <tool-button
         id="collapseButton"
         class="d-xl-none"
@@ -118,10 +118,10 @@ export default class Toolbar extends Vue {
 
   mounted() {
     console.log(this.tools[0].name);
-    
+
     this.eventHub.$emit("tool:init", this);
     Canvas.toolbarRef = this;
-   
+
     for (const tool of tools) {
       this.eventHub.$on(`shortcut:${tool.name}`, () => this.select(tool));
     }
@@ -145,7 +145,7 @@ export default class Toolbar extends Vue {
     if(util.name == 'copy' && objects)
       this.$bvToast.toast(`Skopírovaných ${objects.length} objektov`, {
         variant: 'success',
-        autoHideDelay: 50000,
+        autoHideDelay: 3000,
         title: 'Skopírované',
         appendToast: true,
         toaster: 'b-toaster-top-left'

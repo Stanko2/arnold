@@ -32,7 +32,7 @@
       target="downloadAll"
       placement="right"
     >
-      Stiahne len obodované riešenia - pripravené na upload na stránky
+      Stiahne len obodované riešenia - pripravené pre nahratie na stránky
     </b-tooltip>
     <b-tooltip
       triggers="hover"

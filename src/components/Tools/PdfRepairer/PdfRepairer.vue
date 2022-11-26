@@ -7,9 +7,9 @@
     no-close-on-backdrop
   >
     <p>
-      Nie je miesto na Komentár, alebo pdfko je divne otočené? Tu to vieš vyriešiť.
+      Nie je miesto na komentár, alebo pdfko je divne otočené? Tu to vieš vyriešiť.
       <br>
-      Rotovanie je ale dostupné len pri riešeniach, kde sú len obrázky.
+      Otáčanie strán je dostupné len pri riešeniach, kde sú len obrázky.
     </p>
     <div v-if="ImageSources">
       <b-button
@@ -29,7 +29,7 @@
             variant="warning"
           >
             <p>
-              Otáčaj, len ak riešenie obsahuje iba fotky, inak prídeš o všetok text, ktorý v ňom bol!<br>
+              Otáčaj, len ak riešenie obsahuje iba fotky, inak prídeš o všetok text a zmeny, ktorý v ňom boli!<br>
               Riešenie otočíš kliknutím na obrázok nižšie a otočenie uložíš stlačením <b>Vygeneruj</b>.
             </p>
           </b-alert>
@@ -72,7 +72,7 @@
       variant="primary"
       block
     >
-      Nová Strana
+      Nová strana
     </b-button>
     <b-collapse id="new-page">
       <b-card>
@@ -110,13 +110,13 @@
 </template>
 
 <script lang="ts">
-import { Database } from "@/Db";
-import { getViewedDocument } from "@/Documents/DocumentManager";
-import { BCard, BModal } from "bootstrap-vue";
-import { fabric } from "fabric";
+import {Database} from "@/Db";
+import {getViewedDocument} from "@/Documents/DocumentManager";
+import {BCard, BModal} from "bootstrap-vue";
+import {fabric} from "fabric";
 import Vue from "vue";
 import Component from "vue-class-component";
-import { AddTrailingPage, ExtractImages, GeneratePDF, GetA4Dimensions, PDFImage } from "./PdfModifier";
+import {AddTrailingPage, ExtractImages, GeneratePDF, GetA4Dimensions, PDFImage} from "./PdfModifier";
 
 @Component
 export default class PDFRepairer extends Vue {
@@ -157,7 +157,7 @@ export default class PDFRepairer extends Vue {
     if (!doc) return;
 
     if (this.rotated) {
-      this.$bvModal.msgBoxConfirm('Ak upravíš toto PDFko, tak stratíš všetky zmeny v ňom urobené', {
+      this.$bvModal.msgBoxConfirm('Ak upravíš toto PDFko, tak stratíš všetky zmeny ktoré v ňom boli urobené', {
         title: 'Upraviť PDFko?',
       }).then((val) => {
         if (!val) return;
@@ -182,7 +182,7 @@ export default class PDFRepairer extends Vue {
 
   generationFinished() {
     this.busy = false;
-    this.$bvToast.toast('PDFko bolo úspešne upravené. Refreshni stránku (F5) na zobrazenie', {
+    this.$bvToast.toast('PDFko bolo úspešne upravené. Obnov stránku (F5) na zobrazenie', {
       title: 'PDFko upravené',
       variant: 'success',
       solid: true,

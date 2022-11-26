@@ -42,7 +42,7 @@
       variant="warning"
     >
       Pri takýchto vysokých počtoch riešení som nestabilný a spomalený. Prosím
-      otvor radšej menej kategórii naraz a potom sa možeš prepnúť cez túto
+      otvor radšej menej kategórii naraz a potom ich môžeš prepnúť cez túto
       stránku.
     </b-alert>
     <b-card
@@ -88,7 +88,7 @@
           </b-list-group-item>
         </b-list-group>
         <p>
-          Vybraté {{ categories[problem].filter((e) => e.enabled).length }} kategórie,
+          Vybrané {{ categories[problem].filter((e) => e.enabled).length }} kategórie,
           dokopy
           {{ getDocumentCount() }}
           riešení
@@ -133,12 +133,12 @@
 </template>
 
 <script lang="ts">
-import { Database } from "@/Db";
+import {Database} from "@/Db";
 import Vue from "vue";
-import { loadFromDatabase } from "../Documents/DocumentManager";
-import { readZip } from "../Documents/Serializer";
-import { Document, DocumentParser } from "@/@types";
-import { PMatParser } from "@/Documents/DocumentParser";
+import {loadFromDatabase} from "../Documents/DocumentManager";
+import {readZip} from "../Documents/Serializer";
+import {Document, DocumentParser} from "@/@types";
+import {PMatParser} from "@/Documents/DocumentParser";
 import Component from "vue-class-component";
 import Changelog from "@/components/Changelog.vue";
 
@@ -202,8 +202,8 @@ export default class Home extends Vue {
   }
   async start() {
     const file = this.fileInput;
-    
-    
+
+
     if (file != null) {
       this.fileName = file["name"];
       this.hasFile = true;
@@ -256,9 +256,9 @@ export default class Home extends Vue {
         if (!isPersisted) {
           navigator.storage.persist().then((accepted) => {
             if (!accepted) {
-              this.$bvModal.msgBoxOk(`Nepodarilo sa mi dostať povolenie na persistentné ukladanie riešení na disku. 
-                V prípade málo miesta môžu byť rozopravované riešenia zmazané bez upozornenia. 
-                Ak si v Chrome, uisti sa, že som nainštalovaný, mám povolené notifikácie a som pridaný do bookmarkov.
+              this.$bvModal.msgBoxOk(`Nepodarilo sa mi dostať povolenie na persistentné ukladanie riešení na disku.
+                V prípade málo miesta môžu byť rozopravované riešenia zmazané bez upozornenia.
+                Ak si v Chrome, uisti sa, že som nainštalovaný, mám povolené notifikácie a som pridaný do záložiek.
                 Ak si vo Firefoxe, tak si mi nepovolil persistent storage.`, {
                 okVariant: 'warning'
               });

@@ -1,11 +1,11 @@
-import { fabric } from "fabric";
-import { EllipseAnnotation, ImageAnnotation, LineAnnotation, RectAnnotation, TextAnnotation } from "@/Annotation";
-import { PDFdocument } from "../PDFdocument";
-import { getViewedDocument } from '@/Documents/DocumentManager';
+import {fabric} from "fabric";
+import {EllipseAnnotation, ImageAnnotation, LineAnnotation, RectAnnotation, TextAnnotation} from "@/Annotation";
+import {PDFdocument} from "../PDFdocument";
+import {getViewedDocument} from '@/Documents/DocumentManager';
 import Vue from "vue";
-import { Database } from "@/Db";
+import {Database} from "@/Db";
 import eventHub from "@/Mixins/EventHub";
-import type { Tool } from "@/@types";
+import type {Tool} from "@/@types";
 import store from '@/Store';
 import { ToolSettings, Settings } from '@/@types/Preferences';
 import { Canvas } from '../../Canvas';
@@ -90,7 +90,7 @@ export const tools: Tool<fabric.IObjectOptions>[] = [
         name: 'Draw',
         cursor: 'pointer',
         icon: 'brush',
-        tooltip: 'Kreslit',
+        tooltip: 'Kreslenie',
         defaultOptions: {
             stroke: '#000000',
             strokeWidth: 10,
@@ -120,7 +120,7 @@ export const tools: Tool<fabric.IObjectOptions>[] = [
         name: 'Photo',
         cursor: 'pointer',
         icon: 'image',
-        tooltip: 'Pridat peciatku',
+        tooltip: 'Pridať pečiatku',
         shortcut: 'e',
         defaultOptions: { name: '', image: '' },
         click: async (pdf: PDFdocument, page: number, position: { x: number; y: number; }): Promise<fabric.Object> => {
@@ -145,7 +145,7 @@ export const tools: Tool<fabric.IObjectOptions>[] = [
         name: 'Arrow',
         cursor: 'pointer',
         icon: 'north_east',
-        tooltip: 'Pridat sipku',
+        tooltip: 'Pridať šípku',
         shortcut: 'r',
         defaultOptions: {
             stroke: '#000000',
@@ -156,7 +156,7 @@ export const tools: Tool<fabric.IObjectOptions>[] = [
             (selectedTool.defaultOptions as fabric.ILineOptions).y2 = position.y;
             delete selectedTool.defaultOptions.top;
             delete selectedTool.defaultOptions.left;
-            
+
             const annot = new LineAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
             // selectTool(tools[7]);
@@ -174,7 +174,7 @@ export const tools: Tool<fabric.IObjectOptions>[] = [
         name: 'Circle',
         cursor: 'pointer',
         icon: 'circle',
-        tooltip: 'Pridat kruh / elipsu',
+        tooltip: 'Pridať kruh / elipsu',
         shortcut: 't',
         defaultOptions: <fabric.IEllipseOptions>{
             stroke: '#000000',
@@ -201,7 +201,7 @@ export const tools: Tool<fabric.IObjectOptions>[] = [
         name: 'Rect',
         cursor: 'pointer',
         icon: 'crop_3_2',
-        tooltip: 'Pridat obdlznik',
+        tooltip: 'Pridať obdĺžnik',
         defaultOptions: <fabric.IObjectOptions>{
             width: 30,
             height: 30,
@@ -226,7 +226,7 @@ export const tools: Tool<fabric.IObjectOptions>[] = [
         name: 'Sign',
         cursor: 'pointer',
         icon: 'edit',
-        tooltip: 'Pridat podpis',
+        tooltip: 'Pridať podpis',
         shortcut: 'u',
         defaultOptions: {},
         click: async (pdf: PDFdocument, page: number, position: { x: number, y: number }): Promise<fabric.Group> => {
@@ -265,7 +265,7 @@ export const tools: Tool<fabric.IObjectOptions>[] = [
         name: 'Select',
         cursor: 'pointer',
         icon: 'select_all',
-        tooltip: 'Vybrat objekty',
+        tooltip: 'Vybrať objekty',
         defaultOptions: {},
         onSelect: () => {
             selectedTool.defaultOptions = {}

@@ -30,7 +30,7 @@
           target="expand"
           triggers="hover"
         >
-          Dalšie možnosti hľadania
+          Ďalšie možnosti hľadania
         </b-tooltip>
       </b-input-group-append>
     </b-input-group>
@@ -123,11 +123,11 @@ export default class SearchBar extends Vue {
   mounted() {
     this.categories = JSON.parse(localStorage.getItem("categories") || "[]");
     this.categoriesVisible = this.categories.map(() => true);
-    
+
     // @ts-ignore
     const filter: string = this.$route.query.filter ?? '';
     console.log(this.$route.query);
-    
+
     setTimeout(() => {
       if(filter != ''){
         this.currQuery = filter
@@ -139,7 +139,7 @@ export default class SearchBar extends Vue {
   search() {
     const onlyLettersRegex = /[a-z]+/gi;
     const query = this.searchStr.match(onlyLettersRegex)?.join("").toLowerCase() || "";
-    
+
     this.eventHub.$emit(
       "editor:search",
       query,
@@ -162,7 +162,7 @@ export default class SearchBar extends Vue {
     catch(e){
       this.tagValid = false;
       console.log(e);
-      
+
     }
   }
   getContrastColor(color: string) {

@@ -1,9 +1,9 @@
 <template>
   <b-row>
-    <b-col 
-      v-if="scoringChartData" 
+    <b-col
+      v-if="scoringChartData"
       class="d-flex"
-      cols="8" 
+      cols="8"
     >
       <pie-chart
         class="pie-chart"
@@ -11,14 +11,14 @@
         :options="scoringChartData.chartOptions"
       />
       <div class="d-flex flex-column justify-content-center ml-2">
-        <div 
-          v-for="(item, i) in scoringChartData.chartData.datasets[0].data" 
-          :key="i" 
+        <div
+          v-for="(item, i) in scoringChartData.chartData.datasets[0].data"
+          :key="i"
           class="d-flex align-items-center"
         >
-          <span 
+          <span
             :style="{ 'background-color': scoringChartData.chartData.datasets[0].backgroundColor[i] }"
-            class="legend-badge" 
+            class="legend-badge"
           />
           {{ scoringChartData.chartData.labels[i] }}
         </div>
@@ -73,14 +73,14 @@ export default class ScoringChart extends Vue {
           uscores[`${doc.scoring.points}B`]++;
         else uscores[`${doc.scoring.points}B`] = 1;
       } else {
-        if (uscores["Neobodovane"]) uscores["Neobodovane"]++;
-        else uscores["Neobodovane"] = 1;
+        if (uscores["Neobodované"]) uscores["Neobodované"]++;
+        else uscores["Neobodované"] = 1;
       }
     }
 
     const keys = Object.keys(uscores).sort((a, b) => {
-      if (a === "Neobodovane") return -1;
-      if (b === "Neobodovane") return 1;
+      if (a === "Neobodované") return -1;
+      if (b === "Neobodované") return 1;
 
       const aPoints = parseFloat(a.split("B")[0]);
       const bPoints = parseFloat(b.split("B")[0]);

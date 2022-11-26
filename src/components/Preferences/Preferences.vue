@@ -22,7 +22,9 @@
       <hr>
       <div v-if="selectedCategory.name == 'tools'">
         <b-row class="setting">
-          <b-col>Prvý selectnutý nástroj</b-col>
+          <b-col>Prvý vybraný nástroj<br>
+            <i style="font-size:75%;">Nástroj ktorý sa vyberie pri otvorení Arnolda</i>
+          </b-col>
           <b-col>
             <b-select
               v-model="selectedCategory.settings.defaultTool.value"
@@ -32,7 +34,7 @@
         </b-row>
         <hr>
         <h2 class="text-center m-2">
-          Defaultné nastavenia pre jednotlivé nástroje
+          Predvolené nastavenia pre jednotlivé nástroje
         </h2>
         <div
           v-for="tool in selectedCategory.settings.tools.filter((e) =>
@@ -48,7 +50,7 @@
             {{ shortcutNameMap[tool.name] }}
           </div>
           <transition name="slide">
-            <div 
+            <div
               v-if="tool.expanded"
               class="card-body p-4"
             >
@@ -83,7 +85,7 @@
                 class="setting"
               >
                 <b-col align-self="center">
-                  Veľkosť Písma
+                  Veľkosť písma
                 </b-col>
                 <b-col align-self="center">
                   <input
@@ -158,7 +160,7 @@
       </div>
       <div v-else-if="selectedCategory.name == 'other'">
         <b-row>
-          <b-col>Ukázať preview riešení v ľavej lište</b-col>
+          <b-col>Ukázať náhľad riešení v ľavej lište</b-col>
           <b-col>
             <b-form-checkbox
               v-model="selectedCategory.settings.showPreviews"
@@ -170,7 +172,7 @@
         </b-row>
         <hr>
         <b-row>
-          <b-col>Auto-save riešenia pri prepnutí</b-col>
+          <b-col>Automatické uloženie riešenia pri prepnutí na iné</b-col>
           <b-col>
             <b-form-checkbox
               v-model="selectedCategory.settings.autoSave"
@@ -221,7 +223,7 @@
           variant="info"
           dismissible
         >
-          Chceš vedieť ako nastaviť svoje skratky? klikni
+          Chceš vedieť ako nastaviť svoje skratky? Klikni
           <a
             class="link-primary"
             @click="$refs.shortcutHelp.show()"
@@ -252,19 +254,14 @@
 
 <script lang="ts">
 import Vue from "vue";
-import { tools } from "../Tools/Tool";
-import { FontsAvailable } from "../Fonts";
+import {tools} from "../Tools/Tool";
+import {FontsAvailable} from "../Fonts";
 import ColorPicker from "../ColorPicker.vue";
 import Component from "vue-class-component";
 import ShortcutHelpModal from "./ShortcutHelpModal.vue";
-import {
-  OthersCategory,
-  SettingsCategory,
-  ShortcutCategory,
-  ToolsCategory,
-} from "@/@types";
-import { Settings } from "@/@types/Preferences";
-import { nameMap } from "@/Mixins/Keybindings.vue"
+import {OthersCategory, SettingsCategory, ShortcutCategory, ToolsCategory,} from "@/@types";
+import {Settings} from "@/@types/Preferences";
+import {nameMap} from "@/Mixins/Keybindings.vue"
 import ScoreTemplates from "./ScoreTemplates.vue";
 
 @Component({
@@ -320,11 +317,11 @@ export default class Preferences extends Vue {
           defaultTool: {
             options: [
               { value: 0, text: "Text" },
-              { value: 1, text: "Kreslit" },
-              { value: 3, text: "Sipka" },
-              { value: 5, text: "Obdlznik" },
+              { value: 1, text: "Kreslenie" },
+              { value: 3, text: "Šípka" },
+              { value: 5, text: "Obdĺžnik" },
               { value: 6, text: "Podpis" },
-              { value: 7, text: "Vybrat objekty" },
+              { value: 7, text: "Vybrať objekty" },
             ],
             value: 0,
           },
@@ -333,7 +330,7 @@ export default class Preferences extends Vue {
         name: "tools",
       } as ToolsCategory,
       {
-        text: "Klavesové skratky",
+        text: "Klávesové skratky",
         settings: [
           ...toolsCopy.map((e) => {
             return { name: e.name, shortcut: e.shortcut };
@@ -367,7 +364,7 @@ export default class Preferences extends Vue {
     ];
     this.selectedCategoryIndex = 0;
     this.selectedCategory = this.categories[this.selectedCategoryIndex];
-  } 
+  }
   mounted() {
     const data = localStorage.getItem("preferences");
     if (data) {
@@ -376,7 +373,7 @@ export default class Preferences extends Vue {
         prefs.tools.settings.defaultTool.value;
       Object.assign(this.categories[2].settings, prefs.other.settings);
       Object.assign(this.categories[1].settings, prefs.shortcut.settings);
-      
+
       this.categories[0].settings.tools[
         this.categories[0].settings.tools.length - 1
       ] = prefs.tools.settings.tools.find((e: any) => e.name == "scoring");
@@ -407,7 +404,7 @@ export default class Preferences extends Vue {
 <style scoped lang="scss">
 .colorInput {
   opacity: 0;
-  
+
   &::before {
     display: block;
     background: red;

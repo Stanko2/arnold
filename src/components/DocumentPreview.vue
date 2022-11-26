@@ -1,6 +1,6 @@
 <template>
   <li
-    class="list-group-item"        
+    class="list-group-item"
     :class="{
       'list-group-item-action': !selected,
       selected: selected,
@@ -76,7 +76,7 @@
                   :target="'commentNotDone' + document.id"
                   triggers="hover"
                 >
-                  Toto riesenie ešte nemá komentár
+                  Toto riešenie ešte nemá komentár
                 </b-tooltip>
               </div>
               <div v-else>
@@ -88,7 +88,7 @@
                   :target="'commentDone' + document.id"
                   triggers="hover"
                 >
-                  Toto riesenie už má napísaný komentár
+                  Toto riešenie už má napísaný komentár
                 </b-tooltip>
               </div>
             </b-col>
@@ -160,13 +160,13 @@
 </template>
 
 <script lang="ts">
-import { Database } from "@/Db";
+import {Database} from "@/Db";
 import Color from "color";
 import Vue from "vue";
-import type { Document, Tag } from "@/@types";
+import type {Document, Tag} from "@/@types";
 import Component from "vue-class-component";
-import { getDocument } from "pdfjs-dist";
-import { Prop } from "vue-property-decorator";
+import {getDocument} from "pdfjs-dist";
+import {Prop} from "vue-property-decorator";
 
 @Component
 export default class DocumentPreview extends Vue {
@@ -346,7 +346,7 @@ export default class DocumentPreview extends Vue {
   &.list-group-item-action{
 
     &.opened{
-  
+
       background-color: var(--bg-600) !important;
       color: var(--bg-200) !important;
       &:hover {

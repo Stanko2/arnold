@@ -80,7 +80,7 @@
             v-b-modal.bodovanie
             size="sm"
           >
-            Upraviť Bodovanie
+            Upraviť bodovanie
           </b-button>
           <score-modal />
         </div>
@@ -92,9 +92,9 @@
       style="z-index: 2000;"
       variant="success"
     >
-      <p>Klikni, kam mám pridať body do riešenia.</p> 
-      <b-button 
-        variant="success" 
+      <p>Klikni tam, kam chceš pridať body do riešenia.</p>
+      <b-button
+        variant="success"
         @click="cancelFinalizing()"
       >
         Zrušiť
@@ -107,7 +107,6 @@
 import {Database} from "@/Db";
 import type {Document, IScoring, ScoringCriteria} from "@/@types";
 import Vue from "vue";
-import {TextAnnotation} from "@/Annotation";
 import {PDFdocument} from "../PDFdocument";
 import Component from "vue-class-component";
 import {getViewedDocument} from "@/Documents/DocumentManager";
@@ -162,7 +161,7 @@ $refs!: {
       }
     })
   }
-  
+
   updateCriteria(criteria: ScoringCriteria[]){
     this.pointCriterias = criteria;
     this.acceptedCriteria = this.pointCriterias.map((e) => false);
@@ -196,7 +195,7 @@ $refs!: {
     if (!this.doc || !this.currentScore) return;
     this.currentScore.acceptedCriteria = this.pointCriterias.filter((c,i) => this.acceptedCriteria[i]).map(c => c.id);
     console.log('save');
-    
+
     scorer.saveScoring(this.currentScore);
   }
 
@@ -248,7 +247,7 @@ $refs!: {
   color: whitesmoke;
   border-radius: 0 25px;
   transition: all 0.3s;
-  
+
   h4 {
     position: absolute;
     transform: rotate(-90deg) translate(-60%, 0);

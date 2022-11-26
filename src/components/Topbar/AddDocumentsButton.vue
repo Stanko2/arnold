@@ -1,10 +1,13 @@
 <template>
   <b-nav-item v-b-modal.noveRiesenie>
-    <span>Pridať ďalšie riešenie</span>
+    <span id="addSolution">Pridať ďalšie riešenie</span>
+    <b-tooltip target="addSolution" triggers="hover" placement="bottom">
+      Pridať ďalšie riešenie alebo nahradiť existujúce
+    </b-tooltip>
     <b-modal
       id="noveRiesenie"
       size="lg"
-      title="Pridat nové riešenie"
+      title="Pridať nové riešenie"
       :ok-disabled="noveRiesenia.length == 0"
       @ok="pridajRiesenia"
     >

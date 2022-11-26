@@ -31,19 +31,33 @@
           />
           <button
             :disabled="i == 0"
+            :id="'tagup' + i"
             @click="move(i, false)"
           >
             expand_less
           </button>
           <button
             :disabled="i == availableTags.length - 1"
+            :id="'tagdown' + i"
             @click="move(i, true)"
           >
             expand_more
           </button>
-          <button @click="removeTag(i)">
+          <button
+              :id="'remove' + i"
+              @click="removeTag(i)"
+          >
             close
           </button>
+          <b-tooltip :target="'tagup' + i" placement="top" triggers="hover">
+            Presunúť vyššie
+          </b-tooltip>
+          <b-tooltip :target="'tagdown' + i" placement="top" triggers="hover">
+            Presunúť nižšie
+          </b-tooltip>
+          <b-tooltip :target="'remove' + i" placement="top" triggers="hover">
+            Odstrániť tag
+          </b-tooltip>
         </div>
       </b-list-group-item>
     </b-list-group>
@@ -51,7 +65,7 @@
       block
       @click="addTag()"
     >
-      Pridat novy Tag
+      Pridať nový tag
     </b-button>
   </b-modal>
 </template>

@@ -75,11 +75,11 @@
 
 <script lang="ts">
 import Vue from "vue";
-import { fabric } from "fabric";
-import type { ITemplate } from "@/@types";
-import { Database } from "@/Db";
+import {fabric} from "fabric";
+import type {ITemplate} from "@/@types";
+import {Database} from "@/Db";
 import Component from "vue-class-component";
-import { Prop } from "vue-property-decorator";
+import {Prop} from "vue-property-decorator";
 
 @Component({})
 export default class SignModal extends Vue {
@@ -137,6 +137,7 @@ export default class SignModal extends Vue {
     this.signatures.push({
       id: id,
       hover: false,
+      name: `Podpis ${this.signatures.length + 1}`,
     });
     this.$nextTick().then(() => {
       const cnv = document.getElementById("canvas_" + id) as HTMLCanvasElement;
