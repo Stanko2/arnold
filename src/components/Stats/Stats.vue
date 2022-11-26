@@ -1,18 +1,21 @@
 <template>
   <div class="d-flex flex-column justify-content-around stats-panel">
     <stats-entry
+      :min="0"  
       :max="stats.celkovo"
       :value="stats.otvorene"
       :color="color('#0dcaf0')"
       label="Otvorených"
     />
     <stats-entry
+      :min="0"
       :max="stats.celkovo"
       :value="stats.komentar"
       :color="color('#ffc107')"
       label="Komentár"
     />
     <stats-entry
+      :min="0"
       :max="stats.celkovo"
       :value="stats.obodovane"
       :color="color('#6610f2')"
@@ -25,6 +28,7 @@
       />
     </stats-entry>
     <stats-entry
+      :min="0"
       :max="stats.celkovo"
       :value="stats.hotovo"
       :color="color('#20c997')"
@@ -82,7 +86,6 @@ export default class Stats extends Vue {
     };
   }
   updateScoringData() {
-    console.log('update');
     const Documents = this.$store.state.documents;
     if (this.$refs.scoringChart)
       this.$refs.scoringChart.$emit('statsUpdate', Documents);

@@ -24,6 +24,7 @@
               v-model.number="$data.currentScore.points"
               type="number"
               class="w-50"
+              step="0.5"
               placeholder="Zadaj body ..."
               :disabled="currentScore.final"
               @change="saveScoring"
@@ -146,6 +147,9 @@ $refs!: {
     this.eventHub.$on(
       "editor:documentChanged",
       (pdf: PDFdocument, doc: Document) => {
+        if(this.finalizingScoring){
+          this.cancelFinalizing();
+        }
         setTimeout(() => {
           this.pdf = pdf;
           this.getScoring(doc);
