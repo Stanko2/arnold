@@ -25,6 +25,7 @@
             v-model.number="entry.points" 
             type="number"
             min="0" 
+            step="0.5"
             style="width: 60px"
             :state="isValid(i)"
           />
