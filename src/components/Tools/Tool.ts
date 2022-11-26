@@ -130,7 +130,7 @@ export const tools: Tool<fabric.IObjectOptions>[] = [
             const img = new Image();
             img.src = template.data.img;
             (options as any).image = template.data.img;
-            const annot = new ImageAnnotation(page, options, pdf.pageCanvases[page]);
+            const annot = new ImageAnnotation(page, { ...options, ...template.templateOptions}, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
             return annot.object;
         },
