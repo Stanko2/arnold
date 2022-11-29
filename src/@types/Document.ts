@@ -31,7 +31,7 @@ export interface BackupFile {
 }
 
 export interface IScoring {
-    points: number;
+    points?: number;
     acceptedCriteria: string[];
     final: boolean;
     annotName?: string;

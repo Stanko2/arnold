@@ -1,159 +1,88 @@
 <template>
   <div class="toolbar">
-    <div cols="3" class="d-flex p-0">
-      <div :key="tool.name" v-for="tool in tools">
-        <button
+    <div
+      cols="3"
+      class="d-flex p-0"
+    >
+      <div
+        v-for="tool in tools"
+        :key="tool.name"
+      >
+        <tool-button
           :id="tool.name"
-          class="btn"
-          :class="{
-            'btn-primary': selectedTool.name == tool.name,
-            'btn-outline-primary': selectedTool.name != tool.name,
-          }"
+          :icon="tool.icon"
+          :outline="selectedTool.name != tool.name"
+          :tooltip="tool.tooltip + '(' + tool.shortcut + ')'"
+          variant="primary"
           @click="select(tool)"
-        >
-          <span class="material-icons d-block">{{ tool.icon }}</span>
-        </button>
-        <b-tooltip :target="tool.name" triggers="hover">
-          {{ tool.tooltip }} ({{ tool.shortcut }})
-        </b-tooltip>
-      </div>
-    </div>
-    <div cols="7" class="tool-controls">
-      <div class="" v-if="selectedOptions.hasText">
-        <b-dropdown :text="selectedTool.defaultOptions.fontFamily">
-          <b-dropdown-item
-            v-for="font in fonts"
-            :key="font.viewport"
-            :style="{ 'font-family': font.viewport }"
-            @click.native="
-              selectedTool.defaultOptions.fontFamily = font.viewport
-            "
-            >{{ font.viewport }}</b-dropdown-item
-          >
-        </b-dropdown>
-      </div>
-      <div class="form-inline" v-if="selectedOptions.hasText">
-        <p class="d-flex align-items-center">Veľkosť Písma</p>
-        <input
-          type="number"
-          class="form-control"
-          min="0"
-          style="width: 100px"
-          v-model.number="selectedTool.defaultOptions.fontSize"
         />
       </div>
-      <div v-if="selectedOptions.hasStrokeWidth">
-        <p>Hrúbka čiary</p>
-        <input
-          class=""
-          min="1"
-          style="width: 100px"
-          type="range"
-          max="20"
-          v-model.number="selectedTool.defaultOptions.strokeWidth"
-        />
-        {{ selectedTool.defaultOptions.strokeWidth || 0 }}
-      </div>
-      <div v-if="selectedOptions.hasFill">
-        <color-picker
-          name="fill"
-          v-model="selectedTool.defaultOptions.fill"
-          :value="selectedTool.defaultOptions.fill"
-        ><span class="material-icons d-block">format_color_fill</span></color-picker>
-      </div>
-      <div v-if="selectedOptions.hasStroke">
-        <color-picker
-          name="stroke"
-          v-model="selectedTool.defaultOptions.stroke"
-          :value="selectedTool.defaultOptions.stroke"
-        ><span class="material-icons d-block">gesture</span></color-picker>
-      </div>
-      <div v-if="selectedTool.name == 'Photo'">
-        <b-button variant="primary" @click="openImageModal">
-          <span class="material-icons d-block">add_photo_alternate</span></b-button
-        >
-        <b-dropdown :text="getImageDropdownText()" class="dropdown">
-          <b-dropdown-item
-            v-for="image in images"
-            :key="image.id"
-            @click.native="selectedTool.defaultOptions.image = image.id"
-            >{{ image.name }}</b-dropdown-item
-          >
-        </b-dropdown>
-      </div>
-      <div v-if="selectedTool.name == 'Sign'">
-        <b-button variant="primary" @click="openSignModal" class="w-auto p-2"
-          >Otvoriť menu s podpismi</b-button
-        >
-        <b-dropdown :text="getSignDropdownText()" class="dropdown">
-          <b-dropdown-item
-            v-for="sign in signatures"
-            :key="sign.id"
-            @click.native="selectedTool.defaultOptions.sign = sign.id"
-            >{{ sign.name }}</b-dropdown-item
-          >
-          <b-dropdown-item v-if="signatures.length == 0" disabled>
-            Nie je nastavený žiaden podpis, pridaj si aspoň jeden
-          </b-dropdown-item>
-        </b-dropdown>
-      </div>
     </div>
-    <b-modal
-      ref="imageMenu"
-      centered
-      title="Obrázky"
-      size="lg"
-      @ok="imageModalAccepted"
+    <tool-settings
+      :selected-options="selectedOptions"
+      :selected-tool="selectedTool"
+      class="d-xl-flex d-none"
+    />
+    <div
+      cols="2"
+      class="right-controls"
     >
-      <image-modal ref="imageModal"></image-modal>
-    </b-modal>
-    <b-modal
-      ref="signMenu"
-      centered
-      title="Podpisy"
-      size="lg"
-      @ok="signModalAccepted"
-    >
-      <sign-modal :signs="getSigns" ref="signModal"></sign-modal>
-    </b-modal>
-    <div cols="2" class="right-controls">
-      <div :key="util.name" v-for="util in utils">
-        <button
-            :id="util.name"
-            class="btn"
-            :class="util.style"
-            @click="useUtil(util)"
-        >
-          <span class="material-icons d-block">{{ util.icon }}</span>
-        </button>
-        <b-tooltip :target="util.name" triggers="hover">
-          {{ util.tooltip }} ({{ util.shortcut }})
-        </b-tooltip>
+      <div
+        v-for="util in utils"
+        :key="util.name"
+      >
+        <tool-button
+          :id="util.name"
+          class="btn"
+          :variant="util.style"
+          :icon="util.icon"
+          :outline="true"
+          :tooltip="util.tooltip + '(' + util.shortcut + ')'"
+          @click="useUtil(util)"
+        />
       </div>
-      <button
+      <tool-button
         id="zoomInButton"
-        class="btn btn-outline-primary"
+        icon="add"
+        :outline="true"
+        tooltip="Priblížiť"
         @click="eventHub.$emit('viewport:scale', 0.1)"
-      >
-        <span class="material-icons d-block">add</span>
-      </button>
-      <button
+      />
+      <tool-button
         id="zoomOutButton"
-        class="btn btn-outline-primary"
+        icon="remove"
+        :outline="true"
+        tooltip="Oddialiť"
         @click="eventHub.$emit('viewport:scale', -0.1)"
-      >
-        <span class="material-icons d-block">remove</span>
-      </button>
-      <b-button id="repairButton" @click="$refs.repairTool.Open()">
-        <span class="material-icons d-block">build</span>
-      </b-button>
+      />
+      <tool-button
+        id="repairButton"
+        icon="build"
+        variant="secondary"
+        :outline="false"
+        tooltip="Otočiť obrázky alebo pridať prázdnu stranu"
+        @click="$refs.repairTool.Open()"
+      />
       <pdf-repairer ref="repairTool" />
-      <b-tooltip target="zoomOutButton" triggers="hover"> Oddialiť </b-tooltip>
-      <b-tooltip target="zoomInButton" triggers="hover"> Priblížiť </b-tooltip>
-      <b-tooltip target="repairButton" triggers="hover">
-        Opraviť zle nahraté PDFko (pridať prázdnu stranu a otočiť obrázky)
-      </b-tooltip>
-      <!-- <b-tooltip target="rotateButton" triggers="hover"> Otocit </b-tooltip> -->
+
+      <tool-button
+        id="collapseButton"
+        class="d-xl-none"
+        :icon="optionsMenuExpanded ? 'expand_less' : 'expand_more'"
+        variant="secondary"
+        @click="optionsMenuExpanded = !optionsMenuExpanded"
+      >
+        <span class="material-icons d-block">{{ optionsMenuExpanded ? 'expand_less' : 'expand_more' }}</span>
+      </tool-button>
+    </div>
+    <div
+      v-if="optionsMenuExpanded"
+      class="toolSettingsSm"
+    >
+      <tool-settings
+        :selected-options="selectedOptions"
+        :selected-tool="selectedTool"
+      />
     </div>
   </div>
 </template>
@@ -161,27 +90,20 @@
 <script lang="ts">
 import {tools} from "./Tool";
 import {utils} from "./Util";
-import {PDFdocument} from "../PDFdocument";
-import {FontsAvailable} from "../Fonts";
 import {Canvas} from "../../Canvas";
 import {getViewedDocument} from "@/Documents/DocumentManager";
-
-import SignModal from "./SignModal.vue";
-import ImageModal from "./ImageModal.vue";
-import ColorPicker from "../ColorPicker.vue";
 import PdfRepairer from "./PdfRepairer/PdfRepairer.vue";
-import {Database} from "@/Db";
-import {Component, Watch} from "vue-property-decorator";
-import {BModal} from "bootstrap-vue";
+import {Component} from "vue-property-decorator";
 import Vue from "vue";
-import {ITemplate, Tool, Util} from "@/@types";
+import {Tool, Util} from "@/@types";
+import ToolSettings from "./ToolSettings.vue";
+import ToolButton from "./Toolbutton.vue";
 
 @Component({
   components: {
-    ColorPicker,
-    SignModal,
-    ImageModal,
     PdfRepairer,
+    ToolSettings,
+    ToolButton
   },
 })
 export default class Toolbar extends Vue {
@@ -189,29 +111,17 @@ export default class Toolbar extends Vue {
   utils = utils;
   selectedTool = tools[0];
   selectedOptions = tools[0].options;
-  fill = "#ffffff";
-  stroke = "#000000";
-  fonts = FontsAvailable;
-  signatures: ITemplate[] = [];
-  images: ITemplate[] = [];
-
+  optionsMenuExpanded = false;
   $refs!: {
-    signMenu: BModal;
-    imageMenu: BModal;
-    signModal: SignModal;
-    imageModal: ImageModal;
     repairTool: PdfRepairer;
   }
 
   mounted() {
+    console.log(this.tools[0].name);
+
     this.eventHub.$emit("tool:init", this);
     Canvas.toolbarRef = this;
-    this.getSigns().then((signs) => {
-      this.signatures = signs;
-    });
-    this.getImages().then((images) => {
-      this.images = images;
-    });
+
     for (const tool of tools) {
       this.eventHub.$on(`shortcut:${tool.name}`, () => this.select(tool));
     }
@@ -235,108 +145,22 @@ export default class Toolbar extends Vue {
     if(util.name == 'copy' && objects)
       this.$bvToast.toast(`Skopírovaných ${objects.length} objektov`, {
         variant: 'success',
-        autoHideDelay: 50000,
+        autoHideDelay: 3000,
         title: 'Skopírované',
         appendToast: true,
         toaster: 'b-toaster-top-left'
       })
   }
 
-  select(tool: Tool) {
+  select(tool: Tool<fabric.IObjectOptions>) {
     this.selectedTool = tool;
     this.eventHub.$emit("tool:select", tool);
-  }
-
-  openSignModal() {
-    this.$refs.signMenu.show();
-  }
-
-  openImageModal() {
-    this.$refs.imageMenu.show();
-  }
-
-  getSigns() {
-    return new Promise<ITemplate[]>((resolve, reject) => {
-      Database.getAllTemplates()
-        .then((templates) => {
-          resolve(templates.filter((e) => e.type === "Sign"));
-        })
-        .catch((err) => reject(err));
-    });
-  }
-
-  getImages() {
-    return new Promise<ITemplate[]>((resolve, reject) => {
-      Database.getAllTemplates()
-        .then((templates) => {
-          resolve(templates.filter((e) => e.type === "Image"));
-        })
-        .catch((err) => reject(err));
-    });
-  }
-
-  signModalAccepted() {
-    this.$refs.signModal.signModalAccepted();
-    this.getSigns().then((signs) => {
-      this.signatures = signs;
-    });
-  }
-
-  imageModalAccepted() {
-    this.$refs.imageModal.imageModalAccepted();
-    this.getImages().then((images) => {
-      this.images = images;
-    });
-  }
-
-  getSignDropdownText() {
-    return (
-      this.signatures.find(
-        (e) => e.id == (this.selectedTool.defaultOptions as any).sign
-      )?.name || "Vyber Podpis"
-    );
-  }
-
-  getImageDropdownText() {
-    return (
-      this.images.find(
-        (e) => e.id == (this.selectedTool.defaultOptions as any)?.image
-      )?.name || "Vyber obrázok"
-    );
-  }
-
-  @Watch('selectedTool.defaultOptions', { deep: true })
-  onOptionsChanged() {
-    if (
-      this.selectedTool.name == "Select" &&
-      this.selectedTool.defaultOptions
-    ) {
-      if (PDFdocument.activeObject != null) {
-        if (PDFdocument.activeObject.type == "group") {
-          (PDFdocument.activeObject as fabric.Group).getObjects().forEach((obj) => {
-            obj.set(this.selectedTool.defaultOptions);
-          });
-        }
-        PDFdocument.activeObject.set(this.selectedTool.defaultOptions);
-        try {
-          PDFdocument.activeObject.canvas?.renderAll();
-        } catch (e) {
-          return;
-        }
-      }
-    } else if (this.selectedTool.name == "Draw") {
-      getViewedDocument()?.pageCanvases.forEach((e) => {
-        e.freeDrawingBrush.color =
-          this.selectedTool.defaultOptions.stroke || "#000000";
-        e.freeDrawingBrush.width =
-          this.selectedTool.defaultOptions.strokeWidth || 10;
-      });
-    }
   }
 }
 </script>
 
 <style scoped lang="scss">
+$toolbar-height: 60px;
 .toolbar {
   position: relative;
   top: 0;
@@ -350,18 +174,9 @@ export default class Toolbar extends Vue {
   display: flex;
   flex-wrap: wrap;
   justify-content: left;
-  overflow-x: auto;
-  height: 60px;
-}
-.btn {
-  margin: 0 2px;
-  width: 2.8rem;
-  height: 2.8rem;
-  padding: 0;
-}
-.dropdown {
-  margin: 0 2px;
-  height: 2.8rem;
+  align-items: center;
+  // overflow-x: auto;
+  height: $toolbar-height;
 }
 .right-controls {
   display: flex;
@@ -369,19 +184,16 @@ export default class Toolbar extends Vue {
   margin-left:auto;
   justify-content: flex-end;
   padding: 0;
-}
-.tool-controls {
-  display: flex;
-  justify-content: flex-start;
   align-items: center;
-  padding: 0 0 0 1rem;
-  div {
-    margin: 0 2px;
-    display: flex;
-    align-items: center;
-    p {
-      margin: 0 5px !important;
-    }
-  }
+}
+.toolSettingsSm {
+  position: absolute;
+  top: $toolbar-height;
+  background: var(--bg-700);
+  height: $toolbar-height;
+  width: 100%;
+  z-index: 10;
+  border-radius:  0 0 10px 10px;
+  right:0
 }
 </style>

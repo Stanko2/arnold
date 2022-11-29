@@ -2,18 +2,18 @@
   <div class="d-flex flex-row flex-wrap justify-content-around">
     <b-file
       ref="imageInput"
+      v-model="file"
       type="file"
       style="display: none"
       accept=".png"
-      @input="addImage"
-      v-model="file"
       plain
+      @input="addImage"
     />
     <div
-      class="card d-flex justify-content-center align-items-center btn"
-      style="width: 300px; height: 150px"
       v-for="image in images"
       :key="image.id"
+      class="card d-flex justify-content-center align-items-center btn"
+      style="width: 300px; height: 150px"
       @mouseover="image.hover = true"
       @mouseleave="image.hover = false"
     >
@@ -30,25 +30,31 @@
         style="background: rgb(0, 0, 0, 0.5)"
       >
         <div class="d-flex flex-column">
-          <div class="btn-group">
-            <!-- <button class="btn btn-primary" @click="edit(image.id)">
+          <b-btn-group>
+            <b-button 
+              variant="primary" 
+              @click="edit(image.id)"
+            >
               <span class="material-icons">edit</span>
-            </button> -->
-            <button class="btn btn-danger" @click="remove(image.id)">
+            </b-button>
+            <b-button
+              variant="danger"
+              @click="remove(image.id)"
+            >
               <span class="material-icons"> delete </span>
-            </button>
-          </div>
+            </b-button>
+          </b-btn-group>
         </div>
-        <div class="position-absolute w-100" style="bottom: 0">
-          <input
-            type="text"
-            class="w-100 form-control"
-            placeholder="Meno obrázku"
-            v-model="image.name"
-          />
+        <div
+          class="bottom-text rounded"
+        >
+          {{ image.name }}
         </div>
       </div>
-      <b-img :src="image.data.img" class="mw-100 mh-100" />
+      <b-img
+        :src="image.data.img"
+        class="mw-100 mh-100"
+      />
     </div>
     <div
       class="card d-flex justify-content-center align-items-center btn"
@@ -57,6 +63,7 @@
     >
       <span class="material-icons">add</span>
     </div>
+    <image-edit-modal ref="editModal" />
   </div>
 </template>
 
@@ -66,14 +73,20 @@ import { Database } from "@/Db";
 import { BFormFile } from "bootstrap-vue";
 import Vue from "vue";
 import Component from "vue-class-component";
+import ImageEditModal from "./ImageEditModal.vue";
 
-@Component
+@Component({
+  components: {
+    ImageEditModal
+  }
+})
 export default class ImageModal extends Vue {
   images: Array<ITemplate & { hover: boolean }> = [];
-  file: File | undefined;
+  file: File | null = null;
 
   $refs!: {
     imageInput: BFormFile;
+    editModal: ImageEditModal;
   }
   deleted: string[] = [];
 
@@ -126,5 +139,22 @@ export default class ImageModal extends Vue {
     this.images.splice(img, 1);
     this.deleted.push(id);
   }
+
+  edit(id: string) {
+    const img = this.images.findIndex(e => e.id == id);
+    if(img != -1)
+      this.$refs.editModal.show(this.images[img]);
+  }
 }
 </script>
+
+<style scoped>
+.bottom-text {
+  position: absolute;
+  width: 100%;
+  bottom: 0;
+  background-color: var(--bg-700);
+  color: var(--bg-200);
+  padding: .5rem;
+}
+</style>

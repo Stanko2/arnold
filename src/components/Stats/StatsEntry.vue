@@ -9,14 +9,20 @@
       <h4>{{ label }}</h4>
       <h3>{{ ((value / max) * 100).toFixed(2) }}%</h3>
     </div>
-    <b-progress class="mt-2" :max="max">
+    <b-progress
+      class="mt-2"
+      :max="max"
+    >
       <b-progress-bar
         :value="value"
         :label="`${value} / ${max}`"
-      ></b-progress-bar>
+      />
     </b-progress>
     <transition name="content">
-      <slot v-if="expanded" @click.prevent></slot>
+      <slot
+        v-if="expanded"
+        @click.prevent
+      />
     </transition>
   </b-card>
 </template>
@@ -25,30 +31,16 @@
 import Color from "color";
 import Vue from "vue";
 import Component from "vue-class-component";
-
-const StatsEntryProps = Vue.extend({
-  props: {
-    max: {
-      type: Number,
-      required: true,
-    },
-    value: {
-      type: Number,
-      required: true,
-    },
-    label: {
-      type: String,
-      required: true,
-    },
-    color: {
-      type: Color,
-      required: false,
-    },
-  },
-});
+import { Prop } from "vue-property-decorator";
 
 @Component
-export default class StatsEntry extends StatsEntryProps {
+export default class StatsEntry extends Vue {
+  @Prop({required: true}) max!:number;
+  @Prop({required: true}) value!:number;
+  @Prop({required: true}) min!:number;
+  @Prop({required: true}) label!:string;
+  @Prop({required: false}) color!:Color;
+
   expanded: boolean = false;
   data() {
     return {

@@ -1,15 +1,24 @@
 <template>
   <div class="tags">
     <div class="position-relative">
-      <h4 class="btn btn-warning" @click="ukazMenu = !ukazMenu">
+      <h4
+        class="btn btn-warning"
+        @click="ukazMenu = !ukazMenu"
+      >
         Tagy
         <span class="material-icons d-inline position-absolute">{{
           ukazMenu ? "expand_more" : "expand_less"
         }}</span>
       </h4>
       <transition name="slide">
-        <div v-if="ukazMenu" class="tagy_okno bg-warning">
-          <div class="d-flex flex-wrap" v-if="doc">
+        <div
+          v-if="ukazMenu"
+          class="tagy_okno bg-warning"
+        >
+          <div
+            v-if="doc"
+            class="d-flex flex-wrap"
+          >
             <h6
               v-for="tag in availableTags"
               :key="tag.id"
@@ -33,10 +42,11 @@
           <b-button
             class="m-2 d-block"
             variant="secondary"
-            @click="$bvModal.show('tag-modal')"
             size="sm"
-            >Upraviť tagy</b-button
+            @click="$bvModal.show('tag-modal')"
           >
+            Upraviť tagy
+          </b-button>
         </div>
       </transition>
       <tag-edit-modal ref="tagModal" />

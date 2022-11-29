@@ -16,16 +16,16 @@ export class Canvas extends fabric.Canvas {
         }
     }
     static toolbarRef: any;
-
+    static active: boolean = true;
     creating: fabric.Object | null = null;
     pageIndex = 0;
     drawnShapes: fabric.Path[] = [];
-    static selectedTool: Tool | undefined = undefined;
+    static selectedTool: Tool<fabric.IObjectOptions> | undefined = undefined;
     initialized = false;
     constructor(el: any, private pdf: PDFdocument, private page: number) {
         super(el);
         this.selection = false;
-        eventHub.$on('tool:select', (tool: Tool) => Canvas.selectedTool = tool);
+        eventHub.$on('tool:select', (tool: Tool<fabric.IObjectOptions>) => Canvas.selectedTool = tool);
     }
 
 
@@ -45,6 +45,8 @@ export class Canvas extends fabric.Canvas {
         this.on('mouse:down', async (e) => {
             if (e.absolutePointer == null) return;
             if (this.isDrawingMode) return;
+            eventHub.$emit('canvas:tap', this, e.e);
+            if(!Canvas.active) return;
             // for (const annotation of this.pdf.annotations) {
             //     if (annotation.object.containsPoint(e.absolutePointer)) {
             //         return;
@@ -63,10 +65,15 @@ export class Canvas extends fabric.Canvas {
                     (Canvas.selectedTool.defaultOptions as fabric.ILineOptions).y1 = pointerPos.y;
                 }
                 else {
-                    this.creating = await Canvas.selectedTool.click?.(this.pdf, this.page, pointerPos);
-                    this.setActiveObject(this.creating);
-                    this.requestRenderAll();
-                    eventHub.$emit('tool:select', tools[7]);
+                    try{
+                        this.creating = await Canvas.selectedTool.click?.(this.pdf, this.page, pointerPos);
+                        this.setActiveObject(this.creating);
+                        this.requestRenderAll();
+                        eventHub.$emit('tool:select', tools[7]);
+                    }
+                    catch(err){
+                        eventHub.$emit('canvas:error', err);   
+                    }
                 }
             }
 

@@ -15,6 +15,10 @@ export class ImageAnnotation extends Annotation {
         img.onerror = (msg, url, lineNo, columnNo, error) => {
             console.log(msg);
         }
+        img.onload = () => {
+            this.object.set({width: img.width, height: img.height});
+            this.object.canvas?.requestRenderAll();
+        }
         super(page, new fabric.Image(img, options), canvas, 'Image');
         canvas.setActiveObject(this.object);
         this.imageData = options.image;

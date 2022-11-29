@@ -1,12 +1,14 @@
-import { fabric } from "fabric";
-import { EllipseAnnotation, ImageAnnotation, LineAnnotation, RectAnnotation, TextAnnotation } from "@/Annotation";
-import { PDFdocument } from "../PDFdocument";
-import { getViewedDocument } from '@/Documents/DocumentManager';
+import {fabric} from "fabric";
+import {EllipseAnnotation, ImageAnnotation, LineAnnotation, RectAnnotation, TextAnnotation} from "@/Annotation";
+import {PDFdocument} from "../PDFdocument";
+import {getViewedDocument} from '@/Documents/DocumentManager';
 import Vue from "vue";
-import { Database } from "@/Db";
+import {Database} from "@/Db";
 import eventHub from "@/Mixins/EventHub";
-import type { Tool } from "@/@types";
+import type {Tool} from "@/@types";
 import store from '@/Store';
+import { ToolSettings, Settings } from '@/@types/Preferences';
+import { Canvas } from '../../Canvas';
 
 var vue: Vue | null = null;
 
@@ -21,31 +23,39 @@ function init(VueRef: Vue | undefined = undefined) {
     }
     const data = store.state.settings
     if (data) {
-        const prefs = data.tools.settings;
-        const shortcuts = data.shortcut.settings;
-        prefs.tools.forEach((tool: any, index: number) => {
-            if (index < tools.length - 1) {
-                tools[index].defaultOptions = Object.assign({}, tools[index].defaultOptions, tool.defaultOptions);
-            }
-        });
-        shortcuts.forEach((shortcut: any) => {
-            const tool = tools.find(e => e.name == shortcut.name)
-            if (tool) {
-                tool.shortcut = shortcut.shortcut;
-            }
-        });
-
-
-        selectTool(tools[prefs.defaultTool.value]);
+        ApplySettings(data);
+        store.subscribe((mut, state)=>{
+            if(mut.type !== 'applySettings' && mut.type !== 'loadData') return;
+            ApplySettings(state.settings);
+        })
     }
     else {
         selectTool(tools[0]);
     }
 }
+
+function ApplySettings(settings: Settings){
+    const prefs = settings.tools.settings;
+    const shortcuts = settings.shortcut.settings;
+    prefs.tools.forEach((tool: ToolSettings, index: number) => {
+        if (index < tools.length - 1) {
+            tools[index].defaultOptions = Object.assign({}, tools[index].defaultOptions, tool.defaultOptions);
+        }
+    });
+    shortcuts.forEach((shortcut: any) => {
+        const tool = tools.find(e => e.name == shortcut.name)
+        if (tool) {
+            tool.shortcut = shortcut.shortcut;
+        }
+    });
+    Canvas.selectedTool = tools[prefs.defaultTool.value];
+    selectTool(tools[prefs.defaultTool.value]);
+}
+
 eventHub.$on('editor:documentChanged', () => { selectTool(selectedTool); });
 
-export const tools: Tool[] = [
-    <Tool>{
+export const tools: Tool<fabric.IObjectOptions>[] = [
+    <Tool<fabric.ITextboxOptions>>{
         name: 'Text',
         cursor: 'pointer',
         click: async (pdf: PDFdocument, page: number, position: { x: number, y: number }): Promise<fabric.Object> => {
@@ -76,11 +86,11 @@ export const tools: Tool[] = [
         },
         shortcut: 'q',
     },
-    <Tool>{
+    <Tool<fabric.IObjectOptions>>{
         name: 'Draw',
         cursor: 'pointer',
         icon: 'brush',
-        tooltip: 'Kreslit',
+        tooltip: 'Kreslenie',
         defaultOptions: {
             stroke: '#000000',
             strokeWidth: 10,
@@ -106,11 +116,11 @@ export const tools: Tool[] = [
         },
         shortcut: 'w'
     },
-    <Tool><unknown>{
+    <Tool<fabric.IObjectOptions>><unknown>{
         name: 'Photo',
         cursor: 'pointer',
         icon: 'image',
-        tooltip: 'Pridat peciatku',
+        tooltip: 'Pridať pečiatku',
         shortcut: 'e',
         defaultOptions: { name: '', image: '' },
         click: async (pdf: PDFdocument, page: number, position: { x: number; y: number; }): Promise<fabric.Object> => {
@@ -120,7 +130,7 @@ export const tools: Tool[] = [
             const img = new Image();
             img.src = template.data.img;
             (options as any).image = template.data.img;
-            const annot = new ImageAnnotation(page, options, pdf.pageCanvases[page]);
+            const annot = new ImageAnnotation(page, { ...options, ...template.templateOptions}, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
             return annot.object;
         },
@@ -131,13 +141,13 @@ export const tools: Tool[] = [
             hasStrokeWidth: false,
         }
     },
-    <Tool>{
+    <Tool<fabric.ILineOptions>>{
         name: 'Arrow',
         cursor: 'pointer',
         icon: 'north_east',
-        tooltip: 'Pridat sipku',
+        tooltip: 'Pridať šípku',
         shortcut: 'r',
-        defaultOptions: <fabric.ILineOptions>{
+        defaultOptions: {
             stroke: '#000000',
             strokeWidth: 5,
         },
@@ -146,7 +156,7 @@ export const tools: Tool[] = [
             (selectedTool.defaultOptions as fabric.ILineOptions).y2 = position.y;
             delete selectedTool.defaultOptions.top;
             delete selectedTool.defaultOptions.left;
-            
+
             const annot = new LineAnnotation(page, selectedTool.defaultOptions, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
             // selectTool(tools[7]);
@@ -160,11 +170,11 @@ export const tools: Tool[] = [
             hasText: false,
         }
     },
-    <Tool>{
+    <Tool<fabric.IEllipseOptions>>{
         name: 'Circle',
         cursor: 'pointer',
         icon: 'circle',
-        tooltip: 'Pridat kruh / elipsu',
+        tooltip: 'Pridať kruh / elipsu',
         shortcut: 't',
         defaultOptions: <fabric.IEllipseOptions>{
             stroke: '#000000',
@@ -187,11 +197,11 @@ export const tools: Tool[] = [
             hasStrokeWidth: true,
         }
     },
-    <Tool>{
+    <Tool<fabric.IRectOptions>>{
         name: 'Rect',
         cursor: 'pointer',
         icon: 'crop_3_2',
-        tooltip: 'Pridat obdlznik',
+        tooltip: 'Pridať obdĺžnik',
         defaultOptions: <fabric.IObjectOptions>{
             width: 30,
             height: 30,
@@ -212,15 +222,17 @@ export const tools: Tool[] = [
         },
         shortcut: 'y',
     },
-    <Tool>{
+    <Tool<fabric.IObjectOptions>>{
         name: 'Sign',
         cursor: 'pointer',
         icon: 'edit',
-        tooltip: 'Pridat podpis',
+        tooltip: 'Pridať podpis',
         shortcut: 'u',
         defaultOptions: {},
         click: async (pdf: PDFdocument, page: number, position: { x: number, y: number }): Promise<fabric.Group> => {
             const sign = (selectedTool.defaultOptions as any).sign
+            if(sign === undefined)
+                throw new Error('No sign Selected');
             const signTemplate = await Database.getTemplate(sign)
             const cnv = pdf.pageCanvases[page]
             const paths: fabric.Path[] = [];
@@ -229,8 +241,6 @@ export const tools: Tool[] = [
                 e.strokeWidth = selectedTool.defaultOptions.strokeWidth || 10;
                 const path = new fabric.Path(e.path, e);
                 paths.push(path);
-                // cnv.add(path);
-                // console.log(position);
             });
             const options = selectedTool.defaultOptions;
             const grp = new fabric.Group(paths, { left: position.x, top: position.y, ...options });
@@ -251,11 +261,11 @@ export const tools: Tool[] = [
         mouseMove: (e: fabric.IEvent) => { },
         mouseUp: (e: fabric.IEvent) => { },
     },
-    <Tool>{
+    <Tool<fabric.IObjectOptions>>{
         name: 'Select',
         cursor: 'pointer',
         icon: 'select_all',
-        tooltip: 'Vybrat objekty',
+        tooltip: 'Vybrať objekty',
         defaultOptions: {},
         onSelect: () => {
             selectedTool.defaultOptions = {}
@@ -275,11 +285,11 @@ export const tools: Tool[] = [
     },
 ]
 
-let selectedTool: Tool = tools[1];
+let selectedTool: Tool<fabric.IObjectOptions> = tools[1];
 
 eventHub.$on('tool:select', selectTool);
 eventHub.$on('tool:initCurrent', () => selectTool(selectedTool));
-function selectTool(tool: Tool) {
+function selectTool(tool: Tool<fabric.IObjectOptions>) {
     selectedTool?.onDeselect?.();
     selectedTool = tool;
     PDFdocument.activeObject = undefined;

@@ -1,18 +1,24 @@
 <template>
   <div id="app">
-    <nav class="navbar navbar-light bg-primary" style="padding: 0">
-      <topbar class="pdf" ref="topbar"></topbar>
+    <nav
+      class="navbar navbar-light bg-primary"
+      style="padding: 0"
+    >
+      <topbar
+        ref="topbar"
+        class="pdf"
+      />
     </nav>
     <div class="d-flex main">
       <transition name="sidebar">
         <sidebar
           v-if="loadedDocuments"
           v-show="sidebarVisible"
-          :autoSave="prefs && prefs.other.settings.autoSave"
-          :showPreviews="prefs && prefs.other.settings.showPreviews"
-          :showTimer="prefs && prefs.other.settings.showTimer"
-          :documents="Documents"
           ref="sidebar"
+          :auto-save="prefs && prefs.other.settings.autoSave"
+          :show-previews="prefs && prefs.other.settings.showPreviews"
+          :show-timer="prefs && prefs.other.settings.showTimer"
+          :documents="Documents"
         />
       </transition>
       <div
@@ -25,13 +31,25 @@
         <span class="material-icons">arrow_forward_ios</span>
       </div>
       <div style="width: 100%">
-        <toolbar :pdf="pdf"></toolbar>
-        <div class="viewportWrapper" v-if="pdf != null">
+        <toolbar :pdf="pdf" />
+        <div
+          v-if="pdf != null"
+          class="viewportWrapper"
+        >
           <keep-alive :max="10">
-            <Viewport :pdf="pdf" :key="pdf.id" ref="viewport"></Viewport>
+            <Viewport
+              :key="pdf.id"
+              ref="viewport"
+              :pdf="pdf"
+            />
           </keep-alive>
         </div>
-        <div v-else class="empty-text">Nie je vybraté žiadne riešenie</div>
+        <div
+          v-else
+          class="empty-text"
+        >
+          Nie je vybraté žiadne riešenie
+        </div>
       </div>
     </div>
     <scoring />
@@ -41,21 +59,20 @@
 </template>
 
 <script lang="ts">
-import { Vue } from "vue-property-decorator";
-import { Document, Settings, Shortcut } from "@/@types";
+import {Vue} from "vue-property-decorator";
+import {Document, Settings} from "@/@types";
 import Viewport from "../components/Viewport.vue";
 import Topbar from "../components/Topbar/Topbar.vue";
 import Toolbar from "../components/Tools/Toolbar.vue";
 import SearchBar from "../components/Filtering/SearchBar.vue";
-import { Documents, getViewedDocument, loadFromDatabase, onEditorStart } from "../Documents/DocumentManager";
-import type { PDFdocument } from "@/components/PDFdocument";
-import Scoring from "@/components/Scoring.vue";
-import { loadFonts } from "@/components/Fonts";
+import {Documents, getViewedDocument, loadFromDatabase, onEditorStart} from "../Documents/DocumentManager";
+import type {PDFdocument} from "@/components/PDFdocument";
+import Scoring from "@/components/Scoring/Scoring.vue";
+import {loadFonts} from "@/components/Fonts";
 import Tags from "@/components/Tags/Tagy.vue";
 import Component from "vue-class-component";
 import Sidebar from "@/components/Sidebar.vue";
 import Shortcuts from "@/Mixins/Keybindings.vue"
-import { Route } from "vue-router";
 
 @Component({
   components: {
@@ -110,6 +127,37 @@ export default class Editor extends Vue {
     this.Documents = Documents;
     this.documentsShown = Documents.map(() => true);
     this.pdf = getViewedDocument();
+  }
+
+  zoomKeyListener: undefined | ((e: KeyboardEvent) => void) = undefined;
+  zoomScrollListener: undefined | ((e: WheelEvent) => void) = undefined;
+
+  created() {
+    this.zoomKeyListener = (event: KeyboardEvent) => {
+      // disable zooming
+      if (event.ctrlKey && (event.key == "+" || event.key == "-")) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.eventHub.$emit('viewport:scale', 0.1 * (event.key == "+" ? 1 : -1));
+      }
+    }
+    this.zoomScrollListener = (event: WheelEvent) => {
+      // disable zooming
+      if (event.ctrlKey) {
+        event.preventDefault();
+        event.stopPropagation();
+        this.eventHub.$emit('viewport:scale', 0.1 * (event.deltaY < 0 ? 1 : -1));
+      }
+    }
+    window.addEventListener("keydown", this.zoomKeyListener);
+    window.addEventListener("wheel", this.zoomScrollListener, { passive: false });
+  }
+
+  destroyed() {
+    if (this.zoomKeyListener) window.removeEventListener("keydown", this.zoomKeyListener);
+    if (this.zoomScrollListener) window.removeEventListener("wheel", this.zoomScrollListener);
+
+    this.zoomKeyListener = undefined; this.zoomScrollListener = undefined;
   }
 }
 </script>
@@ -184,7 +232,7 @@ export default class Editor extends Vue {
     &:hover {
       width: 30px;
     }
-  } 
+  }
 
   span {
     transition: all 250ms linear;
