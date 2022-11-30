@@ -1,6 +1,16 @@
 <template>
   <b-row class="window">
     <b-col cols="4">
+      <b-alert show variant="warning" v-if="updateAvailable">
+        <h4 class="alert-heading">Aktualizácia</h4>
+        <p>
+          Je dostupná nová verzia aplikácie. Pre jej aktualizáciu kliknite na tlačidlo nižšie.
+        </p>
+        <hr>
+        <p class="mb-0">
+          <b-button variant="primary" @click="update">Aktualizovať</b-button>
+        </p>
+      </b-alert>
       <b-list-group>
         <b-list-group-item
           v-for="(category, i) in categories"
@@ -263,6 +273,7 @@ import {OthersCategory, SettingsCategory, ShortcutCategory, ToolsCategory,} from
 import {Settings} from "@/@types/Preferences";
 import {nameMap} from "@/Mixins/Keybindings.vue"
 import ScoreTemplates from "./ScoreTemplates.vue";
+import {updateApp} from "@/registerServiceWorker";
 
 @Component({
   components: {
@@ -397,6 +408,12 @@ export default class Preferences extends Vue {
     localStorage.setItem("preferences", JSON.stringify(preferences));
     this.$store.commit("applySettings", preferences);
     this.eventHub.$emit("tools:init");
+  }
+  update() {
+    updateApp();
+  }
+  get updateAvailable() {
+    return localStorage.getItem("update") == "waiting";
   }
 }
 </script>

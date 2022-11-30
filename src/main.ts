@@ -9,7 +9,7 @@ import router from './router'
 import './Mixins/EventHub'
 import store from './Store'
 
-import './registerServiceWorker'
+import {registerSW} from './registerServiceWorker'
 
 
 const shortkey = require('vue-shortkey');
@@ -26,4 +26,6 @@ export const app = new Vue({
   store,
   render: h => h(App)
 }).$mount('#app')
+
+registerSW()
 
