@@ -48,9 +48,9 @@
     <h3>4. Podmienka - komentár</h3>
     <p><code>comment()</code>-> ukáže len riešenia s napísaným komentárom.</p>
     <h3>Príklady</h3>
-    <p>Všetky neobodované riešenia s tagom "hlupáci" -> <code>tags(hlupáci) -body()</code></p>
+    <p>Všetky neobodované riešenia s tagom "hlupáci" -> <code>tags(hlupáci) -score()</code></p>
     <p>Všetky nepozreté riešenia <code>-open()</code></p>
-    <p>Neobodované už pozreté riešenia <code>-body() open()</code></p>
+    <p>Neobodované už pozreté riešenia <code>-score() open()</code></p>
     <p />
   </b-modal>
 </template>
