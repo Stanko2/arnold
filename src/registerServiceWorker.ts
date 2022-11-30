@@ -32,7 +32,7 @@ if (process.env.NODE_ENV === 'production') {
       app.$bvModal.msgBoxConfirm('Je dostupná nová verzia aplikácie. Chcete ju teraz nainštalovať?', {
         title: 'Aktualizácia',
         variant: 'success',
-        solid: true
+        solid: true,
       }).then(() => {
         navigator.serviceWorker.addEventListener('controllerchange', () => {
           window.location.reload();
@@ -48,7 +48,7 @@ if (process.env.NODE_ENV === 'production') {
     error (error) {
       console.error('Error during service worker registration:', error)
 
-      app.$bvToast.toast('Nepodarilo sa nainštalovať Service Worker. Ak sa toto opakuje, napíšte nám.', {
+      app.$bvToast.toast('Nepodarilo sa zaregistrovať Service Worker. Ak sa toto opakuje, napíšte nám.', {
         title: 'Status',
         variant: 'danger',
         solid: true

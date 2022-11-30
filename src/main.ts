@@ -8,7 +8,7 @@ import '@/theme.scss'
 import router from './router'
 import './Mixins/EventHub'
 import store from './Store'
-// import only after app is created
+
 import './registerServiceWorker'
 
 
