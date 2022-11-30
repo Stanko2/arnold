@@ -1,6 +1,6 @@
 <template>
   <div>
-    <b-input-group style="z-index: 0; position: static;">
+    <b-input-group style="z-index: 3;">
       <b-form-input
         v-model="searchStr"
         type="text"
@@ -218,7 +218,7 @@ export default class SearchBar extends Vue {
   transition: opacity 250ms linear;
 }
 .search-menu {
-  z-index: 1;
+  z-index: 2;
   position: absolute;
   left: 0;
   right: 0;
