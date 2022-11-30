@@ -52,7 +52,7 @@
         </div>
       </div>
     </div>
-    <scoring />
+    <scoring style="z-index: 10;" />
     <tags />
     <shortcuts />
   </div>
