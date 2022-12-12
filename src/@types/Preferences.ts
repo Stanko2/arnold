@@ -6,13 +6,15 @@ export interface SettingsCategory {
     settings: any;
 }
 
+
 export interface ToolsCategory extends SettingsCategory {
     settings: {
         defaultTool: {
             options: { value: number, text: string }[],
             value: number,
         },
-        tools: ToolSettings[]
+        tools: ToolSettings[],
+        colors: string[],
     }
 }
 

@@ -23,13 +23,11 @@
         v-model="color"
         class="color-picker"
         inline
+        :swatches="colors || 'default'"
         background-color="transparent"
         @input="submit"
       />
-      <div
-        v-if="hasOpacity"
-        class="d-flex align-items-center justify-content-between"
-      >
+      <div class="d-flex align-items-center justify-content-around">
         <input
           v-model="color"
           type="color"
@@ -37,25 +35,30 @@
           :style="{'opacity': opacity / 100}"
           @input="submit"
         >
-        <div class="form-control transparency-num">
-          <input
+        <div
+          v-if="hasOpacity"
+          class="d-flex align-items-center justify-content-between"
+        >
+          <div class="form-control transparency-num">
+            <input
+              v-model.number="opacity"
+              type="number"
+              class="transparency-num"
+              min="7"
+              max="100"
+              @input="submit"
+            >
+          </div>
+          <b-form-input
             v-model.number="opacity"
-            type="number"
-            class="transparency-num"
             min="7"
+            style="width: 80px"
+            type="range"
             max="100"
+            step="1"
             @input="submit"
-          >
+          />
         </div>
-        <b-form-input
-          v-model.number="opacity"
-          min="7"
-          style="width: 80px"
-          type="range"
-          max="100"
-          step="1"
-          @input="submit"
-        />
       </div>
     </b-popover>
   </div>
@@ -127,6 +130,10 @@ export default class ColorPicker extends Vue {
 
   unmounted() {
     document.removeEventListener("click", this.clickListener);
+  }
+
+  get colors(): string[] | string {
+    return this.$store.state.settings?.tools?.settings?.colors ?? "default";
   }
 }
 </script>
