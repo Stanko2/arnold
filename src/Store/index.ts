@@ -88,7 +88,7 @@ const store = new Store<State>({
     },
     actions: {
         setTheme(context){
-            const theme = context.state.settings.other?.settings.theme || 'light';
+            const theme = context.state.settings.other?.settings.theme || 'system';
             console.log(theme)
             document.body.classList.remove('light')
             document.body.classList.remove('dark')
