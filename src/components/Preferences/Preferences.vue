@@ -460,7 +460,6 @@ export default class Preferences extends Vue {
     for (const category of this.categories) {
       preferences[category.name] = category;
     }
-    console.log(preferences, this.categories[0].settings.colors);
     localStorage.setItem("preferences", JSON.stringify(preferences));
     this.$store.commit("applySettings", preferences);
     this.eventHub.$emit("tools:init");
