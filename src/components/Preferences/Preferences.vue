@@ -390,7 +390,7 @@ export default class Preferences extends Vue {
             value: 0,
           },
           tools: toolsCopy,
-          colors: defaultColors
+          colors: defaultColors()
         },
         name: "tools",
       } as ToolsCategory,
@@ -473,7 +473,7 @@ export default class Preferences extends Vue {
 
   resetColors() {
     if (confirm("Naozaj chcete obnoviť predovlené farby?")) {
-      this.selectedCategory.settings.colors = defaultColors
+      this.selectedCategory.settings.colors = defaultColors()
     }
   }
 }

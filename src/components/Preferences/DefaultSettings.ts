@@ -1,16 +1,18 @@
 import {Settings} from "@/@types";
 
-export const defaultColors = [
-    "#1FBC9C", "#1CA085",
-    "#2ECC70", "#27AF60",
-    "#3398DB", "#2980B9",
-    "#A463BF", "#8E43AD",
-    "#3D556E", "#222F3D",
-    "#F2C511", "#F39C12",
-    "#E84B3C", "#C0392B",
-    "#DDE6E8", "#BDC3C8",
-    "#E52AE5", "#C55DC5"
-]
+export function defaultColors() {
+    return [
+        "#1FBC9C", "#1CA085",
+        "#2ECC70", "#27AF60",
+        "#3398DB", "#2980B9",
+        "#A463BF", "#8E43AD",
+        "#3D556E", "#222F3D",
+        "#F2C511", "#F39C12",
+        "#E84B3C", "#C0392B",
+        "#DDE6E8", "#BDC3C8",
+        "#E52AE5", "#C55DC5"
+    ]
+}
 
 export default <Settings>{
     "tools": {
@@ -182,7 +184,7 @@ export default <Settings>{
                     "shortcut": "b"
                 }
             ],
-            "colors": defaultColors
+            "colors": defaultColors()
         },
         "name": "tools"
     },
