@@ -1,12 +1,15 @@
 name: gh-pages-deploy
-on: 
+on:
   push:
     branches:
      - master
-jobs: 
+  workflow_dispatch:
+jobs:
   build-and-deploy:
     name: Deploy to Github Pages
     runs-on: ubuntu-latest
+    env:
+      GH_PAGES: true
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
