@@ -3,11 +3,7 @@ const execa = require("execa");
 const fs = require("fs");
 (async () => {
     try {
-        const branch = process.env.TRIGGER === "push" ? process.env.GITHUB_REF.split("/").pop() :
-            (process.env.TRIGGER === "pull_request" ? process.env.GITHUB_HEAD_REF : (await execa("git", ["rev-parse", "--abbrev-ref", "HEAD"])).stdout);
-        console.log("Current branch:", branch);
-
-        await execa("git", ["checkout", "--orphan", "gh-pages"]);
+        if(process.env.TRIGGER === "push") await execa("git", ["checkout", "--orphan", "gh-pages"]);
         console.log("Building started...")
 
         const npmBuildProcess = execa("npm", ["run", "build"]);
@@ -30,15 +26,9 @@ const fs = require("fs");
         }
         console.log("Cleaning up...");
         await execa("rm", ["-r", folderName]);
-        try {
-            await execa("git", ["checkout", "-f", branch]);
+        if(process.env.TRIGGER === "push") {
+            await execa("git", ["checkout", "-f", "master"]);
             await execa("git", ["branch", "-D", "gh-pages"]);
-        } catch (e) {
-            console.log("Cleanup failed");
-            console.log(e);
-
-            console.log("All branches:");
-            console.log((await execa("git", ["branch", "-a"])).stdout);
         }
         console.log("Successfully deployed, check your settings");
     } catch (e) {
