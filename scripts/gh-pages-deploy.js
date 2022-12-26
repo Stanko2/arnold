@@ -30,8 +30,16 @@ const fs = require("fs");
         }
         console.log("Cleaning up...");
         await execa("rm", ["-r", folderName]);
-        await execa("git", ["checkout", "-f", branch]);
-        await execa("git", ["branch", "-D", "gh-pages"]);
+        try {
+            await execa("git", ["checkout", "-f", branch]);
+            await execa("git", ["branch", "-D", "gh-pages"]);
+        } catch (e) {
+            console.log("Cleanup failed");
+            console.log(e);
+
+            console.log("All branches:");
+            console.log((await execa("git", ["branch", "-a"])).stdout);
+        }
         console.log("Successfully deployed, check your settings");
     } catch (e) {
         // eslint-disable-next-line no-console
