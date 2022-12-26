@@ -3,7 +3,8 @@ const execa = require("execa");
 const fs = require("fs");
 (async () => {
     try {
-        const branch = process.env.GITHUB_REF.split("/").pop();
+        const branch = process.env.TRIGGER === "push" ? process.env.GITHUB_REF.split("/").pop() :
+            (process.env.TRIGGER === "pull_request" ? process.env.GITHUB_HEAD_REF : (await execa("git", ["rev-parse", "--abbrev-ref", "HEAD"])).stdout);
         console.log("Current branch:", branch);
 
         await execa("git", ["checkout", "--orphan", "gh-pages"]);
