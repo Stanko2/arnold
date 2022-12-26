@@ -124,7 +124,7 @@ import {AddTrailingPage, ExtractImages, GeneratePDF, GetA4Dimensions, PDFImage} 
     BCard,
   }
 })
-export default class PDFRepairer extends Vue {
+export default class PDFRepairer_old extends Vue {
   ImageSources: PDFImage[] = [];
   canvases: fabric.Canvas[] = [];
   newPage: boolean = false;

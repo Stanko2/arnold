@@ -1,109 +1,122 @@
 <template>
-  <b-modal
-    ref="modal"
-    size="xl"
-    title="Upraviť strany"
-    scrollable
-    no-close-on-backdrop
-  >
-    <p>
-      Nie je miesto na komentár, alebo je strana divne otočená? Tu to vieš vyriešiť.
-      <br>
-    </p>
-    <div>
-      <div
-        id="manager"
-        @shown="renderPages"
-      >
-        <div class="pages">
-          <b-spinner v-if="pagesLoading" />
-          <div
-            v-for="(page, index) in pages"
-            :key="index"
-            class="page-container"
-          >
+  <div>
+    <b-modal
+      ref="modal"
+      size="xl"
+      title="Upraviť strany"
+      scrollable
+      no-close-on-backdrop
+    >
+      <p>
+        Nie je miesto na komentár, alebo je strana divne otočená? Tu to vieš vyriešiť.
+        <br>
+      </p>
+      <div>
+        <div
+          id="manager"
+          @shown="renderPages"
+        >
+          <div class="pages">
+            <b-spinner v-if="pagesLoading" />
+            <div
+              v-for="(page, index) in pages"
+              :key="index"
+              class="page-container"
+            >
+              <div
+                class="add-page"
+                @click="insertPage(index)"
+              >
+                <span class="material-icons">
+                  add
+                </span>
+              </div>
+              <b-card class="m-2 card">
+                <div ref="images">
+                  <!-- show alert if page.isNew -->
+                  <b-alert
+                    v-if="page.isNew"
+                    variant="warning"
+                    show
+                  >
+                    Náhľad novej strany nie je podporovaný.
+                  </b-alert>
+                  <canvas
+                    v-else
+                    ref="pageCanvases"
+                    class="page"
+                    @shown="renderPage(index)"
+                  />
+                  <div class="tools">
+                    <div
+                      @click="removePage(index)"
+                    >
+                      <span class="material-icons">
+                        delete
+                      </span>
+                    </div>
+                    <div
+                      :class="page.isNew ? 'disabled' : ''"
+                      @click="rotatePage(index, 1)"
+                    >
+                      <span class="material-icons">
+                        rotate_90_degrees_cw
+                      </span>
+                    </div>
+                    <div
+                      :class="page.isNew ? 'disabled' : ''"
+                      @click="rotatePage(index, -1)"
+                    >
+                      <span class="material-icons">
+                        rotate_90_degrees_ccw
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </b-card>
+            </div>
             <div
               class="add-page"
-              @click="insertPage(index)"
+              style="height: unset;"
+              @click="insertPage(pages.length)"
             >
               <span class="material-icons">
                 add
               </span>
             </div>
-            <b-card class="m-2 card">
-              <div ref="images">
-                <!-- show alert if page.isNew -->
-                <b-alert
-                  v-if="page.isNew"
-                  variant="warning"
-                  show
-                >
-                  Náhľad novej strany nie je podporovaný.
-                </b-alert>
-                <canvas
-                  v-else
-                  ref="pageCanvases"
-                  class="page"
-                  @shown="renderPage(index)"
-                />
-                <div class="tools">
-                  <div
-                    @click="removePage(index)"
-                  >
-                    <span class="material-icons">
-                      delete
-                    </span>
-                  </div>
-                  <div
-                    :class="page.isNew ? 'disabled' : ''"
-                    @click="rotatePage(index, 1)"
-                  >
-                    <span class="material-icons">
-                      rotate_90_degrees_cw
-                    </span>
-                  </div>
-                  <div
-                    :class="page.isNew ? 'disabled' : ''"
-                    @click="rotatePage(index, -1)"
-                  >
-                    <span class="material-icons">
-                      rotate_90_degrees_ccw
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </b-card>
-          </div>
-          <div
-            class="add-page"
-            style="height: unset;"
-            @click="insertPage(pages.length)"
-          >
-            <span class="material-icons">
-              add
-            </span>
           </div>
         </div>
-      </div>
-    </div>
 
-    <template #modal-footer="{ cancel }">
-      <b-button
-        size="md"
-        @click="generate()"
-      >
-        <b-spinner v-if="busy" /><span v-else>Vygeneruj</span>
-      </b-button>
-      <b-button
-        size="md"
-        variant="danger"
-        :disabled="busy"
-        @click="cancel()"
-      >
-        Zrušiť
-      </b-button>
-    </template>
-  </b-modal>
+        <b-alert
+          variant="warning"
+          show
+        >
+          <b>Upozornenie:</b> Táto funkcia je v beta verzii. V prípade problémov s ňou prosím použite <i
+            style="cursor: pointer;"
+            @click="openOld"
+          ><u>starú verziu</u></i>.
+        </b-alert>
+      </div>
+
+      <template #modal-footer="{ cancel }">
+        <b-button
+          size="md"
+          @click="generate()"
+        >
+          <b-spinner v-if="busy" /><span v-else>Vygeneruj</span>
+        </b-button>
+        <b-button
+          size="md"
+          variant="danger"
+          :disabled="busy"
+          @click="cancel()"
+        >
+          Zrušiť
+        </b-button>
+      </template>
+    </b-modal>
+    <PDFRepairer_old ref="old" />
+  </div>
 </template>
 
 <script lang="ts">
@@ -112,8 +125,14 @@ import {getViewedDocument} from "@/Documents/DocumentManager";
 import {Component, Vue} from "vue-property-decorator";
 import {getPages, PDFPage} from "@/components/Tools/PdfRepairer/PdfModifier";
 import {BModal} from "bootstrap-vue";
+import PDFRepairer_old from "@/components/Tools/PdfRepairer/PdfRepairer_old.vue";
 
-@Component
+@Component({
+  components: {
+    BModal,
+    PDFRepairer_old
+  }
+})
 export default class PdfRepairer_new extends Vue {
   pages: Array<PDFPage> = [];
   pagesLoading: boolean = false;
@@ -124,12 +143,18 @@ export default class PdfRepairer_new extends Vue {
   $refs!: {
     modal: BModal;
     pageCanvases: HTMLCanvasElement[];
-    pages: HTMLDivElement[]
+    pages: HTMLDivElement[];
+    old: PDFRepairer_old;
   };
   Open() {
     this.$refs.modal.show();
 
     this.renderPages();
+  }
+
+  openOld() {
+    this.$refs.modal.hide();
+    this.$refs.old.Open();
   }
 
   async renderPages() {
