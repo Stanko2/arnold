@@ -2,97 +2,94 @@
   <b-modal
     ref="modal"
     size="xl"
-    title="Opraviť pokazené PDFko"
+    title="Upraviť strany"
     scrollable
     no-close-on-backdrop
   >
     <p>
-      Nie je miesto na komentár, alebo pdfko je divne otočené? Tu to vieš vyriešiť.
+      Nie je miesto na komentár, alebo je strana divne otočená? Tu to vieš vyriešiť.
       <br>
-      Otáčanie strán je dostupné len pri riešeniach, kde sú len obrázky.
     </p>
-    <div v-if="ImageSources">
-      <b-button
-        v-b-toggle.rotate-collapse
-        variant="primary"
-        block
+    <div>
+      <div
+        id="manager"
+        @shown="renderPages"
       >
-        Otáčanie strán
-      </b-button>
-      <b-collapse
-        id="rotate-collapse"
-        @show="renderRotateUI"
-      >
-        <div v-if="ImageSources.length > 0">
-          <b-alert
-            show
-            variant="warning"
+        <div class="pages">
+          <b-spinner v-if="pagesLoading" />
+          <div
+            v-for="(page, index) in pages"
+            :key="index"
+            class="page-container"
           >
-            <p>
-              Otáčaj, len ak riešenie obsahuje iba fotky, inak prídeš o všetok text a zmeny, ktorý v ňom boli!<br>
-              Riešenie otočíš kliknutím na obrázok nižšie a otočenie uložíš stlačením <b>Vygeneruj</b>.
-            </p>
-          </b-alert>
-          <div class="pages">
-            <b-spinner v-if="imagesLoading" />
-            <b-card
-              v-for="image in ImageSources"
-              v-else
-              :key="image.id"
-              class="m-2"
+            <div
+              class="add-page"
+              @click="insertPage(index)"
             >
+              <span class="material-icons">
+                add
+              </span>
+            </div>
+            <b-card class="m-2 card">
               <div ref="images">
+                <!-- show alert if page.isNew -->
+                <b-alert
+                  v-if="page.isNew"
+                  variant="warning"
+                  show
+                >
+                  Náhľad novej strany nie je podporovaný.
+                </b-alert>
                 <canvas
+                  v-else
                   ref="pageCanvases"
-                  class="image"
+                  class="page"
+                  @shown="renderPage(index)"
                 />
+                <div class="tools">
+                  <div
+                    @click="removePage(index)"
+                  >
+                    <span class="material-icons">
+                      delete
+                    </span>
+                  </div>
+                  <div
+                    :class="page.isNew ? 'disabled' : ''"
+                    @click="rotatePage(index, 1)"
+                  >
+                    <span class="material-icons">
+                      rotate_90_degrees_cw
+                    </span>
+                  </div>
+                  <div
+                    :class="page.isNew ? 'disabled' : ''"
+                    @click="rotatePage(index, -1)"
+                  >
+                    <span class="material-icons">
+                      rotate_90_degrees_ccw
+                    </span>
+                  </div>
+                </div>
               </div>
             </b-card>
           </div>
+          <div
+            class="add-page"
+            style="height: unset;"
+            @click="insertPage(pages.length)"
+          >
+            <span class="material-icons">
+              add
+            </span>
+          </div>
         </div>
-        <b-alert
-          v-else
-          show
-          variant="success"
-        >
-          <p>V tomto riešení nie sú obrázky, nie je možné otáčanie</p>
-        </b-alert>
-      </b-collapse>
+      </div>
     </div>
-    <div v-if="err">
-      <b-alert
-        show
-        variant="danger"
-      >
-        {{ err }}
-      </b-alert>
-    </div>
-    <b-button
-      v-b-toggle.new-page
-      variant="primary"
-      block
-    >
-      Nová strana
-    </b-button>
-    <b-collapse id="new-page">
-      <b-card>
-        <b-row class="p-2 w-100">
-          <b-col>Pridať novú stranu na koniec</b-col>
-          <b-col>
-            <b-form-checkbox
-              v-model="newPage"
-              class="float-right"
-              switch
-            />
-          </b-col>
-        </b-row>
-      </b-card>
-    </b-collapse>
 
     <template #modal-footer="{ cancel }">
       <b-button
         size="md"
-        :disabled="(ImageSources.length === 0 && !newPage) || busy"
         @click="generate()"
       >
         <b-spinner v-if="busy" /><span v-else>Vygeneruj</span>
@@ -112,181 +109,187 @@
 <script lang="ts">
 import {Database} from "@/Db";
 import {getViewedDocument} from "@/Documents/DocumentManager";
-import {BCard, BModal} from "bootstrap-vue";
-import {fabric} from "fabric";
-import Vue from "vue";
-import Component from "vue-class-component";
-import {AddTrailingPage, ExtractImages, GeneratePDF, GetA4Dimensions, PDFImage} from "./PdfModifier";
+import {Component, Vue} from "vue-property-decorator";
+import {getPages, PDFPage} from "@/components/Tools/PdfRepairer/PdfModifier";
+import {BModal} from "bootstrap-vue";
 
 @Component
-export default class PDFRepairer extends Vue {
-  ImageSources: PDFImage[] = [];
-  canvases: fabric.Canvas[] = [];
-  newPage: boolean = false;
+export default class PdfRepairer_new extends Vue {
+  pages: Array<PDFPage> = [];
+  pagesLoading: boolean = false;
+
   err: string = '';
-  rotating: boolean = false;
   busy: boolean = false;
-  imagesLoading: boolean = true;
-  rotated: boolean = false;
 
   $refs!: {
     modal: BModal;
     pageCanvases: HTMLCanvasElement[];
-    images: HTMLElement[]
+    pages: HTMLDivElement[]
   };
   Open() {
     this.$refs.modal.show();
 
-    this.loadImages();
+    this.renderPages();
   }
-  async loadImages() {
+
+  async renderPages() {
     const id = getViewedDocument()?.id;
     if (id) {
       const doc = await Database.getDocument(id);
-      this.ImageSources = await ExtractImages(doc.initialPdf).catch(err => {
-        this.err = err;
-      }) || [];
-      this.imagesLoading = false;
-      await this.$nextTick();
-      this.renderRotateUI();
+      this.pages = await getPages(doc.pdfData);
+      console.log(this.pages);
     }
+  }
+
+  updated() {
+    for (let i = 0; i < this.pages.length; i++) {
+      this.renderPage(i);
+    }
+  }
+
+  lastViewport: any = null;
+
+  async renderPage(index: number) {
+    if (this.pages[index].rendered) {
+      return;
+    }
+    // render page
+    // rotate page if needed. Determined by page.rotation property. 0 = no rotation, 1 = 90deg, 2 = 180deg, 3 = 270deg
+    // set page.rendered to true
+    const canvas = this.$refs.pageCanvases[index];
+    const ctx = canvas.getContext("2d")!;
+
+    const page = this.pages[index].page;
+    if (page != null) {
+      const viewport = page.getViewport({scale: .5, rotation: this.pages[index].rotation * 90});
+      this.lastViewport = viewport;
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const renderContext = {
+        canvasContext: ctx,
+        viewport: viewport,
+      };
+
+      await page.render(renderContext);
+
+    } else {
+      const viewport = this.lastViewport;
+      canvas.height = viewport.height;
+      canvas.width = viewport.width;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, 0, viewport.width, viewport.height);
+    }
+
+    this.pages[index].rendered = true;
+
+  }
+
+  removePage(index: number) {
+    this.pages.splice(index, 1);
+
+    this.rerenderAll();
+  }
+
+  rotatePage(index: number, direction: number) {
+    this.pages[index].rotation = (this.pages[index].rotation + direction) % 4;
+    this.pages[index].rendered = false;
+
+    this.rerenderAll();
+  }
+
+  insertPage(index: number) {
+    // create blank A4 page
+    // insert it into this.pages at index
+    // set page.rendered to false
+
+    const page = {
+      page: null,
+      rotation: 0,
+      isNew: true,
+      rendered: false,
+      id: -1,
+    };
+
+    this.pages.splice(index, 0, page);
+
+    this.pages.forEach((page, index) => {
+      page.rendered = false;
+    });
+
+    this.rerenderAll();
+  }
+
+  rerenderAll() {
+    this.pages.forEach((page, index) => {
+      page.rendered = false;
+    });
+
+    this.$forceUpdate();
   }
 
   generate() {
-    const doc = getViewedDocument()?.id;
-    if (!doc) return;
+    // show popup that generation isn't supported yet
 
-    if (this.rotated) {
-      this.$bvModal.msgBoxConfirm('Ak upravíš toto PDFko, tak stratíš všetky zmeny ktoré v ňom boli urobené', {
-        title: 'Upraviť PDFko?',
-      }).then((val) => {
-        if (!val) return;
-        this.busy = true;
-        this.eventHub.$emit('document:save')
-        GeneratePDF(this.ImageSources, this.newPage, doc).then(this.generationFinished)
-      })
-    } else if (this.newPage) {
-      this.busy = true;
-      this.eventHub.$emit('document:save')
-      AddTrailingPage(doc).then(this.generationFinished)
-    } else {
-      this.$bvToast.toast('Nevybral si ktoré strany ako otočiť ani či chceš pridať stranu. ' +
-                          'Pre vygenerovanie zmeneného PDFka musíš vybrať aspoň jednu akciu.', {
-        title: 'Neboli vykonané žiadne zmeny',
-        variant: 'warning',
-        solid: true,
-        autoHideDelay: 3000,
-      })
-    }
-  }
-
-  generationFinished() {
-    this.busy = false;
-    this.$bvToast.toast('PDFko bolo úspešne upravené. Obnov stránku (F5) na zobrazenie', {
-      title: 'PDFko upravené',
-      variant: 'success',
+    this.$bvToast.toast("Generovanie PDF nie je zatiaľ podporované.", {
+      title: "Generovanie PDF",
+      variant: "warning",
       solid: true,
-      autoHideDelay: 5000,
     });
-    this.$refs.modal.hide();
-  }
-  renderRotateUI() {
-    const images = this.ImageSources;
-    this.rotating = false;
-    if (!this.$refs.pageCanvases) return;
-    this.$refs.pageCanvases.forEach((e, i) => {
-      const img = new Image();
-      img.src = images[i].url;
-      const dimensions = GetA4Dimensions();
-      const pageAspect = dimensions.width / dimensions.height;
-      img.onload = () => {
-        const width = 300;
-        const cnv = new fabric.Canvas(e, {
-          width: width,
-          height: width / pageAspect,
-          backgroundColor: 'transparent',
-          selection: false,
-        });
-        cnv.setZoom(width / dimensions.width);
-        const cnvImg = new fabric.Image(img, {
-          top: dimensions.height / 2,
-          left: dimensions.width / 2,
-          originX: 'center',
-          originY: 'center',
-          width: img.width,
-          height: img.height,
-          hasControls: false,
-          lockMovementX: true,
-          lockMovementY: true,
-          scaleX: dimensions.width / img.width,
-          scaleY: dimensions.width / img.width,
-          hoverCursor: 'pointer',
-        });
-        cnv.add(cnvImg);
-        this.canvases.push(cnv);
-        cnv.on('mouse:down', (e) => {
-          if (e.target && e.target.type === 'image') {
-            if (!e.target.width || !e.target.height || !e.target.scaleX || !e.target.scaleY) return;
-            this.rotated = true;
-            let currAngle = e.target.angle || 0;
-            e.target.set({
-              angle: (currAngle + 90) % 360,
-            });
-            currAngle = (currAngle + 90) % 360;
-            images[i].rotation = currAngle / 90;
-            if ((currAngle / 90) % 2 == 1) {
-              e.target.set({
-                scaleX: dimensions.width / e.target.height,
-                scaleY: dimensions.width / e.target.height,
-              });
-            }
-            else {
-              e.target.set({
-                scaleX: dimensions.width / e.target.width,
-                scaleY: dimensions.width / e.target.width,
-              });
-            }
-            images[i].width = e.target.width * e.target.scaleX;
-            images[i].height = e.target.height * e.target.scaleY;
-            cnv.renderAll();
-            console.log(images);
-          }
-        });
-
-        // Fixes a bug caused by not rotating the image at all
-        if(cnvImg && cnvImg.width !== undefined && cnvImg.height !== undefined && cnvImg.scaleX !== undefined && cnvImg.scaleY !== undefined) {
-          cnvImg.set({
-            scaleX: dimensions.width / cnvImg.width,
-            scaleY: dimensions.width / cnvImg.width,
-          });
-          images[i].width = cnvImg.width * cnvImg.scaleX;
-          images[i].height = cnvImg.height * cnvImg.scaleY;
-        } else {
-          console.error('Image dimensions not defined, rotation error may occur');
-        }
-      }
-    })
   }
 }
 </script>
 
-<style scoped>
-.image {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-}
-.card-body {
-  padding: 0;
-  display: flex;
-}
-.pages {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-}
+<style scoped lang="scss">
+  .pages, .page-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    flex-direction: row;
+  }
+
+  .page {
+    width: 100%;
+    height: 100%;
+    border: 1px solid black;
+    position: relative;
+  }
+
+  .card {
+    width: 20rem;
+  }
+
+  .add-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    flex-direction: column;
+  }
+
+  .tools {
+    background-color: rgba(0, 0, 0, 0.5);
+    height: 2.7rem;
+    position: absolute;
+    display: flex;
+    justify-content: space-evenly;
+    width: 100%;
+    bottom: 0;
+    left: 0;
+    padding: 0.5rem;
+  }
+
+  .disabled {
+    color: grey;
+    pointer-events: none;
+  }
+
+  .material-icons {
+    cursor: pointer;
+  }
 </style>
