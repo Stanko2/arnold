@@ -20,7 +20,7 @@ const fs = require("fs");
             await execa("git", ["--work-tree", folderName, "add", "--all"]);
             await execa("git", ["--work-tree", folderName, "commit", "-m", "gh-pages"]);
             console.log("Pushing to gh-pages...");
-            //await execa("git", ["push", "origin", "HEAD:gh-pages", "--force"]);
+            await execa("git", ["push", "origin", "HEAD:gh-pages", "--force"]);
         } else {
             console.log("Skipping deploy because workflow was not triggered by a push");
         }
