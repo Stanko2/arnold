@@ -34,11 +34,11 @@ import Vue from "vue";
 import DocumentPreview from "./DocumentPreview.vue";
 import Component from "vue-class-component";
 import SearchBar from "./Filtering/SearchBar.vue";
-import { Documents, getViewedDocument } from "@/Documents/DocumentManager";
-import { Document, Settings } from "@/@types";
-import { PDFdocument } from "./PDFdocument";
+import {Documents, getViewedDocument} from "@/Documents/DocumentManager";
+import {Document, Settings} from "@/@types";
+import {PDFdocument} from "./PDFdocument";
 import Editor from "@/views/Editor.vue";
-import { Stopwatch } from "@/components/Stopwatch";
+import {Stopwatch} from "@/components/Stopwatch";
 import filter from "./Filtering/Filter";
 
 const SidebarProps = Vue.extend({
@@ -117,7 +117,7 @@ export default class Sidebar extends SidebarProps {
       documentsShown: this.documents.map(() => true),
     };
   }
-  async save() {
+  async save(callback?: () => void) {
     if(getViewedDocument() == null) return;
     this.$refs.documentList[this.selectedIndex].documentBusy = true;
 
@@ -132,6 +132,7 @@ export default class Sidebar extends SidebarProps {
     this.$store.commit('updateDocument', doc);
     this.documentsShown[this.selectedIndex] = filter.getVisibility(Documents[this.selectedIndex]);
     // this.UpdateCurrentPreview();
+    if (callback) callback();
   }
   async selectDir(dir: number) {
     if(!await this.beforeChange()) return;
@@ -215,7 +216,7 @@ export default class Sidebar extends SidebarProps {
     this.documentsShown[index] = filter.getVisibility(doc);
     this.$forceUpdate();
     console.log(this.documentsShown[index]);
-    
+
   }
 
   UpdateCurrentPreview() {

@@ -10,6 +10,7 @@
       <p>
         Nie je miesto na komentár, alebo je strana divne otočená? Tu to vieš vyriešiť.
         <br>
+        <i>Toto rozhranie môže byť občas pomalé. Ak sa zasekne, zatvorte ho a skúste to znova.</i>
       </p>
       <div>
         <div
@@ -18,71 +19,64 @@
         >
           <div class="pages">
             <b-spinner v-if="pagesLoading" />
-            <div
-              v-for="(page, index) in pages"
-              :key="index"
-              class="page-container"
-            >
+            <div :class="`pages ${pagesLoading ? 'd-none' : ''}`">
+              <div
+                v-for="(page, index) in pages"
+                :key="index"
+                class="page-container"
+              >
+                <div
+                  class="add-page"
+                  @click="insertPage(index)"
+                >
+                  <span class="material-icons">
+                    add
+                  </span>
+                </div>
+                <b-card class="m-2 card">
+                  <div ref="images">
+                    <canvas
+                      ref="pageCanvases"
+                      class="page"
+                      @shown="renderPage(index)"
+                    />
+                    <div class="tools">
+                      <div
+                        @click="removePage(index)"
+                      >
+                        <span class="material-icons">
+                          delete
+                        </span>
+                      </div>
+                      <div
+                        :class="page.isNew ? 'disabled' : ''"
+                        @click="rotatePage(index, 1)"
+                      >
+                        <span class="material-icons">
+                          rotate_90_degrees_cw
+                        </span>
+                      </div>
+                      <div
+                        :class="page.isNew ? 'disabled' : ''"
+                        @click="rotatePage(index, -1)"
+                      >
+                        <span class="material-icons">
+                          rotate_90_degrees_ccw
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </b-card>
+              </div>
               <div
                 class="add-page"
-                @click="insertPage(index)"
+                style="height: unset;"
+                @click="insertPage(pages.length)"
               >
                 <span class="material-icons">
                   add
                 </span>
               </div>
-              <b-card class="m-2 card">
-                <div ref="images">
-                  <!-- show alert if page.isNew -->
-                  <b-alert
-                    v-if="page.isNew"
-                    variant="warning"
-                    show
-                  >
-                    Náhľad novej strany nie je podporovaný.
-                  </b-alert>
-                  <canvas
-                    v-else
-                    ref="pageCanvases"
-                    class="page"
-                    @shown="renderPage(index)"
-                  />
-                  <div class="tools">
-                    <div
-                      @click="removePage(index)"
-                    >
-                      <span class="material-icons">
-                        delete
-                      </span>
-                    </div>
-                    <div
-                      :class="page.isNew ? 'disabled' : ''"
-                      @click="rotatePage(index, 1)"
-                    >
-                      <span class="material-icons">
-                        rotate_90_degrees_cw
-                      </span>
-                    </div>
-                    <div
-                      :class="page.isNew ? 'disabled' : ''"
-                      @click="rotatePage(index, -1)"
-                    >
-                      <span class="material-icons">
-                        rotate_90_degrees_ccw
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </b-card>
-            </div>
-            <div
-              class="add-page"
-              style="height: unset;"
-              @click="insertPage(pages.length)"
-            >
-              <span class="material-icons">
-                add
-              </span>
             </div>
           </div>
         </div>
@@ -123,7 +117,7 @@
 import {Database} from "@/Db";
 import {getViewedDocument} from "@/Documents/DocumentManager";
 import {Component, Vue} from "vue-property-decorator";
-import {getPages, PDFPage} from "@/components/Tools/PdfRepairer/PdfModifier";
+import {generate, getPages, PDFPage} from "@/components/Tools/PdfRepairer/PdfModifier";
 import {BModal} from "bootstrap-vue";
 import PDFRepairer_old from "@/components/Tools/PdfRepairer/PdfRepairer_old.vue";
 
@@ -135,7 +129,7 @@ import PDFRepairer_old from "@/components/Tools/PdfRepairer/PdfRepairer_old.vue"
 })
 export default class PdfRepairer_new extends Vue {
   pages: Array<PDFPage> = [];
-  pagesLoading: boolean = false;
+  pagesLoading: boolean = true;
 
   err: string = '';
   busy: boolean = false;
@@ -147,9 +141,10 @@ export default class PdfRepairer_new extends Vue {
     old: PDFRepairer_old;
   };
   Open() {
+    this.eventHub.$emit('document:save', () => {
+      this.renderPages();
+    });
     this.$refs.modal.show();
-
-    this.renderPages();
   }
 
   openOld() {
@@ -167,52 +162,60 @@ export default class PdfRepairer_new extends Vue {
   }
 
   updated() {
-    for (let i = 0; i < this.pages.length; i++) {
-      this.renderPage(i);
-    }
+    this.$nextTick(() => {
+      for (let i = 0; i < this.pages.length; i++) {
+        this.renderPage(i);
+      }
+      this.pagesLoading = false;
+    });
   }
 
-  lastViewport: any = null;
+  // A4 page
+  newPageViewport = {
+    width: 306,
+    height: 396
+  };
 
   async renderPage(index: number) {
     if (this.pages[index].rendered) {
       return;
     }
-    // render page
-    // rotate page if needed. Determined by page.rotation property. 0 = no rotation, 1 = 90deg, 2 = 180deg, 3 = 270deg
-    // set page.rendered to true
-    const canvas = this.$refs.pageCanvases[index];
-    const ctx = canvas.getContext("2d")!;
 
-    const page = this.pages[index].page;
-    if (page != null) {
-      const viewport = page.getViewport({scale: .5, rotation: this.pages[index].rotation * 90});
-      this.lastViewport = viewport;
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
+    try {
+      const canvas = this.$refs.pageCanvases[index];
+      const ctx = canvas.getContext("2d")!;
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const page = this.pages[index].page;
+      if (page != null) {
+        const viewport = page.getViewport({scale: .5, rotation: this.pages[index].rotation * 90});
+        console.log(viewport);
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
 
-      const renderContext = {
-        canvasContext: ctx,
-        viewport: viewport,
-      };
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      await page.render(renderContext);
+        const renderContext = {
+          canvasContext: ctx,
+          viewport: viewport,
+        };
 
-    } else {
-      const viewport = this.lastViewport;
-      canvas.height = viewport.height;
-      canvas.width = viewport.width;
+        await page.render(renderContext);
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      } else {
+        const viewport = this.newPageViewport;
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
 
-      ctx.fillStyle = "white";
-      ctx.fillRect(0, 0, viewport.width, viewport.height);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "white";
+        ctx.fillRect(0, 0, viewport.width, viewport.height);
+      }
+
+      this.pages[index].rendered = true;
+    } catch (e) {
+      console.warn("Failed to render page", index);
     }
-
-    this.pages[index].rendered = true;
-
   }
 
   removePage(index: number) {
@@ -229,13 +232,10 @@ export default class PdfRepairer_new extends Vue {
   }
 
   insertPage(index: number) {
-    // create blank A4 page
-    // insert it into this.pages at index
-    // set page.rendered to false
-
     const page = {
       page: null,
       rotation: 0,
+      originalRotation: 0,
       isNew: true,
       rendered: false,
       id: -1,
@@ -259,13 +259,47 @@ export default class PdfRepairer_new extends Vue {
   }
 
   generate() {
-    // show popup that generation isn't supported yet
-
-    this.$bvToast.toast("Generovanie PDF nie je zatiaľ podporované.", {
-      title: "Generovanie PDF",
-      variant: "warning",
+    this.$bvToast.toast("Začínam generovať...", {
+      title: "Generovanie",
+      variant: "info",
       solid: true,
+      autoHideDelay: 2000,
     });
+
+    this.busy = true;
+
+    setTimeout(() => {
+
+      const doc = getViewedDocument();
+
+      if(!doc) {
+        this.$bvToast.toast("Nepodarilo sa nájsť otvorený dokument", {
+          title: "Generovanie",
+          variant: "danger",
+          solid: true,
+        });
+        this.busy = false;
+        return;
+      }
+
+      generate(doc, this.pages).then(() => {
+        this.$bvToast.toast("Dokument bol úspešne vygenerovaný", {
+          title: "Generovanie",
+          variant: "success",
+          solid: true,
+        });
+        this.busy = false;
+        this.$refs.modal.hide();
+      }).catch((err) => {
+        this.$bvToast.toast("Nastala chyba pri generovaní dokumentu", {
+          title: "Generovanie",
+          variant: "danger",
+          solid: true,
+        });
+        this.busy = false;
+        console.error(err);
+      });
+    }, 0);
   }
 }
 </script>
