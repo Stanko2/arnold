@@ -100,12 +100,13 @@
 
 <script lang="ts">
 const pdf = require("pdfvuer");
-import { Canvas } from "../Canvas";
-import { PDFdocument } from "./PDFdocument";
-import { getViewedDocument } from "@/Documents/DocumentManager";
+import {Canvas} from "../Canvas";
+import {PDFdocument} from "./PDFdocument";
+import {getViewedDocument} from "@/Documents/DocumentManager";
 import Vue from "vue";
-import { Database } from "@/Db";
+import {Database} from "@/Db";
 import Component from "vue-class-component";
+
 const contextMenu = require("vue-context-menu");
 
 var pdfDocument = null;
@@ -161,7 +162,6 @@ export default class Viewport extends Vue {
   mounted() {
     this.init();
     this.eventHub.$on("viewport:scale", this.setScale);
-    this.eventHub.$on("viewport:rotate", this.rotate);
     this.eventHub.$on("shortcut:zoomIn", () => this.setScale(0.1));
     this.eventHub.$on("shortcut:zoomOut", () => this.setScale(-0.1));
     this.eventHub.$on("shortcut:delete", this.deleteSelected);
@@ -315,20 +315,6 @@ export default class Viewport extends Vue {
     if (!viewedDoc) return;
     const doc = await Database.getDocument(viewedDoc.id);
     viewedDoc.init(doc.initialPdf);
-  }
-  rotate() {
-    const doc = getViewedDocument();
-    doc?.rotatePage(this.activePage);
-    this.$destroy();
-    // this.eventHub.$emit("editor:setDocument");
-    // this.rotation[this.activePage]++;
-    // const canvas = doc?.pageCanvases[this.activePage];
-    // canvas?.Rotate(90);
-    // canvas?.setDimensions({
-    //   width: canvas.getHeight(),
-    //   height: canvas.getWidth(),
-    // });
-    // this.$forceUpdate();
   }
 
   getPageStyle(idx: number) {
