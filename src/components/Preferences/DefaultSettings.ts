@@ -10,7 +10,7 @@ export function defaultColors() {
         "#F2C511", "#F39C12",
         "#E84B3C", "#C0392B",
         "#DDE6E8", "#BDC3C8",
-        "#E52AE5", "#C55DC5"
+        "#E477E4", "#E52AE5",
     ]
 }
 
