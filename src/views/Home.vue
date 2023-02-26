@@ -220,6 +220,9 @@ export default class Home extends Vue {
       .filter((e) => e.enabled)
       .map((e) => e.name);
     localStorage.setItem("categories", JSON.stringify(categoriesEnabled));
+    if (localStorage.getItem("currentProblem") !== this.problem) {
+      localStorage.setItem("currentProblem", this.problem);
+    }
     return new Promise<void>((resolve, reject) => {
       loadFromDatabase(this.$store.state.currentProblem)
         .then((docs) => {
