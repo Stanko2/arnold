@@ -14,7 +14,7 @@
           variant="secondary"
           block
         >
-          <h6>3.Letná séria 2021</h6>
+          <h6>3. Letná séria 2021/22</h6>
         </b-button>
         <b-collapse id="version1">
           <b-card bg-variant="success">
@@ -30,7 +30,7 @@
           variant="secondary"
           block
         >
-          <h6>1.Zimná séria 2022</h6>
+          <h6>1. Zimná séria 2022/23</h6>
         </b-button>
         <b-collapse id="version2">
           <b-card bg-variant="success">
@@ -55,7 +55,7 @@
           variant="secondary"
           block
         >
-          <h6>3.Zimná séria 2022</h6>
+          <h6>3. Zimná séria 2022/23</h6>
         </b-button>
         <b-collapse id="version3">
           <b-card bg-variant="success">
@@ -82,6 +82,50 @@
               </li>
               <li>
                 Na obrázky sa dá nastaviť defaultný scale, nech ich netreba stále zmenšovať, ak sú vo veľkom rozlíšení. Kvalita obrázkov sa nijak nezmenší.
+              </li>
+            </ul>
+          </b-card>
+        </b-collapse>
+        <b-button
+          v-b-toggle.version4
+          variant="secondary"
+          block
+        >
+          <h6>1. Letná séria 2022/23</h6>
+        </b-button>
+        <b-collapse id="version4">
+          <b-card bg-variant="success">
+            <ul>
+              <li>
+                Pridané automatické aktualizácie. Táto verzia sa tým stáva poslednou verziu na ktorú treba aktualizovať manuálne.
+                V budúcnosti sa automaticky zjaví popup, ktorý vás upozorní na novú verziu a dá vám možnosť na ňu aktualizovať jedným kliknutím.
+                Ak sa v tom momente rozhodnete, že aktualizáciu ešte nechcete, tak sa vám popup zobrazí znova pri ďalšej návšteve stránky a v nastaveniach sa vám zobrazí možnosť aktualizovať.<br>
+                <b>Automatické aktualizácie fungujú iba ak máte aktívne pripojenie k internetu!</b>
+              </li>
+              <li>
+                V nastaveniach si môžete nastaviť, ktoré farby sa zobrazia ako prednastavené pri vyberaní farby (pre nástroje, tagy, ...). Stále zostáva možnosť vybrať si farbu z palety.
+                <ul>
+                  <li>
+                    Do prednastavených farieb boli pridané dve nové farby: <a 
+                      href="https://www.color-name.com/hex/e477e4"
+                      target="_blank"
+                      style="color: #E477E4; font-weight: bold"
+                    >"Lavender Magenta"</a> a <a
+                      href="https://www.color-name.com/hex/e52ae5"
+                      target="_blank"
+                      style="color: #E52AE5; font-weight: bold"
+                    >"Steel Pink"</a>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                Bugfixy:
+                <ul>
+                  <li>Opravený problém ktorý spôsoboval, že po uzatvorení opravovania jednej úlohy ste stratili prístup aj ku ostatným úlohám</li>
+                  <li>Opravená malá chyba pri generovaní zip súboru pri stiahnutí pre Arnolda</li>
+                  <li>Opravené správanie pri duplicitnom načítaní úlohy (resp. niektorých riešení)</li>
+                  <li>Predvolená téma zmenená zo svetlej na systémovú (takže sa zobrazí tmavá alebo svetlá podľa nastavení systému)</li>
+                </ul>
               </li>
             </ul>
           </b-card>
