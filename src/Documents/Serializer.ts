@@ -1,13 +1,12 @@
 import JSZip from "jszip";
-import { Database } from '@/Db';
-import { IScoring, DocumentParser, BackupFile, DocumentBackup, Document } from '@/@types';
+import {Database} from '@/Db';
+import {BackupFile, Document, DocumentBackup, DocumentParser, IScoring} from '@/@types';
 import eventHub from '@/Mixins/EventHub';
 import FileSaver from 'file-saver';
-import { activeParser, AddDocument, setActiveParser } from './DocumentManager';
+import {activeParser, AddDocument, setActiveParser} from './DocumentManager';
 import store from '@/Store';
-import { Packr } from 'msgpackr';
-import { PMatParser } from './DocumentParser';
-import { stroke } from 'pdf-lib';
+import {Packr} from 'msgpackr';
+import {PMatParser} from './DocumentParser';
 
 
 eventHub.$on('editor:backup', createBackup);
@@ -39,7 +38,7 @@ async function createZip(forArnold: boolean) {
     if (forArnold) {
         const backup = await createBackup(documents);
         zip.file('changes.arn', backup);
-        const task = store.state.currentProblem;
+        const task = store.state.currentProblem.replace(/(\d)\. /, '$1-').replaceAll(' ', '-');
         for (const doc of documents) {
             zip.file(`${task}/${doc.originalName}`, doc.initialPdf);
             if (doc.changes.length > 0) {
