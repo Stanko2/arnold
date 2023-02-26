@@ -263,17 +263,15 @@
             <b-dropdown
               class="float-right"
               size="md"
-              :text="selectedCategory.settings.theme"
+              :text="availableThemes[selectedCategory.settings.theme]"
               right
             >
-              <b-dropdown-item @click="selectedCategory.settings.theme = 'light'">
-                Svetlé
-              </b-dropdown-item>
-              <b-dropdown-item @click="selectedCategory.settings.theme = 'dark'">
-                Tmavé
-              </b-dropdown-item>
-              <b-dropdown-item @click="selectedCategory.settings.theme = 'system'">
-                Podľa systému
+              <b-dropdown-item
+                v-for="theme in Object.keys(availableThemes)"
+                :key="theme"
+                @click="selectedCategory.settings.theme = theme"
+              >
+                {{ availableThemes[theme] }}
               </b-dropdown-item>
             </b-dropdown>
           </b-col>
@@ -474,6 +472,14 @@ export default class Preferences extends Vue {
   resetColors() {
     if (confirm("Naozaj chcete obnoviť predovlené farby?")) {
       this.selectedCategory.settings.colors = defaultColors()
+    }
+  }
+
+  get availableThemes() {
+    return {
+      light: 'Svetlé',
+      dark: 'Tmavé',
+      system: 'Podľa systému',
     }
   }
 }

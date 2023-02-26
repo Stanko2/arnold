@@ -1,13 +1,13 @@
 import JSZip from "jszip";
-import { Database } from '@/Db';
-import { IScoring, DocumentParser, BackupFile, DocumentBackup, Document } from '@/@types';
+import {Database} from '@/Db';
+import {BackupFile, Document, DocumentBackup, DocumentParser, IScoring} from '@/@types';
 import eventHub from '@/Mixins/EventHub';
 import FileSaver from 'file-saver';
-import { activeParser, AddDocument, setActiveParser } from './DocumentManager';
+import {activeParser, AddDocument, setActiveParser} from './DocumentManager';
 import store from '@/Store';
-import { Packr } from 'msgpackr';
-import { PMatParser } from './DocumentParser';
-import { stroke } from 'pdf-lib';
+import {Packr} from 'msgpackr';
+import {PMatParser} from './DocumentParser';
+import {app} from "@/main";
 
 
 eventHub.$on('editor:backup', createBackup);
@@ -39,7 +39,7 @@ async function createZip(forArnold: boolean) {
     if (forArnold) {
         const backup = await createBackup(documents);
         zip.file('changes.arn', backup);
-        const task = store.state.currentProblem;
+        const task = store.state.currentProblem.replace(/(\d)\. /, '$1-').replaceAll(' ', '-');
         for (const doc of documents) {
             zip.file(`${task}/${doc.originalName}`, doc.initialPdf);
             if (doc.changes.length > 0) {
@@ -90,6 +90,7 @@ export async function readZip(file: File): Promise<{docs: Document[], parser: Do
     let index = 0;
     let parser: DocumentParser | undefined = undefined;
     const promises: Promise<any>[] = [];
+    let failCount = 0;
     zipFile.forEach((_path, entry) => {
         if (!entry.name.endsWith('.pdf')) return;
         if (backupData && entry.name.endsWith('_graded.pdf')) return;
@@ -103,9 +104,29 @@ export async function readZip(file: File): Promise<{docs: Document[], parser: Do
         index++;
         promises.push(AddDocument(entry.name, data, index, parser, changes).then((doc) => {
             Documents.push(doc);
+        }).catch((e) => {
+            if (e.message === 'Document Already Added') {
+                failCount++;
+
+                let id: any = entry.name.split('/')[1].split('-');
+                id = parseInt(id[id.length - 1].split('.')[0]);
+
+                promises.push((async () => {
+                    Documents.push(await Database.getDocument(id));
+                })());
+            } else {
+                console.error(`Failed to load ${entry.name}`, e);
+                app.$bvToast.toast(`Nepodarilo sa načítať súbor ${entry.name}`, {
+                    title: 'Chyba pri načítavaní',
+                    variant: 'danger',
+                    solid: true,
+                    autoHideDelay: 5000,
+                });
+            }
         }));
     });
     await Promise.all(promises);
+    await Promise.all(promises); // second await to make sure all duplicates are loaded in the array
     if (backupData) {
         promises.splice(0, promises.length);
         zipFile.forEach((_path, entry) => {
@@ -120,6 +141,12 @@ export async function readZip(file: File): Promise<{docs: Document[], parser: Do
         });
         await Promise.all(promises);
     }
+    app.$bvToast.toast(`${Documents.length} riešení bolo úspešne načítaných.${failCount > 0 ? ` Z nich bolo ${failCount} preskočených ako duplicitné` : ''}`, {
+        title: 'Načítanie dokončené',
+        variant: 'success',
+        solid: true,
+        autoHideDelay: 5000,
+    });
     Documents.sort((a, b) => a.riesitel.localeCompare(b.riesitel));
     Documents.forEach((d, i) => d.index = i);
     return {
