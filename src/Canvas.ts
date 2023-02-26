@@ -94,7 +94,16 @@ export class Canvas extends fabric.Canvas {
             if (e.target?.type == 'textbox' || e.target?.type == 'activeSelection') {
                 e.target?.setOptions({ scaleX: 1, scaleY: 1 });
             }
-
+            if (e.target?.type == 'rect') {
+                const scaleX = e.target?.scaleX || 1;
+                const scaleY = e.target?.scaleY || 1;
+                e.target?.set({
+                    scaleX: 1,
+                    scaleY: 1,
+                    width: (e.target?.width || 0) * scaleX,
+                    height: (e.target?.height || 0) * scaleY
+                })
+            }
         });
         this.on('selection:cleared', (e) => {
             if (Canvas.selectedTool && Canvas.selectedTool.name == 'Select') {
