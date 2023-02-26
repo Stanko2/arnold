@@ -9,6 +9,7 @@ export class EllipseAnnotation extends Annotation {
     constructor(page: number, options: fabric.IEllipseOptions, canvas: Canvas) {
         options.originX = 'center';
         options.originY = 'center';
+        options.noScaleCache = false;
         options.rx = options.width;
         options.ry = options.height;
         console.log(options);

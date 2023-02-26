@@ -42,6 +42,7 @@ export class Canvas extends fabric.Canvas {
     }
 
     initEvents() {
+        this.uniformScaling = false;
         this.on('mouse:down', async (e) => {
             if (e.absolutePointer == null) return;
             if (this.isDrawingMode) return;
@@ -94,14 +95,23 @@ export class Canvas extends fabric.Canvas {
             if (e.target?.type == 'textbox' || e.target?.type == 'activeSelection') {
                 e.target?.setOptions({ scaleX: 1, scaleY: 1 });
             }
-            if (e.target?.type == 'rect') {
-                const scaleX = e.target?.scaleX || 1;
-                const scaleY = e.target?.scaleY || 1;
+            const scaleX = e.target?.scaleX || 1;
+            const scaleY = e.target?.scaleY || 1;
+            if (e.target?.type === 'rect') {
                 e.target?.set({
                     scaleX: 1,
                     scaleY: 1,
                     width: (e.target?.width || 0) * scaleX,
                     height: (e.target?.height || 0) * scaleY
+                })
+            }
+            else if (e.target?.type === 'ellipse'){
+                const ellipse = e.target as fabric.Ellipse
+                ellipse.set({
+                    scaleX: 1,
+                    scaleY: 1,
+                    rx: (ellipse.rx || 0) * scaleX,
+                    ry: (ellipse.ry || 0) * scaleY
                 })
             }
         });
