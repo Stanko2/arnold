@@ -470,9 +470,16 @@ export default class Preferences extends Vue {
   }
 
   resetColors() {
-    if (confirm("Naozaj chcete obnoviť predovlené farby?")) {
-      this.selectedCategory.settings.colors = defaultColors()
-    }
+    this.$bvModal.msgBoxConfirm('Naozaj chcete obnoviť predovlené farby?', {
+      okVariant: 'danger',
+      okTitle: 'Áno',
+      cancelTitle: 'Nie',
+      cancelVariant: 'primary'
+    }).then(res => {
+      if (res) {
+        this.selectedCategory.settings.colors = defaultColors()
+      }
+    })
   }
 
   get availableThemes() {

@@ -125,6 +125,7 @@
                   <li>Opravená malá chyba pri generovaní zip súboru pri stiahnutí pre Arnolda</li>
                   <li>Opravené správanie pri duplicitnom načítaní úlohy (resp. niektorých riešení)</li>
                   <li>Predvolená téma zmenená zo svetlej na systémovú (takže sa zobrazí tmavá alebo svetlá podľa nastavení systému)</li>
+                  <li>Obdĺžniky aj elipsy sa už dajú normálne škálovať (nedochádza k rozmazaniu pri škálovaní).</li>
                   <li>Iné interné/menšie veci</li>
                 </ul>
               </li>
