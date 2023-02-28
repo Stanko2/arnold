@@ -2,15 +2,15 @@
   <b-row>
     <b-col
       v-if="scoringChartData"
-      class="d-flex"
+      class="d-flex w-100"
       cols="8"
     >
       <pie-chart
-        class="pie-chart"
+        class="pie-chart col-8"
         :data="scoringChartData.chartData"
         :options="scoringChartData.chartOptions"
       />
-      <div class="d-flex flex-column justify-content-center ml-2">
+      <div class="d-flex flex-column justify-content-center ml-2 col-4">
         <div
           v-for="(item, i) in scoringChartData.chartData.datasets[0].data"
           :key="i"
@@ -68,7 +68,7 @@ export default class ScoringChart extends Vue {
     console.log("generateScoringChartData");
     const uscores: Record<string, number> = {};
     for (const doc of Documents) {
-      if (doc.scoring) {
+      if (doc.scoring && doc.scoring.points !== undefined) {
         if (uscores[`${doc.scoring.points}B`])
           uscores[`${doc.scoring.points}B`]++;
         else uscores[`${doc.scoring.points}B`] = 1;
@@ -145,8 +145,6 @@ export default class ScoringChart extends Vue {
 
 <style scoped>
 .pie-chart {
-  width: 400px;
-  height: 400px;
   display: flex;
   align-items: center;
   justify-content: center;

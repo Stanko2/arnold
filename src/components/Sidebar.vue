@@ -3,7 +3,7 @@
     <search-bar ref="searchBar" />
     <ul
       ref="previews"
-      class="list-group document-list p-0"
+      class="list-group document-list p-0 right-bar"
     >
       <transition
         v-for="(document, i) in documents"
@@ -246,4 +246,8 @@ export default class Sidebar extends SidebarProps {
     opacity: 0;
   }
 }
+.right-bar {
+  width: var(--sidebarWidth);
+}
+
 </style>

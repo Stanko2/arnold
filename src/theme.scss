@@ -9,6 +9,7 @@ $info:#0F81C7;
 $warning:#F68712;
 $light:#e8e8e8;
 $dark:#000000;
+$sidebarWidth: min(34vw, 500px);
 
 $theme-colors: (
     "primary": $primary,
@@ -74,6 +75,7 @@ $theme-colors: (
     @each $color, $value in $theme-colors {
         --#{$variable-prefix}#{$color}: #{$value};
     }
+    --sidebarWidth: #{$sidebarWidth};
 }
 
 .light {
@@ -113,6 +115,7 @@ $theme-colors: (
 
     --#{$variable-prefix}body-color: #{$body-color};
     --#{$variable-prefix}body-bg: #{$body-bg};
+    --sidebarWidth: #{$sidebarWidth};
 }
 
 @import "node_modules/bootstrap/scss/bootstrap";
