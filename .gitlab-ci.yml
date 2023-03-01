@@ -3,7 +3,7 @@ stages:
   - publish
 
 build:
-  image: node:lts-slim
+  image: node:14-slim
   stage: build
   only:
     - master
