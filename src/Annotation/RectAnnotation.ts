@@ -1,14 +1,15 @@
-import { Canvas } from "@/Canvas";
-import { Annotation } from "./Annotation";
+import {Canvas} from "@/Canvas";
+import {Annotation} from "./Annotation";
 import Color from "color";
-import { fabric } from "fabric";
-import { degrees, PDFPage, popGraphicsState, pushGraphicsState, rgb, rotateDegrees, translate } from "pdf-lib";
+import {fabric} from "fabric";
+import {PDFPage, popGraphicsState, pushGraphicsState, rgb, rotateDegrees, translate} from "pdf-lib";
 
 export class RectAnnotation extends Annotation {
     static toolOptions: any;
     constructor(page: number, options: fabric.IRectOptions, canvas: Canvas) {
         options.originX = 'center';
         options.originY = 'center';
+        options.noScaleCache = false;
         super(page, new fabric.Rect(options), canvas, 'Rect');
         (this.object as any).tool = RectAnnotation.toolOptions;
         canvas.setActiveObject(this.object);
@@ -20,6 +21,7 @@ export class RectAnnotation extends Annotation {
         const center = new fabric.Point((this.object.width || 0) / 2, (this.object.height || 0) / 2);
         let pos = new fabric.Point((this.object.left || 0), height - (this.object.top || 0));
         page.pushOperators(
+            pushGraphicsState(),
             translate(pos.x, pos.y),
             rotateDegrees(-(this.object.angle || 0)),
             translate(-pos.x, -pos.y)
@@ -36,6 +38,7 @@ export class RectAnnotation extends Annotation {
             opacity: parseInt((this.object.fill as string).substring(7, 9), 16) / 255 || 1,
             borderOpacity: parseInt((this.object.stroke as string).substring(7, 9), 16) / 255 || 1,
         });
+        page.pushOperators(popGraphicsState());
     }
     serialize(): any {
         return {

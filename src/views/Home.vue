@@ -10,8 +10,8 @@
       </template>
 
       <template #lead>
-        Arnold je jednoduchá aplikácia na pomoc pri opravovaní riešení v
-        korešpodenčných seminároch Pikomat a Pikofyz.
+        Arnold je jednoduchá aplikácia na pomoc pri opravovaní PDF riešení v
+        korešpodenčných seminároch.
       </template>
 
       <hr class="my-4">
@@ -24,14 +24,8 @@
       <p>
         Potrebuješ s niečím pomôcť? Klikni
         <router-link to="Help">
-          sem
+          sem.
         </router-link>
-      </p>
-      <p>
-        Pri zapnutí po dlhšom čase ma nezabudni
-        <b-link @click="reload()">
-          aktualizovať
-        </b-link>
       </p>
       <changelog class="p-2" />
     </b-jumbotron>
@@ -129,6 +123,15 @@
     >
       Opravovať {{ problem }}
     </b-button>
+    <p class="text-center mt-3">
+      Vytvoril <a href="https://stanko2.github.io">Stanko</a>. Ak niečo 
+      nefunguje môžeš sa ozvať na slack, channel 
+      <a href="https://p-mat.slack.com/archives/C045J6J13AS">#Arnold</a>. 
+      Celý Arnold je open-source, takže ak vieš programovať môžeš mi 
+      pomôcť spravením <a href="https://github.com/stanko2/arnold">pull 
+        requestu</a> 🚀, prípadne sa pozerať v mojom neprehľadnom kóde 😊. 
+      Zatiaľ mi s vývojom pomohol Kubo Šiagi.
+    </p>
   </div>
 </template>
 
@@ -220,6 +223,9 @@ export default class Home extends Vue {
       .filter((e) => e.enabled)
       .map((e) => e.name);
     localStorage.setItem("categories", JSON.stringify(categoriesEnabled));
+    if (localStorage.getItem("currentProblem") !== this.problem) {
+      localStorage.setItem("currentProblem", this.problem);
+    }
     return new Promise<void>((resolve, reject) => {
       loadFromDatabase(this.$store.state.currentProblem)
         .then((docs) => {

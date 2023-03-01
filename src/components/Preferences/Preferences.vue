@@ -1,6 +1,27 @@
 <template>
   <b-row class="window">
     <b-col cols="4">
+      <b-alert
+        v-if="updateAvailable"
+        show
+        variant="warning"
+      >
+        <h4 class="alert-heading">
+          Aktualizácia
+        </h4>
+        <p>
+          Je dostupná nová verzia aplikácie. Pre jej aktualizáciu kliknite na tlačidlo nižšie.
+        </p>
+        <hr>
+        <p class="mb-0">
+          <b-button
+            variant="primary"
+            @click="update"
+          >
+            Aktualizovať
+          </b-button>
+        </p>
+      </b-alert>
       <b-list-group>
         <b-list-group-item
           v-for="(category, i) in categories"
@@ -22,7 +43,8 @@
       <hr>
       <div v-if="selectedCategory.name == 'tools'">
         <b-row class="setting">
-          <b-col>Prvý vybraný nástroj<br>
+          <b-col>
+            Prvý vybraný nástroj<br>
             <i style="font-size:75%;">Nástroj ktorý sa vyberie pri otvorení Arnolda</i>
           </b-col>
           <b-col>
@@ -157,6 +179,46 @@
             </div>
           </transition>
         </div>
+        <hr>
+        <h2 class="text-center m-2">
+          Farby
+        </h2>
+        <i style="font-size:85%;">
+          Farby ktoré sa zobrazia v nástroji na výber farby. Vždy môžete použiť aj iné farby ako tie, ktoré si tu nastavíte.
+        </i>
+        <div class="swatches-list">
+          <div
+            v-for="(color, i) in selectedCategory.settings.colors"
+            :key="i"
+            class="swatch"
+          >
+            <input
+              v-model="selectedCategory.settings.colors[i]"
+              type="color"
+              :name="'color' + i"
+              :style="'--color:' + selectedCategory.settings.colors[i]"
+              class="color-input"
+            >
+            <span
+              class="material-icons"
+              @click="selectedCategory.settings.colors.splice(i, 1)"
+            >delete</span>
+          </div>
+          <div
+            class="swatch"
+            @click="selectedCategory.settings.colors.push('#000000')"
+          >
+            <span class="material-icons">add</span>
+            <span>Pridať</span>
+          </div>
+          <div
+            class="swatch"
+            @click="resetColors"
+          >
+            <span class="material-icons">refresh</span>
+            <span>Resetovať</span>
+          </div>
+        </div>
       </div>
       <div v-else-if="selectedCategory.name == 'other'">
         <b-row>
@@ -201,17 +263,15 @@
             <b-dropdown
               class="float-right"
               size="md"
-              :text="selectedCategory.settings.theme"
+              :text="availableThemes[selectedCategory.settings.theme]"
               right
             >
-              <b-dropdown-item @click="selectedCategory.settings.theme = 'light'">
-                Svetlé
-              </b-dropdown-item>
-              <b-dropdown-item @click="selectedCategory.settings.theme = 'dark'">
-                Tmavé
-              </b-dropdown-item>
-              <b-dropdown-item @click="selectedCategory.settings.theme = 'system'">
-                Podľa systému
+              <b-dropdown-item
+                v-for="theme in Object.keys(availableThemes)"
+                :key="theme"
+                @click="selectedCategory.settings.theme = theme"
+              >
+                {{ availableThemes[theme] }}
               </b-dropdown-item>
             </b-dropdown>
           </b-col>
@@ -263,6 +323,8 @@ import {OthersCategory, SettingsCategory, ShortcutCategory, ToolsCategory,} from
 import {Settings} from "@/@types/Preferences";
 import {nameMap} from "@/Mixins/Keybindings.vue"
 import ScoreTemplates from "./ScoreTemplates.vue";
+import {updateApp} from "@/registerServiceWorker";
+import {defaultColors} from "./DefaultSettings";
 
 @Component({
   components: {
@@ -326,6 +388,7 @@ export default class Preferences extends Vue {
             value: 0,
           },
           tools: toolsCopy,
+          colors: defaultColors()
         },
         name: "tools",
       } as ToolsCategory,
@@ -377,6 +440,7 @@ export default class Preferences extends Vue {
       this.categories[0].settings.tools[
         this.categories[0].settings.tools.length - 1
       ] = prefs.tools.settings.tools.find((e: any) => e.name == "scoring");
+      this.categories[0].settings.colors = prefs.tools.settings.colors;
     }
   }
   select(i: number) {
@@ -397,6 +461,33 @@ export default class Preferences extends Vue {
     localStorage.setItem("preferences", JSON.stringify(preferences));
     this.$store.commit("applySettings", preferences);
     this.eventHub.$emit("tools:init");
+  }
+  update() {
+    updateApp();
+  }
+  get updateAvailable() {
+    return localStorage.getItem("update") == "waiting";
+  }
+
+  resetColors() {
+    this.$bvModal.msgBoxConfirm('Naozaj chcete obnoviť predovlené farby?', {
+      okVariant: 'danger',
+      okTitle: 'Áno',
+      cancelTitle: 'Nie',
+      cancelVariant: 'primary'
+    }).then(res => {
+      if (res) {
+        this.selectedCategory.settings.colors = defaultColors()
+      }
+    })
+  }
+
+  get availableThemes() {
+    return {
+      light: 'Svetlé',
+      dark: 'Tmavé',
+      system: 'Podľa systému',
+    }
   }
 }
 </script>
@@ -444,5 +535,38 @@ export default class Preferences extends Vue {
 .setting {
   margin-top: 5px;
   margin-bottom: 5px;
+}
+
+.swatch {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 5px;
+}
+
+.color-input {
+  appearance: none;
+  position: relative;
+  border: none;
+  outline: none;
+  color: transparent !important;
+  background: none !important;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+
+  &::before {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 11px;
+    background-color: var(--color);
+    position: absolute;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+  }
 }
 </style>

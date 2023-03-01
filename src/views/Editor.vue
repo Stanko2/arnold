@@ -225,7 +225,7 @@ export default class Editor extends Vue {
   }
 
   &.visible{
-    left: min(28.6vw, 485px);
+    left: var(--sidebarWidth);
     span {
       transform: rotate(180deg);
     }
@@ -237,10 +237,6 @@ export default class Editor extends Vue {
   span {
     transition: all 250ms linear;
   }
-}
-.right-bar {
-  width: min(40vw, 600px);
-  overflow: hidden;
 }
 .empty-text{
   display: flex;

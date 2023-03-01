@@ -12,7 +12,8 @@
         </b-dropdown-item>
       </b-dropdown>
     </div>
-    <b-input-group 
+    <b-input-group
+      id="fontSize" 
       class="ml-2"
       style="max-width: 100px"
     >
@@ -28,6 +29,9 @@
         min="0"    
       />
     </b-input-group>
+    <b-tooltip target="fontSize">
+      Veľkosť písma
+    </b-tooltip>
     <tool-button
       v-if="activeFont.bold !== undefined && selectedTool.name == 'Select'"
       id="bold"

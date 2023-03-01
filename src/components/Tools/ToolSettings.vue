@@ -22,21 +22,29 @@
     </div>
     <div v-if="selectedOptions.hasFill">
       <color-picker
+        id="fill"  
         v-model="selectedTool.defaultOptions.fill"
         name="fill"
         :value="selectedTool.defaultOptions.fill"
       >
         <span class="material-icons d-block">format_color_fill</span>
       </color-picker>
+      <b-tooltip target="fill">
+        Farba výplne
+      </b-tooltip>
     </div>
     <div v-if="selectedOptions.hasStroke">
       <color-picker
+        id="stroke"
         v-model="selectedTool.defaultOptions.stroke"
         name="stroke"
         :value="selectedTool.defaultOptions.stroke"
       >
         <span class="material-icons d-block">gesture</span>
       </color-picker>
+      <b-tooltip target="stroke">
+        Farba Čiary
+      </b-tooltip>
     </div>
     <div v-if="selectedTool.name == 'Photo'">
       <tool-button

@@ -1,9 +1,10 @@
 import Vue from 'vue';
-import Vuex, { Store } from 'vuex';
-import { Settings, Tag, Document, ScoringCriteria } from '@/@types';
+import Vuex, {Store} from 'vuex';
+import {Document, ScoringCriteria, Settings, Tag} from '@/@types';
 import Clipboard from './clipboard';
 
 import defaultSettings from '@/components/Preferences/DefaultSettings';
+
 export interface State {
     settings: Settings;
     scoringEntries: {id: string, points: number}[];
@@ -81,6 +82,7 @@ const store = new Store<State>({
             state.loadedProblems.delete(state.currentProblem);
             store.dispatch('saveProblems')
             state.currentProblem = state.loadedProblems.values().next().value;
+            localStorage.setItem('currentProblem', state.currentProblem);
         }
     },
     modules: {
@@ -88,7 +90,7 @@ const store = new Store<State>({
     },
     actions: {
         setTheme(context){
-            const theme = context.state.settings.other?.settings.theme || 'light';
+            const theme = context.state.settings.other?.settings.theme || 'system';
             console.log(theme)
             document.body.classList.remove('light')
             document.body.classList.remove('dark')

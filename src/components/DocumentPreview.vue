@@ -20,12 +20,12 @@
       />
       <div
         v-if="showPDFPreview"
-        class="col-5"
+        class="col-5 card-wrapper"
       >
         <b-card body-class="p-0">
           <b-skeleton-wrapper :loading="pdfUrl == null">
             <template #loading>
-              <b-skeleton-img card-img="top" />
+              <b-skeleton-img card-img="top" class="loading-skeleton" />
             </template>
             <img
               :src="pdfUrl"
@@ -358,11 +358,27 @@ export default class DocumentPreview extends Vue {
       }
     }
   }
+  .loading-skeleton {
+    aspect-ratio: 1/1.41;
+    height: 7rem;
+  }
   .card {
     background-color: var(--bg-800);
-    img {
-      border-radius: 0.3rem;
+    aspect-ratio: 1/1.41;
+    max-height: 13rem;
+    .card-body{
+      display: flex;
+      align-items: center;
+      img {
+        border-radius: 0.3rem;
+        width:100%;
+      }
     }
   }
+}
+.card-wrapper{
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>
