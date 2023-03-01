@@ -5,14 +5,14 @@
       :key="action.name"
       v-shortkey.once="getActionKeys(action.shortcut)"
       @shortkey="invokeAction(action.name)"
-    ></div>
+    />
   </div>
 </template>
 
 <script lang="ts">
-import { Settings, Shortcut } from "@/@types";
-import { State } from "@/Store";
-import { Vue, Component, Prop, Watch } from "vue-property-decorator";
+import {Settings, Shortcut} from "@/@types";
+import {State} from "@/Store";
+import {Component, Vue} from "vue-property-decorator";
 
 
 // Adding More Shortcuts:
@@ -30,16 +30,20 @@ export const nameMap: Record<string, string> = {
   "Rect": "Obdĺžnik",
   "Sign": "Podpis",
   "Select": "Vybrať objekty",
-  "scoring": "Ukázať bodovanie",
-  "selectNext": "Prepnúť sa na nasledujúce riešenie",
-  "selectPrev": "Prepnúť sa na predošlé riešenie",
+  "scoring": "Zobraziť/schovať panel s bodovaním",
+  "selectNext": "Prepnúť na nasledujúce riešenie",
+  "selectPrev": "Prepnúť na predošlé riešenie",
   "save": "Uložiť",
   "delete": "Zmazať vybrané objekty",
-  "zoomIn": "Priblížiť sa",
-  "zoomOut": "Vzdialiť sa",
+  "zoomIn": "Priblížiť",
+  "zoomOut": "Oddialiť",
   "copy": "Kopírovať",
   "paste": "Vložiť",
   "cut": "Vystrihnúť",
+  "bold": "Prepnúť bold",
+  "italic": "Prepnúť italic",
+  "subscript": "Dolný Index",
+  "superscript": "Horný Index"
 }
 
 
@@ -59,6 +63,8 @@ export default class Shortcuts extends Vue {
   }
 
   invokeAction(action: string) {
+    const actionObject = this.actionMap.find(a=>a.name == action);
+    if(!actionObject) return;
     this.eventHub.$emit(`shortcut:${action}`);
   }
 

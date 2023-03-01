@@ -9,9 +9,6 @@ module.exports = {
             navigateFallback: 'index.html',
         }
     },
-    // publicPath: process.env.NODE_ENV === 'production'
-    //     ? '/arnold'
-    //     : '/',
     chainWebpack: config => {
         config
             .plugin('html')
@@ -19,5 +16,6 @@ module.exports = {
                 args[0].title = "Arnold";
                 return args;
             })
-    }
+    },
+    publicPath: process.env.GH_PAGES ? '/arnold/' : '/'
 }

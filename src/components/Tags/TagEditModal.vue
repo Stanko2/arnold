@@ -1,36 +1,77 @@
 <template>
-  <b-modal size="lg" id="tag-modal" title="Upraviť tagy" @ok="tagUpdate">
+  <b-modal
+    id="tag-modal"
+    size="lg"
+    title="Upraviť tagy"
+    @ok="tagUpdate"
+  >
     <b-list-group>
       <b-list-group-item
-        pill
         v-for="(tag, i) in availableTags"
         :key="tag.id"
+        pill
         class="tag"
         :style="{ background: lighten(tag.color) }"
       >
         <b-input-group class="mr-3 d-flex align-items-center">
           <b-form-input
+            v-model="tag.meno"
             class="w-75 tag-edit"
             type="text"
-            v-model="tag.meno"
             placeholder="Zadaj meno"
             :style="{ color: getContrastColor(tag.color) }"
           />
         </b-input-group>
         <div class="tag-options">
-          <color-picker :name="'tagcolor' + i" v-model="tag.color" :hasOpacity="false" class="color-picker"/>
-          <button @click="move(i, false)" :disabled="i == 0">expand_less</button>
-          <button @click="move(i, true)" :disabled="i == availableTags.length - 1">expand_more</button>
-          <button @click="removeTag(i)">close</button>
+          <color-picker
+            v-model="tag.color"
+            :name="'tagcolor' + i"
+            :has-opacity="false"
+            class="color-picker"
+          />
+          <button
+            :disabled="i == 0"
+            :id="'tagup' + i"
+            @click="move(i, false)"
+          >
+            expand_less
+          </button>
+          <button
+            :disabled="i == availableTags.length - 1"
+            :id="'tagdown' + i"
+            @click="move(i, true)"
+          >
+            expand_more
+          </button>
+          <button
+              :id="'remove' + i"
+              @click="removeTag(i)"
+          >
+            close
+          </button>
+          <b-tooltip :target="'tagup' + i" placement="top" triggers="hover">
+            Presunúť vyššie
+          </b-tooltip>
+          <b-tooltip :target="'tagdown' + i" placement="top" triggers="hover">
+            Presunúť nižšie
+          </b-tooltip>
+          <b-tooltip :target="'remove' + i" placement="top" triggers="hover">
+            Odstrániť tag
+          </b-tooltip>
         </div>
       </b-list-group-item>
     </b-list-group>
-    <b-button block @click="addTag()">Pridat novy Tag</b-button>
+    <b-button
+      block
+      @click="addTag()"
+    >
+      Pridať nový tag
+    </b-button>
   </b-modal>
 </template>
 
 <script lang="ts">
-import { Tag } from "@/@types";
+import {Tag} from "@/@types";
 import Color from "color";
 import Vue from "vue";
 import Component from "vue-class-component";
@@ -59,8 +100,13 @@ export default class TagEditModal extends Vue {
     this.availableTags.splice(i, 1);
   }
   addTag() {
+    let id: string;
+    do {
+      id = Math.random().toString(36).substr(2, 9);
+    } while (this.availableTags.find((tag) => tag.id == id));
+
     this.availableTags.push({
-      id: Math.random().toString(36).substr(2, 9),
+      id,
       meno: "",
       color: "blue",
     });

@@ -1,54 +1,93 @@
 <template>
   <b-row class="window">
     <b-col cols="4">
+      <b-alert
+        v-if="updateAvailable"
+        show
+        variant="warning"
+      >
+        <h4 class="alert-heading">
+          Aktualizácia
+        </h4>
+        <p>
+          Je dostupná nová verzia aplikácie. Pre jej aktualizáciu kliknite na tlačidlo nižšie.
+        </p>
+        <hr>
+        <p class="mb-0">
+          <b-button
+            variant="primary"
+            @click="update"
+          >
+            Aktualizovať
+          </b-button>
+        </p>
+      </b-alert>
       <b-list-group>
         <b-list-group-item
           v-for="(category, i) in categories"
           :key="category.name"
-          @click="select(i)"
           :class="{ active: selectedCategoryIndex == i }"
-          >{{ category.text }}</b-list-group-item
+          @click="select(i)"
         >
+          {{ category.text }}
+        </b-list-group-item>
       </b-list-group>
     </b-col>
-    <b-col cols="8" class="categoryMenu">
-      <h1 class="text-center">{{ selectedCategory.text }}</h1>
+    <b-col
+      cols="8"
+      class="categoryMenu"
+    >
+      <h1 class="text-center">
+        {{ selectedCategory.text }}
+      </h1>
       <hr>
       <div v-if="selectedCategory.name == 'tools'">
         <b-row class="setting">
-          <b-col>Prvý selectnutý nástroj</b-col>
+          <b-col>
+            Prvý vybraný nástroj<br>
+            <i style="font-size:75%;">Nástroj ktorý sa vyberie pri otvorení Arnolda</i>
+          </b-col>
           <b-col>
             <b-select
-              :options="selectedCategory.settings.defaultTool.options"
               v-model="selectedCategory.settings.defaultTool.value"
-            >
-            </b-select>
+              :options="selectedCategory.settings.defaultTool.options"
+            />
           </b-col>
         </b-row>
         <hr>
         <h2 class="text-center m-2">
-          Defaultné nastavenia pre jednotlivé nástroje
+          Predvolené nastavenia pre jednotlivé nástroje
         </h2>
-        <b-card
+        <div
           v-for="tool in selectedCategory.settings.tools.filter((e) =>
             hasSettings(e)
           )"
           :key="tool.name"
-          :no-body="!tool.expanded"
+          class="card"
         >
-          <template #header class="p-0">
-            <div class="w-100 h-100" @click="tool.expanded = !tool.expanded">
-              {{ shortcutNameMap[tool.name] }}
-            </div>
-          </template>
+          <div
+            class="card-header"
+            @click="tool.expanded = !tool.expanded"
+          >
+            {{ shortcutNameMap[tool.name] }}
+          </div>
           <transition name="slide">
-            <div v-if="tool.expanded">
-              <b-row v-if="tool.options.hasText" class="setting">
-                <b-col align-self="center"> Font </b-col>
+            <div
+              v-if="tool.expanded"
+              class="card-body p-4"
+            >
+              <b-row
+                v-if="tool.options.hasText"
+                class="setting"
+              >
+                <b-col align-self="center">
+                  Font
+                </b-col>
                 <b-col align-self="center">
                   <b-dropdown
                     :text="tool.defaultOptions.fontFamily"
                     class="float-right"
+                    right
                   >
                     <b-dropdown-item
                       v-for="font in fonts"
@@ -57,88 +96,152 @@
                       @click.native="
                         tool.defaultOptions.fontFamily = font.viewport
                       "
-                      >{{ font.viewport }}</b-dropdown-item
                     >
+                      {{ font.viewport }}
+                    </b-dropdown-item>
                   </b-dropdown>
                 </b-col>
               </b-row>
-              <b-row v-if="tool.options.hasText" class="setting">
-                <b-col align-self="center"> Veľkosť Písma </b-col>
+              <b-row
+                v-if="tool.options.hasText"
+                class="setting"
+              >
+                <b-col align-self="center">
+                  Veľkosť písma
+                </b-col>
                 <b-col align-self="center">
                   <input
+                    v-model.number="tool.defaultOptions.fontSize"
                     class="form-control float-right"
                     min="0"
                     style="width: 100px"
                     type="number"
-                    v-model.number="tool.defaultOptions.fontSize"
-                  />
+                  >
                 </b-col>
               </b-row>
-              <b-row v-if="tool.options.hasStrokeWidth" class="setting">
-                <b-col align-self="center">Hrúbka čiary</b-col>
+              <b-row
+                v-if="tool.options.hasStrokeWidth"
+                class="setting"
+              >
+                <b-col align-self="center">
+                  Hrúbka čiary
+                </b-col>
                 <b-col align-self="center">
                   <div class="float-right">
                     <input
+                      v-model.number="tool.defaultOptions.strokeWidth"
                       class=""
                       min="1"
                       style="width: 100px"
                       type="range"
                       max="20"
-                      v-model.number="tool.defaultOptions.strokeWidth"
-                    />
+                    >
                     {{ tool.defaultOptions.strokeWidth }}
                   </div>
                 </b-col>
               </b-row>
 
-              <b-row v-if="tool.options.hasStroke" class="setting">
-                <b-col align-self="center">Farba čiary</b-col>
+              <b-row
+                v-if="tool.options.hasStroke"
+                class="setting"
+              >
+                <b-col align-self="center">
+                  Farba čiary
+                </b-col>
                 <b-col align-self="center">
                   <color-picker
-                    class="float-right"
                     v-model="tool.defaultOptions.stroke"
+                    class="float-right"
                     :value="tool.defaultOptions.stroke"
                     :name="tool.name + 'stroke'"
                   />
                 </b-col>
               </b-row>
-              <b-row v-if="tool.options.hasFill" class="setting">
-                <b-col align-self="center">Výplň</b-col>
+              <b-row
+                v-if="tool.options.hasFill"
+                class="setting"
+              >
+                <b-col align-self="center">
+                  Výplň
+                </b-col>
                 <b-col align-self="center">
                   <color-picker
-                    class="float-right"
                     v-model="tool.defaultOptions.fill"
+                    class="float-right"
                     :value="tool.defaultOptions.fill"
                     :name="tool.name + 'fill'"
                   />
                 </b-col>
               </b-row>
+              <score-templates
+                v-if="tool.name == 'scoring'"
+              />
             </div>
           </transition>
-        </b-card>
+        </div>
+        <hr>
+        <h2 class="text-center m-2">
+          Farby
+        </h2>
+        <i style="font-size:85%;">
+          Farby ktoré sa zobrazia v nástroji na výber farby. Vždy môžete použiť aj iné farby ako tie, ktoré si tu nastavíte.
+        </i>
+        <div class="swatches-list">
+          <div
+            v-for="(color, i) in selectedCategory.settings.colors"
+            :key="i"
+            class="swatch"
+          >
+            <input
+              v-model="selectedCategory.settings.colors[i]"
+              type="color"
+              :name="'color' + i"
+              :style="'--color:' + selectedCategory.settings.colors[i]"
+              class="color-input"
+            >
+            <span
+              class="material-icons"
+              @click="selectedCategory.settings.colors.splice(i, 1)"
+            >delete</span>
+          </div>
+          <div
+            class="swatch"
+            @click="selectedCategory.settings.colors.push('#000000')"
+          >
+            <span class="material-icons">add</span>
+            <span>Pridať</span>
+          </div>
+          <div
+            class="swatch"
+            @click="resetColors"
+          >
+            <span class="material-icons">refresh</span>
+            <span>Resetovať</span>
+          </div>
+        </div>
       </div>
       <div v-else-if="selectedCategory.name == 'other'">
         <b-row>
-          <b-col>Ukázať preview riešení v ľavej lište</b-col>
+          <b-col>Ukázať náhľad riešení v ľavej lište</b-col>
           <b-col>
             <b-form-checkbox
+              v-model="selectedCategory.settings.showPreviews"
               class="float-right"
               size="md"
-              v-model="selectedCategory.settings.showPreviews"
               switch
-            ></b-form-checkbox>
+            />
           </b-col>
         </b-row>
         <hr>
         <b-row>
-          <b-col>Auto-save riešenia pri prepnutí</b-col>
+          <b-col>Automatické uloženie riešenia pri prepnutí na iné</b-col>
           <b-col>
             <b-form-checkbox
+              v-model="selectedCategory.settings.autoSave"
               class="float-right"
               size="md"
-              v-model="selectedCategory.settings.autoSave"
               switch
-            ></b-form-checkbox>
+            />
           </b-col>
         </b-row>
         <hr>
@@ -146,11 +249,11 @@
           <b-col>Ukázať časovač</b-col>
           <b-col>
             <b-form-checkbox
+              v-model="selectedCategory.settings.showTimer"
               class="float-right"
               size="md"
-              v-model="selectedCategory.settings.showTimer"
               switch
-            ></b-form-checkbox>
+            />
           </b-col>
         </b-row>
         <hr>
@@ -160,30 +263,46 @@
             <b-dropdown
               class="float-right"
               size="md"
-              :text="selectedCategory.settings.theme"
+              :text="availableThemes[selectedCategory.settings.theme]"
               right
             >
-              <b-dropdown-item @click="selectedCategory.settings.theme = 'light'">Svetlé</b-dropdown-item>
-              <b-dropdown-item @click="selectedCategory.settings.theme = 'dark'">Tmavé</b-dropdown-item>
-              <b-dropdown-item @click="selectedCategory.settings.theme = 'system'">Podľa systému</b-dropdown-item>
+              <b-dropdown-item
+                v-for="theme in Object.keys(availableThemes)"
+                :key="theme"
+                @click="selectedCategory.settings.theme = theme"
+              >
+                {{ availableThemes[theme] }}
+              </b-dropdown-item>
             </b-dropdown>
           </b-col>
         </b-row>
       </div>
       <div v-else-if="selectedCategory.name == 'shortcut'">
-        <b-alert show variant="info" dismissible
-          >Chceš vedieť ako nastaviť svoje skratky? klikni
-          <a @click="$refs.shortcutHelp.show()" class="link-primary">sem</a>
+        <b-alert
+          show
+          variant="info"
+          dismissible
+        >
+          Chceš vedieť ako nastaviť svoje skratky? Klikni
+          <a
+            class="link-primary"
+            @click="$refs.shortcutHelp.show()"
+          >sem</a>
           <shortcut-help-modal ref="shortcutHelp" />
         </b-alert>
-        <div v-for="tool in selectedCategory.settings" :key="tool.name">
+        <div
+          v-for="tool in selectedCategory.settings"
+          :key="tool.name"
+        >
           <b-row>
-            <b-col align-self="center">{{ shortcutNameMap[tool.name] }}</b-col>
+            <b-col align-self="center">
+              {{ shortcutNameMap[tool.name] }}
+            </b-col>
             <b-col align-self="center">
               <b-form-input
-                class="float-right w-50"
                 v-model="tool.shortcut"
-              ></b-form-input>
+                class="float-right w-50"
+              />
             </b-col>
           </b-row>
           <hr>
@@ -195,24 +314,23 @@
 
 <script lang="ts">
 import Vue from "vue";
-import { tools } from "../Tools/Tool";
-import { FontsAvailable } from "../Fonts";
+import {tools} from "../Tools/Tool";
+import {FontsAvailable} from "../Fonts";
 import ColorPicker from "../ColorPicker.vue";
 import Component from "vue-class-component";
 import ShortcutHelpModal from "./ShortcutHelpModal.vue";
-import {
-  OthersCategory,
-  SettingsCategory,
-  ShortcutCategory,
-  ToolsCategory,
-} from "@/@types";
-import { Settings } from "@/@types/Preferences";
-import { nameMap } from "@/Mixins/Keybindings.vue"
+import {OthersCategory, SettingsCategory, ShortcutCategory, ToolsCategory,} from "@/@types";
+import {Settings} from "@/@types/Preferences";
+import {nameMap} from "@/Mixins/Keybindings.vue"
+import ScoreTemplates from "./ScoreTemplates.vue";
+import {updateApp} from "@/registerServiceWorker";
+import {defaultColors} from "./DefaultSettings";
 
 @Component({
   components: {
     ColorPicker,
     ShortcutHelpModal,
+    ScoreTemplates
   },
 })
 export default class Preferences extends Vue {
@@ -221,6 +339,7 @@ export default class Preferences extends Vue {
   selectedCategory!: SettingsCategory;
   shortcutNameMap = nameMap;
   fonts = FontsAvailable;
+  scoringExpanded = false;
   $refs!: {
     shortcutHelp: ShortcutHelpModal;
   };
@@ -246,6 +365,7 @@ export default class Preferences extends Vue {
           fontFamily: "Helvetica",
           fill: "#000000",
           fontSize: 12,
+          scoreMap: {}
         },
         name: "scoring",
         expanded: false,
@@ -259,20 +379,21 @@ export default class Preferences extends Vue {
           defaultTool: {
             options: [
               { value: 0, text: "Text" },
-              { value: 1, text: "Kreslit" },
-              { value: 3, text: "Sipka" },
-              { value: 5, text: "Obdlznik" },
+              { value: 1, text: "Kreslenie" },
+              { value: 3, text: "Šípka" },
+              { value: 5, text: "Obdĺžnik" },
               { value: 6, text: "Podpis" },
-              { value: 7, text: "Vybrat objekty" },
+              { value: 7, text: "Vybrať objekty" },
             ],
             value: 0,
           },
           tools: toolsCopy,
+          colors: defaultColors()
         },
         name: "tools",
       } as ToolsCategory,
       {
-        text: "Klavesové skratky",
+        text: "Klávesové skratky",
         settings: [
           ...toolsCopy.map((e) => {
             return { name: e.name, shortcut: e.shortcut };
@@ -286,6 +407,10 @@ export default class Preferences extends Vue {
           { name: "cut", shortcut: "ctrl+x" },
           { name: "copy", shortcut: "ctrl+c" },
           { name: "paste", shortcut: "ctrl+v" },
+          { name: "bold", shortcut: "ctrl+b" },
+          { name: "italic", shortcut: "ctrl+i" },
+          { name: "subscript", shortcut: "ctrl+." },
+          { name: "superscript", shortcut: "ctrl+," }
         ],
         name: "shortcut",
       } as ShortcutCategory,
@@ -302,7 +427,7 @@ export default class Preferences extends Vue {
     ];
     this.selectedCategoryIndex = 0;
     this.selectedCategory = this.categories[this.selectedCategoryIndex];
-  } 
+  }
   mounted() {
     const data = localStorage.getItem("preferences");
     if (data) {
@@ -311,10 +436,11 @@ export default class Preferences extends Vue {
         prefs.tools.settings.defaultTool.value;
       Object.assign(this.categories[2].settings, prefs.other.settings);
       Object.assign(this.categories[1].settings, prefs.shortcut.settings);
-      
+
       this.categories[0].settings.tools[
         this.categories[0].settings.tools.length - 1
       ] = prefs.tools.settings.tools.find((e: any) => e.name == "scoring");
+      this.categories[0].settings.colors = prefs.tools.settings.colors;
     }
   }
   select(i: number) {
@@ -336,13 +462,40 @@ export default class Preferences extends Vue {
     this.$store.commit("applySettings", preferences);
     this.eventHub.$emit("tools:init");
   }
+  update() {
+    updateApp();
+  }
+  get updateAvailable() {
+    return localStorage.getItem("update") == "waiting";
+  }
+
+  resetColors() {
+    this.$bvModal.msgBoxConfirm('Naozaj chcete obnoviť predovlené farby?', {
+      okVariant: 'danger',
+      okTitle: 'Áno',
+      cancelTitle: 'Nie',
+      cancelVariant: 'primary'
+    }).then(res => {
+      if (res) {
+        this.selectedCategory.settings.colors = defaultColors()
+      }
+    })
+  }
+
+  get availableThemes() {
+    return {
+      light: 'Svetlé',
+      dark: 'Tmavé',
+      system: 'Podľa systému',
+    }
+  }
 }
 </script>
 
 <style scoped lang="scss">
 .colorInput {
   opacity: 0;
-  
+
   &::before {
     display: block;
     background: red;
@@ -356,10 +509,16 @@ export default class Preferences extends Vue {
 }
 .slide-enter {
   transform: translate(0, -100%);
+  opacity: 0;
+  z-index: -1;
 }
+
 .slide-leave-to {
   transform: translate(0, -100%);
+  opacity: 0;
+  z-index: -1;
 }
+
 .window {
   height: 75vh;
   max-height: 75vh;
@@ -376,5 +535,38 @@ export default class Preferences extends Vue {
 .setting {
   margin-top: 5px;
   margin-bottom: 5px;
+}
+
+.swatch {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 5px;
+}
+
+.color-input {
+  appearance: none;
+  position: relative;
+  border: none;
+  outline: none;
+  color: transparent !important;
+  background: none !important;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+
+  &::before {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 11px;
+    background-color: var(--color);
+    position: absolute;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+  }
 }
 </style>

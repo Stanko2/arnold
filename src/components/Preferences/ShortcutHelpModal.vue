@@ -1,14 +1,17 @@
 <template>
-  <b-modal ok-only ref="modal">
+  <b-modal
+    ref="modal"
+    ok-only
+  >
     <p>
       Skratku vieš nastaviť tak, že do textového poľa napíšeš patričné klávesy,
-      čo chceš zmačknúť. Viacero klávesov naraz vieš oddelovať "+" (ctrl+b).
+      ktoré chceš stláčať. Viacero kláves naraz vieš oddeľovať pomocou "+" (ctrl+b).
       Tabuľka mapovania je tu:
     </p>
     <table class="table">
       <thead>
         <tr>
-          <th>Klaves</th>
+          <th>Kláves</th>
           <th>Meno</th>
         </tr>
       </thead>
@@ -34,27 +37,27 @@
           <td>alt</td>
         </tr>
         <tr>
-          <td>Alt Graph</td>
+          <td>Alt Graph (AltGr)</td>
           <td>altgraph</td>
         </tr>
         <tr>
-          <td>Super (Windows or Mac Cmd)</td>
+          <td>Windows kláves alebo Mac Cmd</td>
           <td>meta</td>
         </tr>
         <tr>
-          <td>Arrow Up</td>
+          <td>Šípka hore</td>
           <td>arrowup</td>
         </tr>
         <tr>
-          <td>Arrow Down</td>
+          <td>Šípka dole</td>
           <td>arrowdown</td>
         </tr>
         <tr>
-          <td>Arrow Left</td>
+          <td>Šípka doľava</td>
           <td>arrowleft</td>
         </tr>
         <tr>
-          <td>Arrow Right</td>
+          <td>Šípka doprava</td>
           <td>arrowright</td>
         </tr>
         <tr>
@@ -66,11 +69,11 @@
           <td>esc</td>
         </tr>
         <tr>
-          <td>Tab</td>
+          <td>Tabulátor</td>
           <td>tab</td>
         </tr>
         <tr>
-          <td>Space</td>
+          <td>Medzerník</td>
           <td>space</td>
         </tr>
         <tr>
@@ -111,7 +114,7 @@
 </template>
 
 <script lang="ts">
-import { BModal } from "bootstrap-vue";
+import {BModal} from "bootstrap-vue";
 import Vue from "vue";
 import Component from "vue-class-component";
 

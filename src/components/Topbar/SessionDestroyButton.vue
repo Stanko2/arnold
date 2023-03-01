@@ -1,13 +1,13 @@
 <template>
   <b-nav-item v-b-modal.sessionDestroy>
-    <span >Uzavrieť opravovanie</span>
+    <span>Uzavrieť opravovanie</span>
     <b-modal
-        id="sessionDestroy"
-        title="Naozaj chcete uzavrieť opravovanie?"
-        ok-variant="danger"
-        cancel-variant="primary"
-        centered
-        @ok="destroySession"
+      id="sessionDestroy"
+      title="Naozaj chcete uzavrieť opravovanie?"
+      ok-variant="danger"
+      cancel-variant="primary"
+      centered
+      @ok="destroySession"
     >
       <p>Pri uzavretí opravovania sa zmažú nasledovné veci</p>
       <ul>
@@ -21,10 +21,18 @@
       <b>Pred uzavretím sa uisti, že máš stiahnuté opravené riešenia!</b>
       <template #modal-footer="{ ok, cancel }">
         <div class="float-left">
-          <b-button class="m-1" variant="primary" @click="cancel()">
+          <b-button
+            class="m-1"
+            variant="primary"
+            @click="cancel()"
+          >
             Zrušiť
           </b-button>
-          <b-button variant="danger" @click="ok()" class="m-1">
+          <b-button
+            variant="danger"
+            class="m-1"
+            @click="ok()"
+          >
             Uzavrieť opravovanie
           </b-button>
         </div>
