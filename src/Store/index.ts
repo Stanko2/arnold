@@ -6,6 +6,7 @@ import Clipboard from './clipboard';
 import defaultSettings from '@/components/Preferences/DefaultSettings';
 
 export interface State {
+    scoringStyle: {strokeWidth: number, strokeColor: string};
     settings: Settings;
     scoringEntries: {id: string, points: number}[];
     tags: Tag[];
@@ -25,7 +26,8 @@ const store = new Store<State>({
         scoringCriteria: [],
         currentProblem: '',
         loadedProblems: new Set<string>(),
-        scoringEntries: []
+        scoringEntries: [],
+        scoringStyle: {strokeWidth: 9, strokeColor: '#2ECC70ff'}
     },
     mutations: {
         loadData: (state) => {
@@ -59,6 +61,10 @@ const store = new Store<State>({
         setCriteria(state, payload) {
             localStorage.setItem('bodovanie', JSON.stringify(payload));
             state.scoringCriteria = payload;
+        },
+        setScoringStyle(state, payload) {
+            localStorage.setItem('scoringStyle', JSON.stringify(payload));
+            state.scoringStyle = payload;
         },
         setScoringEntries(state, payload){
             localStorage.setItem('scoringEntries', JSON.stringify(payload));

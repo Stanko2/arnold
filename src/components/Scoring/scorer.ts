@@ -1,11 +1,11 @@
-import { Document, IScoring } from '@/@types';
-import { Database } from '@/Db';
-import { getViewedDocument } from '@/Documents/DocumentManager';
+import {Document, IScoring} from '@/@types';
+import {Database} from '@/Db';
+import {getViewedDocument} from '@/Documents/DocumentManager';
 import store from '@/Store';
 import eventHub from '@/Mixins/EventHub';
-import { Annotation, TextAnnotation, ImageAnnotation } from '@/Annotation';
-import { PDFdocument } from '../PDFdocument';
-import { Canvas } from '@/Canvas';
+import {Annotation, ImageAnnotation, SignAnnotation, TextAnnotation} from '@/Annotation';
+import {PDFdocument} from '../PDFdocument';
+import {Canvas} from '@/Canvas';
 
 class Scorer {
     activeDoc: Document | undefined;
@@ -91,10 +91,18 @@ class Scorer {
             const template = await Database.getTemplate(entry.id);
             if(template.type ===  'Image'){
                 return new ImageAnnotation(page, { ...options, ...template.templateOptions, image: template.data.img }, this.pdf.pageCanvases[page]);
+            } else if(template.type === 'Sign') {
+                const signStyle = store.state.scoringStyle;
+                return new SignAnnotation(page, {
+                    top: options.top,
+                    left: options.left,
+                    stroke: signStyle.strokeColor,
+                    fill: signStyle.strokeColor,
+                    strokeWidth: signStyle.strokeWidth,
+                    sign: template.id,
+                    create: false
+                }, this.pdf.pageCanvases[page]);
             }
-            // else if(template.type === 'Sign') {
-
-            // }
         }
         throw new Error('Invalid Annotation type')
     }

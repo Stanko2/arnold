@@ -1,9 +1,9 @@
-import { Canvas } from "@/Canvas";
-import { Annotation } from "./Annotation";
+import {Canvas} from "@/Canvas";
+import {Annotation} from "./Annotation";
 import Color from "color";
-import { fabric } from "fabric";
-import { PDFPage, LineCapStyle, rgb } from "pdf-lib";
-import { Database } from "@/Db";
+import {fabric} from "fabric";
+import {LineCapStyle, PDFPage, rgb} from "pdf-lib";
+import {Database} from "@/Db";
 
 export class SignAnnotation extends Annotation {
     public bake(page: PDFPage): void {
@@ -89,7 +89,7 @@ export class SignAnnotation extends Annotation {
 
             const grp = new fabric.Group([], { left: position.x, top: position.y, scaleX: object.scaleX, scaleY: object.scaleY });
             (grp as any).sign = object.sign;
-            super(page, grp, canvas, 'Sign');
+            super(page, grp, canvas, 'Sign', object.create ?? true);
         }
     }
 }

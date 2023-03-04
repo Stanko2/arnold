@@ -57,6 +57,48 @@
       >
         <span class="material-icons d-block">add</span>
       </b-button>
+
+      <div class="p-4">
+        <h5 class="text-center mb-3">
+          Štýl bodovacích podpisov
+        </h5>
+        <b-row
+          class="setting"
+        >
+          <b-col align-self="center">
+            Hrúbka čiary
+          </b-col>
+          <b-col align-self="center">
+            <div class="float-right">
+              <input
+                v-model.number="signStyle.strokeWidth"
+                class=""
+                min="1"
+                style="width: 100px"
+                type="range"
+                max="20"
+              >
+              {{ signStyle.strokeWidth }}
+            </div>
+          </b-col>
+        </b-row>
+  
+        <b-row
+          class="setting"
+        >
+          <b-col align-self="center">
+            Farba čiary
+          </b-col>
+          <b-col align-self="center">
+            <color-picker
+              v-model="signStyle.strokeColor"
+              class="float-right"
+              :value="signStyle.strokeColor"
+              name="scoringLineColor"
+            />
+          </b-col>
+        </b-row>
+      </div>
     </div>
     <b-alert
       v-else
@@ -75,26 +117,36 @@ import {Database} from '@/Db';
 import Vue from 'vue'
 import Component from 'vue-class-component';
 import {Watch} from 'vue-property-decorator';
+import ColorPicker from "@/components/ColorPicker.vue";
 
 interface ScoreEntry {
     points: number;
     template: ITemplate;
 }
 
-@Component
+@Component({
+  components: {ColorPicker}
+})
 export default class ScoreTemplates extends Vue {
   templates: ITemplate[] = []
   scoreEntries: ScoreEntry[] = [];
 
+  signStyle = {
+    strokeWidth: 1,
+    strokeColor: '#000000'
+  }
+
   mounted(){
     Database.getAllTemplates().then(templates=> {
       this.templates = templates;
-      this.load(this.$store.state.scoringEntries);
+      this.load(this.$store.state.scoringEntries, this.$store.state.scoringStyle);
     });
   }
 
   @Watch('scoreEntries', {deep: true})
+  @Watch('signStyle', {deep: true})
   save(){
+    this.$store.commit('setScoringStyle', this.signStyle);
     this.$store.commit('setScoringEntries', this.scoreEntries.map(e => {
       return {
         points: e.points,
@@ -103,7 +155,7 @@ export default class ScoreTemplates extends Vue {
     }))
   }
 
-  load(data: {id: string, points: number}[]){
+  load(data: {id: string, points: number}[], scoringStyle?: {strokeWidth: number, strokeColor: string}){
     for (const entry of data) {
       const template = this.templates.find(t=> t.id == entry.id);
       if(!template) continue;
@@ -111,6 +163,9 @@ export default class ScoreTemplates extends Vue {
         points: entry.points,
         template
       })
+    }
+    if(scoringStyle){
+      this.signStyle = scoringStyle;
     }
   }
 
