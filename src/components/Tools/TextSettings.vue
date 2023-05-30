@@ -64,6 +64,7 @@
       :outline="!superscript"
       @click="toggleScript(false)"
     />
+    <emoji-picker @emoji_click="addEmoji" />
   </div>
 </template>
 
@@ -76,10 +77,13 @@ import { Prop } from 'vue-property-decorator';
 import { FontsAvailable } from '../Fonts';
 import { PDFdocument } from '../PDFdocument';
 import ToolButton from './Toolbutton.vue';
+import EmojiPicker from './Emoji/EmojiPicker.vue'
+import { Canvas } from '@/Canvas';
 
 @Component({
   components: {
-    ToolButton
+    ToolButton,
+    EmojiPicker
   }
 })
 export default class TextSettings extends Vue {
@@ -98,6 +102,8 @@ export default class TextSettings extends Vue {
     this.eventHub.$on('shortcut:superscript', ()=> this.toggleScript(false));
     this.eventHub.$on('shortcut:subscript', ()=> this.toggleScript(true));
     this.updateInterval = setInterval(this.updateStatus, 300);
+    console.log(this.selectedTool);
+    
   }
 
   unmounted(){
@@ -215,6 +221,18 @@ export default class TextSettings extends Vue {
     if(!keys.includes('fontSize') || !keys.includes('deltaY'))
       return false;
     return x['fontSize'] < (obj.fontSize || 0) && x['deltaY'] < 0;
+  }
+
+  addEmoji(emoji: string) {
+    const textbox = PDFdocument.activeObject as fabric.Textbox;
+    textbox.exitEditing();
+    const text = textbox.text || '';
+    textbox.set({
+      text: text + emoji,
+    });
+    (textbox.canvas as Canvas).setFontForEmojis(textbox);
+    textbox.enterEditing();
+    textbox.canvas?.requestRenderAll();
   }
 }
 </script>

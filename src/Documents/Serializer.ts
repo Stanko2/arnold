@@ -19,7 +19,7 @@ async function createBackup(documents: Document[]): Promise<Buffer> {
     let data: BackupFile = {
         tags: store.state.tags,
         changes: {},
-        scoringCriteria: store.state.scoringCriteria,
+        scoringCriteria: store.getters.scoringCriteria,
     };
     documents.forEach(e => {
         data.changes[e.id] = {

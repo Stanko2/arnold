@@ -12,8 +12,7 @@ export class EllipseAnnotation extends Annotation {
         options.noScaleCache = false;
         options.rx = options.width;
         options.ry = options.height;
-        console.log(options);
-
+        
         super(page, new fabric.Ellipse(options), canvas, 'Ellipse');
         (this.object as any).tool = EllipseAnnotation.toolOptions;
         canvas.setActiveObject(this.object);

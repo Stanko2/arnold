@@ -21,12 +21,12 @@
             </h3>
             <b-form-input
               ref="pointInput"
-              v-model.number="$data.currentScore.points"
+              v-model.number="currentScore.points"
               type="number"
               class="w-50"
               step="0.5"
               placeholder="Zadaj body ..."
-              :disabled="currentScore.final"
+              :disabled="isFinal"
               @change="saveScoring"
             />
             <div class="d-flex flex-row mr-2" />
@@ -42,7 +42,7 @@
                 v-model="acceptedCriteria[i]"
                 class="form-check-input"
                 type="checkbox"
-                :disabled="currentScore.final"
+                :disabled="isFinal"
                 @change="calculatePoints"
               />
               <label
@@ -133,8 +133,13 @@ $refs!: {
     pointInput: BFormInput
   }
 
+  get isFinal (): boolean {
+    return this.currentScore?.final || false;
+  }
+
   mounted() {
-    this.updateCriteria(this.$store.state.scoringCriteria);
+    console.log('mounted');
+    this.updateCriteria(this.$store.getters.scoringCriteria);
     this.eventHub.$on("shortcut:scoring", this.toggle)
     this.pdf = getViewedDocument();
     if (this.pdf) {
@@ -157,12 +162,13 @@ $refs!: {
     );
     this.$store.subscribe((mut, state) =>{
       if(mut.type == 'setCriteria' || mut.type == 'loadData'){
-        this.updateCriteria(state.scoringCriteria);
+        this.updateCriteria(this.$store.getters.scoringCriteria);
       }
     })
   }
 
   updateCriteria(criteria: ScoringCriteria[]){
+    console.log(criteria);
     this.pointCriterias = criteria;
     this.acceptedCriteria = this.pointCriterias.map((e) => false);
     if(this.doc)
@@ -202,6 +208,7 @@ $refs!: {
   getScoring(doc: Document) {
     this.doc = doc;
     this.currentScore = Scorer.getScoring(doc);
+    
     if(this.currentScore == null){
       throw new Error('Current score null');
     }
@@ -216,7 +223,7 @@ $refs!: {
 
   finalScoringChange() {
     if (!this.pdf) return;
-    if(!this.currentScore?.final){
+    if(!this.isFinal){
       this.finalizingScoring = true;
       scorer.finalizeScoring().then((id: string)=>{
         this.finalizingScoring = false;
