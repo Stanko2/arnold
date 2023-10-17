@@ -7,8 +7,17 @@
       class="emojiInputButton"
       variant="outline-secondary"
     >
-      <span style="">😀</span>
+      <span
+        class="d-block"
+        style="transform: scale(2);"
+      >😀</span>
     </b-button>
+    <b-tooltip
+      triggers="hover"
+      target="emojiPicker"
+    >
+      Emoji
+    </b-tooltip>
     <b-popover 
       ref="popover"
       :show.sync="show"
@@ -117,6 +126,8 @@ export default {
 <style scoped lang="scss">
 .emojiInputButton {
 	font-family: 'Emoji';
+	width: 100%;
+	height: 100%;
 }
 
 .emoji_picker
@@ -147,14 +158,18 @@ export default {
 	overflow: auto;
 	z-index: 1;
     user-select: none;
+	&::-webkit-scrollbar-track {
+		background: #f1f1f1;
+		border-radius: 20px;
+	}
 }
 
 .category
 {
 	display: flex;
 	flex-direction: column;
-	margin-bottom: 1rem;
 	color: var(--bg-200);
+	font-size: 1.02rem;
 }
 
 .emojis_container
@@ -162,19 +177,19 @@ export default {
 	display: flex;
 	flex-wrap: wrap;
     font-family: 'Emoji';
+	justify-content: center;
 	button {
 		color: var(--bg-100);
+		margin-left: 0;
+		background: inherit;
+		border: none;
+		font-size: 2.25rem;
+		padding: 0;
+		transition: 100ms;
+		&:hover {
+			color: var(--primary);
+		}
 	}
-}
-
-.category button
-{
-	margin: 0.5rem;
-	margin-left: 0;
-	background: inherit;
-	border: none;
-	font-size: 1.75rem;
-	padding: 0;
 }
 
 .bottom_arrow

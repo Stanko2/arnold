@@ -1,13 +1,13 @@
 import JSZip from "jszip";
-import {Database} from '@/Db';
-import {BackupFile, Document, DocumentBackup, DocumentParser, IScoring} from '@/@types';
+import { Database } from '@/Db';
+import { BackupFile, Document, DocumentBackup, DocumentParser, IScoring, ITemplate } from '@/@types';
 import eventHub from '@/Mixins/EventHub';
 import FileSaver from 'file-saver';
-import {activeParser, AddDocument, setActiveParser} from './DocumentManager';
+import { activeParser, AddDocument, setActiveParser } from './DocumentManager';
 import store from '@/Store';
-import {Packr} from 'msgpackr';
-import {PMatParser} from './DocumentParser';
-import {app} from "@/main";
+import { Packr } from 'msgpackr';
+import { PMatParser } from './DocumentParser';
+import { app } from "@/main";
 
 
 eventHub.$on('editor:backup', createBackup);
@@ -33,12 +33,21 @@ async function createBackup(documents: Document[]): Promise<Buffer> {
     return packr.pack(data);
 }
 
+async function packTemplates(): Promise<Buffer> {
+    const templates = await Database.getAllTemplates();
+    return packr.pack(templates);
+}
+
 async function createZip(forArnold: boolean) {
     const documents = (await Database.getAllDocuments()).filter(doc => doc.problem == store.state.currentProblem);
     const zip = new JSZip();
     if (forArnold) {
         const backup = await createBackup(documents);
+        const backuptemplates = await packTemplates();
         zip.file('changes.arn', backup);
+        zip.file('templates.arn', backuptemplates);
+        console.log('templates packing');
+
         const task = store.state.currentProblem.replace(/(\d)\. /, '$1-').replaceAll(' ', '-');
         for (const doc of documents) {
             zip.file(`${task}/${doc.originalName}`, doc.initialPdf);
@@ -58,7 +67,7 @@ async function createZip(forArnold: boolean) {
             }
         }
         const scoring = {
-            criteria: JSON.parse(localStorage.getItem('bodovanie') || '{}'),
+            criteria: store.getters.scoringCriteria,
             scores: pts,
         };
         zip.file('/points.json', JSON.stringify(scoring, null, '\t'));
@@ -72,7 +81,15 @@ async function createZip(forArnold: boolean) {
     eventHub.$emit('download:done');
 }
 
-export async function readZip(file: File): Promise<{docs: Document[], parser: DocumentParser}> {
+async function loadTemplates(file: JSZip.JSZipObject): Promise<void> {
+    const unzipped = await file.async('uint8array');
+    const decoded: ITemplate[] = packr.decode(unzipped);
+    for (const template of decoded) {
+        await Database.updateTemplate(template)
+    }
+}
+
+export async function readZip(file: File): Promise<{ docs: Document[], parser: DocumentParser }> {
     const buffer = await file.arrayBuffer();
     const zipReader = new JSZip();
     const zipFile = await zipReader.loadAsync(buffer);
@@ -83,8 +100,10 @@ export async function readZip(file: File): Promise<{docs: Document[], parser: Do
     if (backupData) {
         changes = backupData.changes;
         localStorage.setItem('tags', JSON.stringify(backupData.tags));
-        localStorage.setItem('bodovanie', JSON.stringify(backupData.scoringCriteria));
         store.commit('loadData');
+        const templates = zipFile.file('templates.arn')
+        if (templates)
+            await loadTemplates(templates);
     }
 
     let index = 0;
@@ -97,7 +116,7 @@ export async function readZip(file: File): Promise<{docs: Document[], parser: Do
         if (parser == undefined) {
             var problem = entry.name.split('/')[0];
             parser = new PMatParser(problem);
-            store.commit('addProblem', parser.problemName);
+            store.commit('addProblem', { name: parser.problemName, scoring: backupData?.scoringCriteria || [] });
             setActiveParser(parser);
         }
         const data = entry.async('arraybuffer');

@@ -4,14 +4,18 @@ import Color from "color";
 import { fabric } from "fabric";
 import { PDFPage, popGraphicsState, pushGraphicsState, rgb, rotateDegrees, translate } from "pdf-lib";
 import { Database } from "@/Db";
+import { loadingSpinner } from "@/components/Tools/Util";
+import { app } from "@/main";
 
 export class ImageAnnotation extends Annotation {
-    imageData: string;
+    imageID: string;
     constructor(page: number, options: fabric.IImageOptions & { image: string; }, canvas: Canvas) {
         options.originX = 'center';
         options.originY = 'center';
+        console.log(options.image);
         const img = new Image();
-        img.src = options.image;
+        img.src = loadingSpinner;
+        
         img.onerror = (msg, url, lineNo, columnNo, error) => {
             console.log(msg);
         }
@@ -19,9 +23,20 @@ export class ImageAnnotation extends Annotation {
             this.object.set({width: img.width, height: img.height});
             this.object.canvas?.requestRenderAll();
         }
+        Database.getTemplate(options.image).then((template)=> {
+            img.src = template.data.img;
+        }).catch(err=> {
+            app.$bvToast.toast(`Nenasla sa sablona pre obrazok ${options.image}. Pravdepodobne si ju vymazal. Obrazok v tomto rieseni bude taktiez vymazany.`, {
+                variant: 'warning',
+                solid: true,
+                autoHideDelay: 2000
+            });
+            this.canvas.pdf.deleteAnnotation(this.object.name || '');
+        })
+
         super(page, new fabric.Image(img, options), canvas, 'Image');
         canvas.setActiveObject(this.object);
-        this.imageData = options.image;
+        this.imageID = options.image;
     }
     async bake(page: PDFPage) {
         if (!this.object.width || !this.object.height || !this.object.scaleX || !this.object.scaleY) return;
@@ -37,7 +52,8 @@ export class ImageAnnotation extends Annotation {
             // translate(-pos.x, pos.y)
         );
         pos = pos.subtract(center);
-        const img = await page.doc.embedPng(this.imageData);
+        const template = await Database.getTemplate(this.imageID)
+        const img = await page.doc.embedPng(template.data.img);
         console.log((this.object.height || 100) * (this.object.scaleY || 1));
 
         page.drawImage(img, {
@@ -57,7 +73,7 @@ export class ImageAnnotation extends Annotation {
             scaleX: this.object.scaleX,
             scaleY: this.object.scaleY,
             angle: this.object.angle,
-            image: this.imageData
+            image: this.imageID
         };
     }
 }

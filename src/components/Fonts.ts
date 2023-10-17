@@ -40,7 +40,8 @@ export const FontsAvailable: Record<string, Font> = {
     'Emoji': {
         url: '/fonts/OpenMoji.woff',
         pdf: '/fonts/OpenMoji.otf',
-        viewport: 'Emoji'
+        viewport: 'Emoji',
+        hidden: true
     }
 }
 

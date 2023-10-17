@@ -20,7 +20,7 @@
     "fabric": "^4.6.0",
     "file-saver": "^2.0.5",
     "fontfaceobserver": "^2.1.0",
-    "jszip": "^3.7.0",
+    "jszip": "^3.10.1",
     "material-design-icons": "^3.0.1",
     "msgpackr": "^1.6.0",
     "pdf-lib": "^1.17.0",
@@ -53,6 +53,7 @@
     "@vue/cli-plugin-typescript": "~4.5.0",
     "@vue/cli-service": "^4.5.13",
     "@vue/eslint-config-typescript": "^5.0.2",
+    "@vue/runtime-dom": "^3.3.4",
     "babel-eslint": "^10.1.0",
     "cypress-file-upload": "^5.0.8",
     "eslint": "^6.7.2",
@@ -60,6 +61,7 @@
     "execa": "^5.1.1",
     "sass": "^1.54.5",
     "typescript": "~3.9.3",
+    "volar-service-vetur": "latest",
     "vue-template-compiler": "^2.6.11"
   },
   "eslintConfig": {

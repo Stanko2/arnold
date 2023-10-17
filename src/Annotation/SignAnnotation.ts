@@ -4,6 +4,7 @@ import Color from "color";
 import { fabric } from "fabric";
 import { PDFPage, LineCapStyle, rgb } from "pdf-lib";
 import { Database } from "@/Db";
+import { app } from "@/main";
 
 export class SignAnnotation extends Annotation {
     public bake(page: PDFPage): void {
@@ -85,6 +86,13 @@ export class SignAnnotation extends Annotation {
                     fill: object.fill,
                     strokeWidth: object.strokeWidth
                 });
+            }).catch(err=> {
+                app.$bvToast.toast(`Nenasla sa sablona pre podpis ${object.sign}. Pravdepodobne si ju vymazal. Podpis v tomto rieseni bude taktiez vymazany.`, {
+                    variant: 'warning',
+                    solid: true,
+                    autoHideDelay: 2000
+                });
+                this.canvas.pdf.deleteAnnotation(this.object.name || '');
             });
 
             const grp = new fabric.Group([], { left: position.x, top: position.y, scaleX: object.scaleX, scaleY: object.scaleY });

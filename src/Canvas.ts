@@ -6,6 +6,7 @@ import { ImageAnnotation, PathAnnotation, SignAnnotation } from "@/Annotation";
 import eventHub from "./Mixins/EventHub";
 import { Tool } from "./@types";
 import store from './Store';
+import { emojiRegex } from "./components/Tools/Util";
 export class Canvas extends fabric.Canvas {
     Clear(): void {
         try {
@@ -22,7 +23,7 @@ export class Canvas extends fabric.Canvas {
     drawnShapes: fabric.Path[] = [];
     static selectedTool: Tool<fabric.IObjectOptions> | undefined = undefined;
     initialized = false;
-    constructor(el: any, private pdf: PDFdocument, private page: number) {
+    constructor(el: any, public pdf: PDFdocument, private page: number) {
         super(el);
         this.selection = false;
         eventHub.$on('tool:select', (tool: Tool<fabric.IObjectOptions>) => Canvas.selectedTool = tool);
@@ -275,6 +276,7 @@ export class Canvas extends fabric.Canvas {
         for (const row of styles) {
             const blank = [' ', '\t', '\n'];
             const text = textbox.textLines[row];
+            if (text === undefined) continue;
             const rowStyles = Object.keys(textbox.styles[row]).map(e=> parseInt(e));
             for (const style of rowStyles) {
                 if (blank.includes(text.charAt(style))){
@@ -286,7 +288,6 @@ export class Canvas extends fabric.Canvas {
 
     setFontForEmojis(textbox: fabric.Textbox) {
         textbox.textLines.forEach((line, i) => {
-            const emojiRegex = /[\u{1f300}-\u{1f5ff}\u{1f900}-\u{1f9ff}\u{1f600}-\u{1f64f}\u{1f680}-\u{1f6ff}\u{2600}-\u{26ff}\u{2700}-\u{27bf}\u{1f1e6}-\u{1f1ff}\u{1f191}-\u{1f251}\u{1f004}\u{1f0cf}\u{1f170}-\u{1f171}\u{1f17e}-\u{1f17f}\u{1f18e}\u{3030}\u{2b50}\u{2b55}\u{2934}-\u{2935}\u{2b05}-\u{2b07}\u{2b1b}-\u{2b1c}\u{3297}\u{3299}\u{303d}\u{00a9}\u{00ae}\u{2122}\u{23f3}\u{24c2}\u{23e9}-\u{23ef}\u{25b6}\u{23f8}-\u{23fa}]/ug;
             const emojis: Set<number> = new Set();
             let emojiCount = 0;
             for (const emoji of line.matchAll(emojiRegex)) {

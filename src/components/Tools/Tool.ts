@@ -126,11 +126,8 @@ export const tools: Tool<fabric.IObjectOptions>[] = [
         defaultOptions: { name: '', image: '' },
         click: async (pdf: PDFdocument, page: number, position: { x: number; y: number; }): Promise<fabric.Object> => {
             const options: fabric.IImageOptions & { image: string } = Object.assign({}, selectedTool.defaultOptions as fabric.IImageOptions & { image: string });
-            console.log(selectedTool.defaultOptions);
+            console.log(options);
             const template = await Database.getTemplate((options as any).image);
-            const img = new Image();
-            img.src = template.data.img;
-            (options as any).image = template.data.img;
             const annot = new ImageAnnotation(page, { ...options, ...template.templateOptions}, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
             return annot.object;

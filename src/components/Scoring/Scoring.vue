@@ -112,7 +112,6 @@ import Component from "vue-class-component";
 import {getViewedDocument} from "@/Documents/DocumentManager";
 import {BFormInput} from "bootstrap-vue";
 import ScoreModal from "./ScoreModal.vue";
-import Scorer from "./scorer";
 import scorer from "./scorer";
 
 @Component({
@@ -207,7 +206,7 @@ $refs!: {
 
   getScoring(doc: Document) {
     this.doc = doc;
-    this.currentScore = Scorer.getScoring(doc);
+    this.currentScore = scorer.getScoring(doc);
     
     if(this.currentScore == null){
       throw new Error('Current score null');

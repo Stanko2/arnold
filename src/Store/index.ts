@@ -76,10 +76,10 @@ const store = new Store<State>({
             localStorage.setItem('tags', JSON.stringify(payload));
             state.tags = payload;
         },
-        addProblem(state, problemName){
-            state.currentProblem = problemName;
-            state.loadedProblems.add(problemName);
-            state.scoringCriteria[problemName] = [];
+        addProblem(state, payload){
+            state.currentProblem = payload.name;
+            state.loadedProblems.add(payload.name);
+            state.scoringCriteria[payload.name] = payload.scoring;
             store.dispatch('saveProblems');
         },
         setActiveProblem(state, problem){
