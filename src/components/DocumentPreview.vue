@@ -165,8 +165,11 @@ import Color from "color";
 import Vue from "vue";
 import type {Document, Tag} from "@/@types";
 import Component from "vue-class-component";
-import {getDocument} from "pdfjs-dist";
+// @ts-ignore
+import pdfJS, {getDocument} from "pdfjs-dist/build/pdf.js";
+pdfJS.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.4.456/pdf.worker.js';
 import {Prop} from "vue-property-decorator";
+import { PDFJS } from "pdfjs-dist";
 
 @Component
 export default class DocumentPreview extends Vue {

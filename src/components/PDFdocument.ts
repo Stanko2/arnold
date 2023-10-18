@@ -7,7 +7,9 @@ import { Annotation, EllipseAnnotation, ImageAnnotation, LineAnnotation, PathAnn
 import type { Tool, Document } from "@/@types";
 import fontKit from '@pdf-lib/fontkit';
 
-var pdf = require('pdfvuer');
+// var pdf = require('pdfvuer');
+//@ts-ignore
+import pdf from 'pdfvuer';
 
 export class PDFdocument {
 
@@ -144,7 +146,7 @@ export class PDFdocument {
                 break;
             default:
                 throw new Error("Unknown annotation type");
-                
+
         }
         this.addAnnotation(annotation);
         return annotation;

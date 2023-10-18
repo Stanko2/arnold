@@ -43,7 +43,6 @@ import { Component, Prop, Watch } from 'vue-property-decorator';
 import { Document } from '@/@types';
 import Color from 'color';
 import PieChart from "./PieChart.js";
-import { IText } from 'fabric/fabric-impl';
 
 @Component({
   components: {

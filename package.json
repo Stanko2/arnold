@@ -3,20 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "test:e2e": "vue-cli-service test:e2e",
-    "lint": "vue-cli-service lint",
-    "deploy": "node scripts/gh-pages-deploy.js"
+    "dev": "vite",
+    "build": "vite build",
+    "server": "vite preview",
+    "deploy": "node scripts/gh-pages-deploy.js",
+    "lint": "eslint --ext .js,.vue --ignore-path .gitignore --fix src"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",
+    "@vitejs/plugin-vue": "^1.6.1",
     "array-to-image": "^1.0.0",
     "bootstrap": "^4.6.0",
     "bootstrap-vue": "^2.22.0",
     "chart.js": "^2.9.4",
     "color": "^3.1.3",
-    "core-js": "^3.6.5",
     "fabric": "^4.6.0",
     "file-saver": "^2.0.5",
     "fontfaceobserver": "^2.1.0",
@@ -26,8 +26,9 @@
     "pdf-lib": "^1.17.0",
     "pdfvuer": "^1.9.2",
     "register-service-worker": "^1.7.1",
-    "sass-loader": "^10.1.1",
-    "vue": "^2.6.11",
+    "vite": "^2.5.4",
+    "vite-plugin-vue2": "1.9.0",
+    "vue": "^2.7.14",
     "vue-chartjs": "^3.5.1",
     "vue-class-component": "^7.2.3",
     "vue-context-menu": "^2.0.6",
@@ -45,29 +46,22 @@
     "@types/pdfjs-dist": "^2.7.5",
     "@typescript-eslint/eslint-plugin": "^2.33.0",
     "@typescript-eslint/parser": "^2.33.0",
-    "@vue/cli-plugin-babel": "^4.5.13",
-    "@vue/cli-plugin-e2e-cypress": "^4.5.14",
-    "@vue/cli-plugin-eslint": "^3.1.1",
-    "@vue/cli-plugin-pwa": "~4.5.0",
-    "@vue/cli-plugin-router": "~4.5.0",
-    "@vue/cli-plugin-typescript": "~4.5.0",
-    "@vue/cli-service": "^4.5.13",
     "@vue/eslint-config-typescript": "^5.0.2",
     "@vue/runtime-dom": "^3.3.4",
-    "babel-eslint": "^10.1.0",
     "cypress-file-upload": "^5.0.8",
-    "eslint": "^6.7.2",
-    "eslint-plugin-vue": "^6.2.2",
+    "eslint": "^8.51.0",
+    "eslint-plugin-vue": "^8.7.1",
     "execa": "^5.1.1",
     "sass": "^1.54.5",
     "typescript": "~3.9.3",
     "volar-service-vetur": "latest",
-    "vue-template-compiler": "^2.6.11"
+    "vue-template-compiler": "^2.7.14"
   },
   "eslintConfig": {
     "root": true,
     "env": {
-      "node": true
+      "node": true,
+      "es2022": true
     },
     "extends": [
       "plugin:vue/recommended",
@@ -75,7 +69,7 @@
       "@vue/typescript"
     ],
     "parserOptions": {
-      "parser": "@typescript-eslint/parser"
+      "parser": "babel-eslint"
     },
     "rules": {
       "no-unused-vars": "off"
