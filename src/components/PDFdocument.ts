@@ -7,10 +7,6 @@ import { Annotation, EllipseAnnotation, ImageAnnotation, LineAnnotation, PathAnn
 import type { Tool, Document } from "@/@types";
 import fontKit from '@pdf-lib/fontkit';
 
-// var pdf = require('pdfvuer');
-//@ts-ignore
-import pdf from 'pdfvuer';
-
 export class PDFdocument {
 
     static viewport: Vue;
@@ -18,7 +14,7 @@ export class PDFdocument {
     static initDocument: Function;
     static activeObject: fabric.Object | undefined;
     modifyRef: PDFDocument | undefined;
-    viewref: any;
+    // viewref: any;
     initialized = false;
     pages: PDFPage[] = [];
     annotations: Annotation[] = [];
@@ -60,9 +56,8 @@ export class PDFdocument {
     }
 
     private LoadPdfToViewport(pdfbytes: ArrayBuffer) {
-        this.viewref = pdf.createLoadingTask({ data: new Uint8Array(pdfbytes) });
         setTimeout(() => {
-            PDFdocument.initDocument.call(PDFdocument.viewport, this.viewref, this);
+            PDFdocument.initDocument.call(PDFdocument.viewport, pdfbytes, this);
         }, 500);
     }
 
