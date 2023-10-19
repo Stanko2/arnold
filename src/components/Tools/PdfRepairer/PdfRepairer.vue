@@ -182,7 +182,7 @@ export default class PDFRepairer extends Vue {
 
   generationFinished() {
     this.busy = false;
-    this.$bvToast.toast('PDFko bolo úspešne upravené. Obnov stránku (F5) na zobrazenie', {
+    this.$bvToast.toast('PDFko bolo úspešne upravené.', {
       title: 'PDFko upravené',
       variant: 'success',
       solid: true,

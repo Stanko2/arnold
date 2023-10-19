@@ -153,6 +153,10 @@ export default class Viewport extends Vue {
   mounted() {
     this.init();
     this.eventHub.$on("viewport:scale", this.setScale);
+    this.eventHub.$on("viewport:refresh", (src: ArrayBuffer) => {
+      this.src = src;
+      this.refresh();
+    });
     this.eventHub.$on("shortcut:zoomIn", () => this.setScale(1));
     this.eventHub.$on("shortcut:zoomOut", () => this.setScale(-1));
     this.eventHub.$on("shortcut:delete", this.deleteSelected);

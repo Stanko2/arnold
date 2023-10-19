@@ -1,8 +1,10 @@
 import { Database } from '@/Db';
-import { degrees, PageSizes, PDFDocument } from 'pdf-lib';
-import * as pdfjs from '@bundled-es-modules/pdfjs-dist';
+import { degrees, PageSizes, PDFDocument, PDFName, PDFRawStream, PDFRef } from 'pdf-lib';
+import pdfjs, { PDFPageProxy } from '@bundled-es-modules/pdfjs-dist';
+import eventHub from '@/Mixins/EventHub';
 
 export interface PDFImage {
+    ref: PDFRef;
     width: number;
     height: number;
     url: string;
@@ -11,60 +13,57 @@ export interface PDFImage {
 }
 
 export async function ExtractImages(pdfbytes: ArrayBuffer): Promise<PDFImage[]> {
-    const doc = await (pdfjs.getDocument({ data: new Uint8Array(pdfbytes) }).promise);
-    const pageOperations = [];
-    const images: PDFImage[] = [];
-    console.log(doc.numPages);
-    for (let index = 0; index < doc.numPages; index++) {
-        pageOperations.push(doc.getPage(index + 1));
-    }
-    let count = 0;
-    for await (const page of pageOperations) {
+    const imagesInDoc: PDFImage[] = [];
+    const pdf = await PDFDocument.load(pdfbytes);
+    const stream = pdf.context.enumerateIndirectObjects()
+    let objectIdx = 0;
+    for (const [ref, obj] of stream) {
+        if (obj instanceof PDFRawStream) {
+            const dict = obj.dict;
+            const smaskRef = dict.get(PDFName.of('SMask'));
+            const colorSpace = dict.get(PDFName.of('ColorSpace'));
+            const subtype = dict.get(PDFName.of('Subtype'));
+            const width = dict.get(PDFName.of('Width'));
+            const height = dict.get(PDFName.of('Height'));
+            const name = dict.get(PDFName.of('Name'));
+            const bitsPerComponent = dict.get(
+                PDFName.of('BitsPerComponent')
+            );
+            const filter = dict.get(PDFName.of('Filter'));
 
-        // @ts-ignore
-        const operators = await page.getOperatorList();
-        const viewport = page.getViewport({ scale: 1 });
+            const type = filter === PDFName.of('DCTDecode') ? 'data:image/jpeg;base64,' : 'data:image/png;base64,';
 
-        const validObjectTypes = [
-            pdfjs.OPS.paintImageXObject, // 85
-            pdfjs.OPS.paintImageXObjectRepeat, // 88
-            //@ts-ignore
-            pdfjs.OPS.paintJpegXObject //82
-        ];
+            if (subtype == PDFName.of('Image')) {
+                imagesInDoc.push({
+                    ref,
+                    //@ts-ignore
+                    width: width!.numberValue!,
+                    //@ts-ignore
+                    height: height!.numberValue!,
+                    //@ts-ignore
+                    url: type + await bufferToBase64(obj.contents),
+                    //@ts-ignore
+                    name: name ? name.key : `Object${objectIdx}`,
 
-        for (let i = 0; i < operators.fnArray.length; i++) {
-            const op = operators.fnArray[i];
-            if (validObjectTypes.includes(op)) {
-                const imageName = operators.argsArray[i][0];
-                console.log({ imageName });
-                const image = await getImageData(page, imageName);
-                images.push(image);
+                });
+                objectIdx++;
             }
         }
-    }
-    return images;
+    };
+
+    return imagesInDoc
 }
 
-async function getImageData(page: any, imageName: string): Promise<PDFImage> {
-    return new Promise<PDFImage>((resolve, reject) => {
-        page.objs.get(imageName, async (image: any) => {
-            const cnv = document.createElement('canvas');
-            cnv.width = image.width;
-            cnv.height = image.height;
-            const ctx = cnv.getContext('2d');
-            console.log(image);
-            const arr = addAlphaChannelToUnit8ClampedArray(image.data, image.width, image.height)
-            const imageData = new ImageData(arr, image.width, image.height);
-            ctx?.putImageData(imageData, 0, 0);
-            resolve({
-                height: image.height,
-                width: image.width,
-                url: cnv.toDataURL('image/jpeg', 0.5),
-                id: imageName,
-                rotation: 0,
-            })
-        });
+async function bufferToBase64(buffer: ArrayBuffer) {
+    // use a FileReader to generate a base64 data URI:
+    const base64url = await new Promise(r => {
+        const reader = new FileReader()
+        reader.onload = () => r(reader.result)
+        reader.readAsDataURL(new Blob([buffer]))
     });
+    // remove the `data:...;base64,` part from the start
+    //@ts-ignore
+    return base64url.slice(base64url.indexOf(',') + 1);
 }
 
 export async function GeneratePDF(images: PDFImage[], emptyPage: boolean, id: number) {
@@ -95,7 +94,11 @@ export async function GeneratePDF(images: PDFImage[], emptyPage: boolean, id: nu
         doc.addPage(PageSizes.A4);
     }
 
-    await updateDocument(id, await doc.save());
+    const pdfBytes = await doc.save();
+    await updateDocument(id, pdfBytes);
+    setTimeout(() => {
+        eventHub.$emit("viewport:refresh", pdfBytes);
+    }, 500);
 }
 
 export async function AddTrailingPage(id: number) {
@@ -106,6 +109,9 @@ export async function AddTrailingPage(id: number) {
 
     data.initialPdf = await doc.save();
     Database.updateDocument(id, data);
+    setTimeout(() => {
+        eventHub.$emit("viewport:refresh", data.initialPdf);
+    }, 500);
 }
 
 export function GetA4Dimensions() {
@@ -119,17 +125,4 @@ async function updateDocument(id: number, PDFdata: ArrayBuffer) {
     data.changes = [];
     data.pdfData = data.initialPdf;
     Database.updateDocument(id, data, true);
-}
-
-function addAlphaChannelToUnit8ClampedArray(unit8Array: Uint8ClampedArray, imageWidth: number, imageHeight: number) {
-    const newImageData = new Uint8ClampedArray(imageWidth * imageHeight * 4);
-
-    for (let j = 0, k = 0, jj = imageWidth * imageHeight * 4; j < jj;) {
-        newImageData[j++] = unit8Array[k++];
-        newImageData[j++] = unit8Array[k++];
-        newImageData[j++] = unit8Array[k++];
-        newImageData[j++] = 255;
-    }
-
-    return newImageData;
 }
