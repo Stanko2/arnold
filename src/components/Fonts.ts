@@ -15,26 +15,26 @@ export const FontsAvailable: Record<string, Font> = {
     },
     'Ubuntu': {
         url: 'https://fonts.googleapis.com/css2?family=Ubuntu&display=swap',
-        pdf: '/fonts/Ubuntu/Ubuntu.otf',
-        bold: '/fonts/Ubuntu/Ubuntu-SemiBold.otf',
-        italic: '/fonts/Ubuntu/Ubuntu-Italic.otf',
-        boldItalic: '/fonts/Ubuntu/Ubuntu-SemiBoldItalic.otf',
+        pdf: new URL('/fonts/Ubuntu/Ubuntu.otf', import.meta.url).href,
+        bold: new URL('/fonts/Ubuntu/Ubuntu-SemiBold.otf', import.meta.url).href,
+        italic: new URL('/fonts/Ubuntu/Ubuntu-Italic.otf', import.meta.url).href,
+        boldItalic: new URL('/fonts/Ubuntu/Ubuntu-SemiBoldItalic.otf', import.meta.url).href,
         viewport: 'Ubuntu',
     },
     'Noto Sans Mono': {
         url: 'https://fonts.googleapis.com/css2?family=Noto+Sans+Mono&display=swap',
-        pdf: '/fonts/NotoSansMono/NotoSansMono.otf',
-        bold: '/fonts/NotoSansMono/NotoSansMono-SemiBold.otf',
+        pdf: new URL('/fonts/NotoSansMono/NotoSansMono.otf', import.meta.url).href,
+        bold: new URL('/fonts/NotoSansMono/NotoSansMono-SemiBold.otf', import.meta.url).href,
         viewport: 'Noto Sans Mono',
     },
     'Gloria Hallelujah': {
         url: 'https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap',
-        pdf: '/fonts/GloriaHallelujah.otf',
+        pdf: new URL('/fonts/GloriaHallelujah.otf', import.meta.url).href,
         viewport: 'Gloria Hallelujah'
     },
     'Bebas neue': {
         url: 'https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap',
-        pdf: '/fonts/BebasNeue.otf',
+        pdf: new URL('/fonts/BebasNeue.otf', import.meta.url).href,
         viewport: 'Bebas neue'
     },
     'Emoji': {
