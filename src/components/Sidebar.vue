@@ -97,9 +97,9 @@ export default class Sidebar extends SidebarProps {
       (doc: PDFdocument, metadata: Document) => {
         this.selectedIndex = Documents.findIndex((e) => e.id === metadata.id);
         this.pdf = doc;
-        if (this.$refs.documentList) {
-          this.UpdateCurrentPreview();
-        }
+        // if (this.$refs.documentList) {
+        //   this.UpdateCurrentPreview();
+        // }
       }
     );
     const idx = parseInt(this.$route.params.doc);
@@ -118,9 +118,10 @@ export default class Sidebar extends SidebarProps {
     };
   }
   async save() {
-    if(getViewedDocument() == null) return;
+    if(getViewedDocument() == null || getViewedDocument() == undefined) return;
     this.$refs.documentList[this.selectedIndex].documentBusy = true;
-
+    if(this.pdf == undefined) return;
+    
     const doc = await this.pdf.save()
       .catch((err) => {
         this.$bvToast.toast(err, {

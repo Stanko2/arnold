@@ -23,14 +23,16 @@ export class PDFdocument {
     get pageCount(): number {
         return this.pages.length;
     }
-    pdfbytes: ArrayBuffer | undefined;
+    pdfbytes: ArrayBuffer | null = null;
     embeddedResources: Record<string, any> = {};
     constructor(url: string | ArrayBuffer, public id: number) {
         this.init(url).then(pdf => {
             this.pdfbytes = pdf;
+            console.log('PDF loaded');
+
             this.InitModifyRef();
         });
-        this.pdfbytes = undefined;
+        this.pdfbytes = null;
     }
 
     async init(data: string | ArrayBuffer) {
@@ -44,10 +46,12 @@ export class PDFdocument {
     }
 
     private async InitModifyRef() {
-        if (this.pdfbytes == null) {
+        if (this.pdfbytes == null || this.pdfbytes.byteLength == 0) {
             console.error('PDF not loaded')
             return;
         }
+
+        console.log(this.pdfbytes);
         this.modifyRef = await PDFDocument.load(this.pdfbytes);
         this.modifyRef.registerFontkit(fontKit)
         this.font = await this.modifyRef.embedFont(StandardFonts.Helvetica);
@@ -56,9 +60,12 @@ export class PDFdocument {
     }
 
     private LoadPdfToViewport(pdfbytes: ArrayBuffer) {
+        const src = new ArrayBuffer(pdfbytes.byteLength);
+        new Uint8Array(src).set(new Uint8Array(pdfbytes));
+
         setTimeout(() => {
-            PDFdocument.initDocument.call(PDFdocument.viewport, pdfbytes, this);
-        }, 500);
+            PDFdocument.initDocument.call(PDFdocument.viewport, src, this);
+        }, 0);
     }
 
     async write(annotation: Annotation) {

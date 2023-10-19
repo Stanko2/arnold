@@ -72,7 +72,11 @@
           class="page-wrapper"
           :style="getPageStyle(i - 1)"
         >
-          <pdf
+          <canvas 
+            ref="pdfCanvas"
+            class="pdfCanvas"
+          />
+          <!-- <pdf
             :key="i.toString() + id.toString()"
             ref="pagePDFs"
             :src="src"
@@ -84,11 +88,11 @@
             @error="err"
             @loading="(loading) => documentLoaded(!loading, i - 1)"
           >
-            <!-- <template #loading>
+            <template #loading>
               <b-skeleton-img width="100%" height="100%" class="position-relative"/>
               <div>loading</div>
-            </template> -->
-          </pdf>
+            </template>
+          </pdf> -->
           <div class="pageAnnot">
             <canvas ref="canvases" />
           </div>
@@ -99,30 +103,32 @@
 </template>
 
 <script lang="ts">
-const pdf = require("pdfvuer");
+// const pdf = require("pdfvuer");
 import { Canvas } from "../Canvas";
 import { PDFdocument } from "./PDFdocument";
 import { getViewedDocument } from "@/Documents/DocumentManager";
 import Vue from "vue";
 import { Database } from "@/Db";
 import Component from "vue-class-component";
-const contextMenu = require("vue-context-menu");
+import pdfjs from "@bundled-es-modules/pdfjs-dist/build/pdf";
+// @ts-ignore
+import contextMenu from "vue-context-menu";
 
 var pdfDocument = null;
 
 @Component({
   components: {
-    pdf: pdf.default,
+    // pdf: pdf.default,
     contextMenu,
   },
 })
 export default class Viewport extends Vue {
   loaded: (boolean | null)[] = [];
-  src: any;
+  src: ArrayBuffer | null = null;
   pageCount: number = 0;
   rotation: number[] = [];
   activePage: number = 0;
-  scale: number = 1;
+  static scale: number = 1;
   id: number = -1;
   pageDimensions: { width: number, height: number }[] = []
 
@@ -131,6 +137,7 @@ export default class Viewport extends Vue {
     pagePDFs: Vue[];
     canvases: HTMLCanvasElement[];
     ctxMenu: typeof contextMenu;
+    pdfCanvas: HTMLCanvasElement[];
   }
 
   get allPagesLoaded(): boolean {
@@ -139,7 +146,7 @@ export default class Viewport extends Vue {
 
   init() {
     pdfDocument = getViewedDocument();
-    this.src = pdfDocument?.viewref;
+    // this.src = pdfDocument?.viewref;
     this.pageCount = pdfDocument?.pageCount || 0;
     this.loaded = Array<boolean | null>(this.pageCount).fill(null);
     this.id = pdfDocument?.id || 0;
@@ -161,20 +168,46 @@ export default class Viewport extends Vue {
   mounted() {
     this.init();
     this.eventHub.$on("viewport:scale", this.setScale);
-    this.eventHub.$on("viewport:rotate", this.rotate);
-    this.eventHub.$on("shortcut:zoomIn", () => this.setScale(0.1));
-    this.eventHub.$on("shortcut:zoomOut", () => this.setScale(-0.1));
+    this.eventHub.$on("shortcut:zoomIn", () => this.setScale(1));
+    this.eventHub.$on("shortcut:zoomOut", () => this.setScale(-1));
     this.eventHub.$on("shortcut:delete", this.deleteSelected);
     this.eventHub.$on("canvas:error", this.showError);
     window.addEventListener("resize", this.resize);
-    PDFdocument.initDocument = (task: any) => {
+    PDFdocument.initDocument = async (task: ArrayBuffer) => {
       if (this.allPagesLoaded) return;
-      if (task) this.src = task;
-      this.src.then((pdf: any) => {
-        this.pageCount = pdf.numPages;
-        this.loaded = Array<boolean>(this.pageCount).fill(false);
-        this.rotation = Array<number>(pdf.numPages).fill(0);
-      });
+      this.src = task;
+      const src = new ArrayBuffer(task.byteLength);
+      new Uint8Array(src).set(new Uint8Array(task));
+
+      const pdfDoc = await pdfjs.getDocument(src).promise
+      this.pageCount = pdfDoc.numPages;
+      this.loaded = Array<boolean>(this.pageCount).fill(false);
+      const pagePromise = [];
+      for (let i = 0; i < this.pageCount; i++) {
+        const page = await pdfDoc.getPage(i + 1);
+        const viewport = page.getViewport({ scale: Viewport.scale });
+        const width = viewport.width;
+        const height = viewport.height;
+        const canvas = this.$refs.pdfCanvas[i];
+        canvas.width = width;
+        canvas.height = height;
+        this.pageDimensions.push({ width, height });
+        await this.$nextTick();
+
+        pagePromise.push(page.render({
+          canvasContext: this.$refs.pdfCanvas[i].getContext('2d')!,
+          viewport,
+        }).promise.then(() => {
+          this.documentLoaded(true, i);
+        }))
+      }        
+      await Promise.all(pagePromise);
+      await pdfDoc.destroy();
+      // this.src.then((pdf: any) => {
+      //   this.pageCount = pdf.numPages;
+      //   this.loaded = Array<boolean>(this.pageCount).fill(false);
+      //   this.rotation = Array<number>(pdf.numPages).fill(0);
+      // });
     };
     PDFdocument.viewport = this;
   }
@@ -184,10 +217,6 @@ export default class Viewport extends Vue {
       title: "Chyba pri pridaní objektu",
       autoHideDelay: 1000
     })
-  }
-
-  err(e: string){
-    console.log(e);
   }
 
   changeActivePage(i: number, visible: boolean) {
@@ -200,15 +229,13 @@ export default class Viewport extends Vue {
 
     const pageCanvases: Canvas[] = [];
     this.pageDimensions = [];
-    const PDFpages = this.$refs.pagePDFs;
-    // TODO: loading scaled canvases not working properly
     for (var i = 0; i < this.pageCount; i++) {
       const page = this.$refs.canvases[i];
       const canvas = new Canvas(page, document, i);
-      const pagePDF = PDFpages[i];
+      const pagePDF = this.$refs.pdfCanvas[i];
       const dimensions = {
-        width: pagePDF.$el.clientWidth,
-        height: pagePDF.$el.clientHeight,
+        width: pagePDF.width,
+        height: pagePDF.height,
       };
       if (!dimensions) continue;
       this.pageDimensions.push(dimensions);
@@ -222,10 +249,8 @@ export default class Viewport extends Vue {
     document.pageCanvases = pageCanvases;
     document.initCanvases();
     this.eventHub.$emit("tool:initCurrent");
-    if (this.scale !== 1) {
-      this.resize();
-    }
   }
+
   deleteSelected() {
     const doc = getViewedDocument();
     if (doc == null) return;
@@ -233,6 +258,7 @@ export default class Viewport extends Vue {
       cnv.deleteSelected();
     }
   }
+
   moveToFront() {
     const doc = getViewedDocument();
     const data = doc?.annotations;
@@ -244,6 +270,7 @@ export default class Viewport extends Vue {
       data.push(data.splice(index, 1)[0]);
     }
   }
+  
   moveToBack() {
     const doc = getViewedDocument();
     const data = doc?.annotations;
@@ -255,15 +282,15 @@ export default class Viewport extends Vue {
       data.unshift(data.splice(index, 1)[0]);
     }
   }
+  
   documentLoaded(loading: boolean, idx: number) {
-    console.log({ loading, idx });
     this.loaded[idx] = loading;
-    console.log(this.loaded.every(e => e) && this.loaded.length > 0);
     if (this.loaded.every(e => e) && this.loaded.length > 0) {
       const document = getViewedDocument();
       if (document) this.createCanvases(document);
     }
   }
+  
   openCtxMenu(e: Event) {
     const doc = getViewedDocument();
     if (doc?.pageCanvases.some((f) => f.canOpenCtxMenu(e))) {
@@ -271,6 +298,7 @@ export default class Viewport extends Vue {
     }
     e.preventDefault();
   }
+
   getActiveObjects() {
     const doc = getViewedDocument();
     var active: fabric.Object[] = [];
@@ -279,63 +307,78 @@ export default class Viewport extends Vue {
     });
     return active;
   }
+  
   setScale(mult: number) {
-    this.scale += mult;
+    Viewport.scale = mult;
     this.$nextTick().then(() => {
       this.resize();
     })
   }
+  
   resize() {
     try {
-      const pages = this.$refs.pages;
-
-      for (let i = 0; i < pages.length; i++) {
-        const page = this.$refs.pages[i];
-        const dimensions = {
-          width: page.clientWidth,
-          height: page.clientHeight
-        };
-        if (dimensions.width === 0 || dimensions.height === 0) return;
-        console.log(dimensions);
-        (pages[i] as HTMLElement).style.width = dimensions.width + "px";
-        if (page) {
-          var canvas: Canvas = getViewedDocument()?.pageCanvases[i] as Canvas;
-          canvas.setWidth(dimensions.width);
-          canvas.setHeight(dimensions.height);
-          canvas.setScale(dimensions);
+      this.refresh().then(()=> {
+        const pages = this.$refs.pages;
+        for (let i = 0; i < pages.length; i++) {
+          const page = this.$refs.pages[i];
+          const dimensions = {
+            width: page.clientWidth,
+            height: page.clientHeight
+          };
+          // this.$refs.pdfCanvas[i].style.transform = 'scale(' + this.scale + ')';
+          if (dimensions.width === 0 || dimensions.height === 0) return;
+          // (pages[i] as HTMLElement).style.width = dimensions.width + "px";
+          if (page) {
+            var canvas: Canvas = getViewedDocument()?.pageCanvases[i] as Canvas;
+            canvas.setWidth(dimensions.width);
+            canvas.setHeight(dimensions.height);
+            canvas.setScale(dimensions);
+          }
         }
-      }
+      });
     } catch (e) {
       console.error(e);
       return;
     }
   }
   async refresh() {
-    const viewedDoc = getViewedDocument();
-    if (!viewedDoc) return;
-    const doc = await Database.getDocument(viewedDoc.id);
-    viewedDoc.init(doc.initialPdf);
-  }
-  rotate() {
-    const doc = getViewedDocument();
-    doc?.rotatePage(this.activePage);
-    this.$destroy();
-    // this.eventHub.$emit("editor:setDocument");
-    // this.rotation[this.activePage]++;
-    // const canvas = doc?.pageCanvases[this.activePage];
-    // canvas?.Rotate(90);
-    // canvas?.setDimensions({
-    //   width: canvas.getHeight(),
-    //   height: canvas.getWidth(),
-    // });
-    // this.$forceUpdate();
+    const src = new ArrayBuffer(this.src!.byteLength);
+    new Uint8Array(src).set(new Uint8Array(this.src!));
+
+
+    const pdfDoc = await pdfjs.getDocument(src).promise
+    this.pageCount = pdfDoc.numPages;
+    this.loaded = Array<boolean>(this.pageCount).fill(false);
+    const pagePromise = [];
+    this.pageDimensions = [];
+    for (let i = 0; i < this.pageCount; i++) {
+      const page = await pdfDoc.getPage(i + 1);
+      const viewport = page.getViewport({ scale: Viewport.scale });
+      const width = viewport.width;
+      const height = viewport.height;
+      const canvas = this.$refs.pdfCanvas[i];
+      canvas.width = width;
+      canvas.height = height;
+
+      this.pageDimensions.push({ width, height });
+      await this.$nextTick();
+
+      pagePromise.push(page.render({
+        canvasContext: this.$refs.pdfCanvas[i].getContext('2d')!,
+        viewport,
+      }).promise.then(() => {
+        this.documentLoaded(true, i);
+      }))
+    }        
+    await Promise.all(pagePromise);
+    await pdfDoc.destroy();
   }
 
   getPageStyle(idx: number) {
     if (this.pageDimensions.length === this.pageCount) {
       return {
-        width: (this.pageDimensions[idx].width * this.scale).toString() + 'px',
-        height: (this.pageDimensions[idx].height * this.scale).toString() + 'px'
+        width: this.pageDimensions[idx].width.toString() + 'px',
+        height: this.pageDimensions[idx].height.toString() + 'px'
       }
     }
     return {}
@@ -344,7 +387,7 @@ export default class Viewport extends Vue {
 </script>
 <style scoped lang="scss">
 .pageAnnot {
-  position: absolute;
+  position: relative;
   width: 100%;
   height: 100%;
   top: 0;
@@ -352,20 +395,19 @@ export default class Viewport extends Vue {
 }
 .page-wrapper {
   position: relative;
-  margin: 10px;
+  margin: 20px;
   transform-origin: center center;
   box-shadow: 0 0 20px rgb(0 0 0 / 50%);
-  overflow: hidden;
 }
 .page-data {
-  position: absolute;
+  position: relative;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) scale(1.1);
 }
 .viewport {
   position: absolute;
-  overflow-y: auto;
+  overflow: auto;
   width: 100%;
   max-height: 100%;
   height: 100%;
@@ -373,10 +415,10 @@ export default class Viewport extends Vue {
 }
 .pdf {
   margin: auto;
-  max-width: 95vw;
-  display: flex;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: center;
+  width: max-content;
 }
 .loadingOverlay {
   position: absolute;
@@ -401,5 +443,12 @@ export default class Viewport extends Vue {
   ul {
     bottom: auto;
   }
+}
+.pdfCanvas {
+  transform-origin: left top;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width:100%;
 }
 </style>

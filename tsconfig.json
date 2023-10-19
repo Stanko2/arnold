@@ -34,7 +34,7 @@
     "src/**/*.vue",
     "tests/**/*.ts",
     "tests/**/*.tsx"
-  ],
+, "pdf.js"  ],
   "exclude": [
     "node_modules"
   ]

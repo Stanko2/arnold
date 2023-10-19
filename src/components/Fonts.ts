@@ -7,10 +7,10 @@ declare let FontFace: any;
 export const FontsAvailable: Record<string, Font> = {
     'Open Sans': {
         url: 'https://fonts.googleapis.com/css2?family=Open+Sans&display=swap',
-        pdf: '/fonts/OpenSans/OpenSans.otf',
-        bold: '/fonts/OpenSans/OpenSans-SemiBold.otf',
-        italic: '/fonts/OpenSans/OpenSans-Italic.otf',
-        boldItalic: '/fonts/OpenSans/OpenSans-SemiBoldItalic.otf',
+        pdf: new URL('/fonts/OpenSans/OpenSans.otf', import.meta.url).href,
+        bold: new URL('/fonts/OpenSans/OpenSans-SemiBold.otf', import.meta.url).href,
+        italic: new URL('/fonts/OpenSans/OpenSans-Italic.otf', import.meta.url).href,
+        boldItalic: new URL('/fonts/OpenSans/OpenSans-SemiBoldItalic.otf', import.meta.url).href,
         viewport: 'Open Sans',
     },
     'Ubuntu': {
@@ -78,7 +78,7 @@ export async function EmbedFont(pdf: PDFdocument | null, font: string, fontStyle
         return;
     }
     if (!FontsAvailable[font].pdf || Object.keys(pdf.embeddedResources).includes(font + fontStyle)) {
-        console.log(`font ${font+fontStyle} is already embedded`);
+        console.log(`font ${font + fontStyle} is already embedded`);
         return;
     }
     const fontbytes = await fetch(getURL(font, fontStyle)).then(res => {
@@ -87,9 +87,9 @@ export async function EmbedFont(pdf: PDFdocument | null, font: string, fontStyle
     pdf.embeddedResources[font + fontStyle] = await pdf.modifyRef.embedFont(fontbytes);
 }
 
-function getURL(fontName: string, style: 'normal' | 'bold' | 'italic' | 'boldItalic'){
+function getURL(fontName: string, style: 'normal' | 'bold' | 'italic' | 'boldItalic') {
     let ret;
-    switch(style){
+    switch (style) {
         case 'bold':
             ret = FontsAvailable[fontName].bold;
             break;

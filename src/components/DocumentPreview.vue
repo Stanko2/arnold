@@ -165,11 +165,10 @@ import Color from "color";
 import Vue from "vue";
 import type {Document, Tag} from "@/@types";
 import Component from "vue-class-component";
-// @ts-ignore
-import pdfJS, {getDocument} from "pdfjs-dist/build/pdf.js";
-pdfJS.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.4.456/pdf.worker.js';
+import pdfjs from "@bundled-es-modules/pdfjs-dist/build/pdf";
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
+
 import {Prop} from "vue-property-decorator";
-import { PDFJS } from "pdfjs-dist";
 
 @Component
 export default class DocumentPreview extends Vue {
@@ -231,6 +230,7 @@ export default class DocumentPreview extends Vue {
   }
   updatePreview() {
     Database.getDocument(this.documentID).then((doc) => {
+      console.trace('update');
       this.documentBusy = false;
       if (!this.document) return;
       this.document.tags = doc.tags.map((e) =>
@@ -272,7 +272,7 @@ export default class DocumentPreview extends Vue {
   }
 
   async generatePreview(data: ArrayBuffer) {
-    const doc = await getDocument({ data: new Uint8Array(data) }).promise;
+    const doc = await pdfjs.getDocument({ data: new Uint8Array(data), verbosity: 0 }).promise;
     const page = await doc.getPage(1);
     const vp = page.getViewport({ scale: 1 });
     const canvas = document.createElement("canvas");
@@ -287,6 +287,7 @@ export default class DocumentPreview extends Vue {
       }).promise;
       this.pdfUrl = canvas.toDataURL();
     }
+    await doc.destroy();
   }
 }
 </script>

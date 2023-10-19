@@ -170,6 +170,8 @@ export default class ToolSettings extends Vue {
 
   @Watch('selectedTool.defaultOptions', { deep: true })
   onOptionsChanged() {
+    console.log(this.selectedTool.defaultOptions);
+    
     if (
       this.selectedTool.name == "Select" &&
     this.selectedTool.defaultOptions

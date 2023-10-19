@@ -1,7 +1,6 @@
 import { Database } from '@/Db';
 import { degrees, PageSizes, PDFDocument } from 'pdf-lib';
-//@ts-ignore
-import { getDocument, OPS } from 'pdfjs-dist';
+import * as pdfjs from '@bundled-es-modules/pdfjs-dist';
 
 export interface PDFImage {
     width: number;
@@ -12,7 +11,7 @@ export interface PDFImage {
 }
 
 export async function ExtractImages(pdfbytes: ArrayBuffer): Promise<PDFImage[]> {
-    const doc = await (getDocument({ data: new Uint8Array(pdfbytes) }).promise);
+    const doc = await (pdfjs.getDocument({ data: new Uint8Array(pdfbytes) }).promise);
     const pageOperations = [];
     const images: PDFImage[] = [];
     console.log(doc.numPages);
@@ -27,9 +26,10 @@ export async function ExtractImages(pdfbytes: ArrayBuffer): Promise<PDFImage[]> 
         const viewport = page.getViewport({ scale: 1 });
 
         const validObjectTypes = [
-            OPS.paintImageXObject, // 85
-            OPS.paintImageXObjectRepeat, // 88
-            OPS.paintJpegXObject //82
+            pdfjs.OPS.paintImageXObject, // 85
+            pdfjs.OPS.paintImageXObjectRepeat, // 88
+            //@ts-ignore
+            pdfjs.OPS.paintJpegXObject //82
         ];
 
         for (let i = 0; i < operators.fnArray.length; i++) {
@@ -78,7 +78,6 @@ export async function GeneratePDF(images: PDFImage[], emptyPage: boolean, id: nu
         dims[1] = Math.max(dims[1], img.rotation % 2 === 0 ? img.height : img.width);
         const positions = [{ x: 0, y: 0 }, { x: 0, y: dims[1] }, { x: dims[0], y: dims[1] }, { x: dims[0], y: 0 }];
         const page = doc.addPage(dims);
-        console.log({ type });
         const PdfImg = type === 'image/png' ? await doc.embedPng(image) : await doc.embedJpg(image);
         let verticalSpaceAvailable = dims[1] - (img.rotation % 2 === 0 ? img.height : img.width);
         if (img.rotation === 1 || img.rotation === 2) {
