@@ -1,21 +1,12 @@
 <template>
   <div class="viewportSpace">
     <div
-      v-if="!loaded"
-      class="loadingOverlay"
-    >
-      <div>
-        <b-spinner
-          variant="primary"
-          label="loading..."
-        />
-        <p>Načítavam...</p>
-      </div>
-    </div>
-
-    <div
       class="viewport"
       @contextmenu="openCtxMenu"
+      ref="viewport"
+      :style="{
+        overflow: wholeDocumentLoaded ? 'auto' : 'hidden',
+      }"
     >
       <context-menu
         id="context-menu"
@@ -60,6 +51,7 @@
           Vystrihnúť
         </li>
       </context-menu>
+      
       <div
         ref="pdf"
         class="pdf"
@@ -76,26 +68,18 @@
             ref="pdfCanvas"
             class="pdfCanvas"
           />
-          <!-- <pdf
-            :key="i.toString() + id.toString()"
-            ref="pagePDFs"
-            :src="src"
-            :page="i"
-            :rotate="(rotation[i - 1] || 0) * 90"
-            :text="false"
-            class="card page-data"
-            :style="{ transform: `translate(-50%, -50%) scale(${scale})` }"
-            @error="err"
-            @loading="(loading) => documentLoaded(!loading, i - 1)"
-          >
-            <template #loading>
-              <b-skeleton-img width="100%" height="100%" class="position-relative"/>
-              <div>loading</div>
-            </template>
-          </pdf> -->
           <div class="pageAnnot">
             <canvas ref="canvases" />
           </div>
+        </div>
+      </div>
+      <div class="loading" v-if="!wholeDocumentLoaded">
+        <div>
+          <b-spinner
+            variant="primary"
+            label="loading..."
+          />
+          <p>Načítavam...</p>
         </div>
       </div>
     </div>
@@ -108,7 +92,6 @@ import { Canvas } from "../Canvas";
 import { PDFdocument } from "./PDFdocument";
 import { getViewedDocument } from "@/Documents/DocumentManager";
 import Vue from "vue";
-import { Database } from "@/Db";
 import Component from "vue-class-component";
 import pdfjs from "@bundled-es-modules/pdfjs-dist/build/pdf";
 // @ts-ignore
@@ -124,6 +107,7 @@ var pdfDocument = null;
 })
 export default class Viewport extends Vue {
   loaded: (boolean | null)[] = [];
+  wholeDocumentLoaded: boolean = false;
   src: ArrayBuffer | null = null;
   pageCount: number = 0;
   rotation: number[] = [];
@@ -138,6 +122,7 @@ export default class Viewport extends Vue {
     canvases: HTMLCanvasElement[];
     ctxMenu: typeof contextMenu;
     pdfCanvas: HTMLCanvasElement[];
+    viewport: HTMLElement;
   }
 
   get allPagesLoaded(): boolean {
@@ -203,11 +188,7 @@ export default class Viewport extends Vue {
       }        
       await Promise.all(pagePromise);
       await pdfDoc.destroy();
-      // this.src.then((pdf: any) => {
-      //   this.pageCount = pdf.numPages;
-      //   this.loaded = Array<boolean>(this.pageCount).fill(false);
-      //   this.rotation = Array<number>(pdf.numPages).fill(0);
-      // });
+      this.wholeDocumentLoaded = true;
     };
     PDFdocument.viewport = this;
   }
@@ -325,9 +306,7 @@ export default class Viewport extends Vue {
             width: page.clientWidth,
             height: page.clientHeight
           };
-          // this.$refs.pdfCanvas[i].style.transform = 'scale(' + this.scale + ')';
           if (dimensions.width === 0 || dimensions.height === 0) return;
-          // (pages[i] as HTMLElement).style.width = dimensions.width + "px";
           if (page) {
             var canvas: Canvas = getViewedDocument()?.pageCanvases[i] as Canvas;
             canvas.setWidth(dimensions.width);
@@ -342,6 +321,8 @@ export default class Viewport extends Vue {
     }
   }
   async refresh() {
+    this.$refs.viewport.scrollTo(0, 0);
+    this.wholeDocumentLoaded = false;
     const src = new ArrayBuffer(this.src!.byteLength);
     new Uint8Array(src).set(new Uint8Array(this.src!));
 
@@ -372,6 +353,7 @@ export default class Viewport extends Vue {
     }        
     await Promise.all(pagePromise);
     await pdfDoc.destroy();
+    this.wholeDocumentLoaded = true;
   }
 
   getPageStyle(idx: number) {
@@ -420,18 +402,6 @@ export default class Viewport extends Vue {
   align-items: center;
   width: max-content;
 }
-.loadingOverlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: white;
-  z-index: -1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
 .viewportSpace {
   position: relative;
   width: 100%;
@@ -450,5 +420,17 @@ export default class Viewport extends Vue {
   top: 0;
   left: 0;
   width:100%;
+}
+
+.loading {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items:center;
+  background: var(--bg-800);
+  z-index: 80;
+  top: 0;
 }
 </style>
