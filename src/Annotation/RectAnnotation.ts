@@ -1,8 +1,8 @@
-import {Canvas} from "@/Canvas";
-import {Annotation} from "./Annotation";
+import { Canvas } from "@/Canvas";
+import { Annotation } from "./Annotation";
 import Color from "color";
-import {fabric} from "fabric";
-import {PDFPage, popGraphicsState, pushGraphicsState, rgb, rotateDegrees, translate} from "pdf-lib";
+import { fabric } from "fabric";
+import { LineCapStyle, PDFPage, popGraphicsState, pushGraphicsState, rgb, rotateDegrees, translate } from "pdf-lib";
 
 export class RectAnnotation extends Annotation {
     static toolOptions: any;
@@ -10,6 +10,8 @@ export class RectAnnotation extends Annotation {
         options.originX = 'center';
         options.originY = 'center';
         options.noScaleCache = false;
+        options.rx = 5;
+        options.ry = 5;
         super(page, new fabric.Rect(options), canvas, 'Rect');
         (this.object as any).tool = RectAnnotation.toolOptions;
         canvas.setActiveObject(this.object);
@@ -37,6 +39,7 @@ export class RectAnnotation extends Annotation {
             y: pos.y,
             opacity: parseInt((this.object.fill as string).substring(7, 9), 16) / 255 || 1,
             borderOpacity: parseInt((this.object.stroke as string).substring(7, 9), 16) / 255 || 1,
+            borderLineCap: LineCapStyle.Projecting,
         });
         page.pushOperators(popGraphicsState());
     }

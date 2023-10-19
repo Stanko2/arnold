@@ -65,7 +65,7 @@ export class PDFdocument {
 
         setTimeout(() => {
             PDFdocument.initDocument.call(PDFdocument.viewport, src, this);
-        }, 0);
+        }, 30);
     }
 
     async write(annotation: Annotation) {
