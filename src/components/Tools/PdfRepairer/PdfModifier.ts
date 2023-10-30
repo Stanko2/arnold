@@ -44,7 +44,7 @@ export async function ExtractImages(pdfbytes: ArrayBuffer): Promise<PDFImage[]> 
                     url: type + await bufferToBase64(obj.contents),
                     //@ts-ignore
                     name: name ? name.key : `Object${objectIdx}`,
-
+                    rotation: 0,
                 });
                 objectIdx++;
             }

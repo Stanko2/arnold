@@ -83,6 +83,8 @@
             Upraviť bodovanie
           </b-button>
           <score-modal />
+          <hr />
+          <b-form-textarea @input="saveScoring" placeholder="Poznámka" v-model="comment" />
         </div>
       </transition>
     </div>
@@ -127,6 +129,7 @@ export default class Scoring extends Vue {
   doc: Document | null = null;
   showScoringPanel: boolean = false;
   finalizingScoring = false;
+  comment = "";
 
 $refs!: {
     pointInput: BFormInput
@@ -199,6 +202,7 @@ $refs!: {
   saveScoring() {
     if (!this.doc || !this.currentScore) return;
     this.currentScore.acceptedCriteria = this.pointCriterias.filter((c,i) => this.acceptedCriteria[i]).map(c => c.id);
+    this.currentScore.comment = this.comment;
     console.log('save');
 
     scorer.saveScoring(this.currentScore);
@@ -207,7 +211,7 @@ $refs!: {
   getScoring(doc: Document) {
     this.doc = doc;
     this.currentScore = scorer.getScoring(doc);
-    
+    this.comment = this.currentScore?.comment || "";
     if(this.currentScore == null){
       throw new Error('Current score null');
     }

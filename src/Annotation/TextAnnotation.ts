@@ -1,9 +1,9 @@
-import {Canvas} from "@/Canvas";
-import {Annotation} from "./Annotation";
-import {EmbedFont} from "@/components/Fonts";
-import {getViewedDocument} from "@/Documents/DocumentManager";
+import { Canvas } from "@/Canvas";
+import { Annotation } from "./Annotation";
+import { EmbedFont } from "@/components/Fonts";
+import { getViewedDocument } from "@/Documents/DocumentManager";
 import Color from "color";
-import {fabric} from "fabric";
+import { fabric } from "fabric";
 import {
     concatTransformationMatrix,
     PDFFont,
@@ -15,7 +15,6 @@ import {
     scale,
     translate
 } from "pdf-lib";
-import { parsePointsAttribute } from "fabric/fabric-impl";
 
 export class TextAnnotation extends Annotation {
     static toolOptions: any;
@@ -39,6 +38,18 @@ export class TextAnnotation extends Annotation {
             mb: false,
             mt: false,
         };
+
+        canvas.on('object:modified', (e) => {
+            if (e.target != this.object) return;
+            if (this.object.stroke) {
+
+                this.object.backgroundColor = this.object.fill as string;
+                this.object.fill = this.object.stroke;
+
+                this.object.stroke = 'transparent';
+            }
+
+        })
         // TODO: show emoji control, that brings up a menu with emojis
         // this.object.controls.emoji = new fabric.Control({
         //     // getVisibility: (obj:fabric.Textbox) => obj.isEditing || false,
@@ -72,24 +83,36 @@ export class TextAnnotation extends Annotation {
         if (this.object == null || this.object.top == null || this.object.left == null || this.textbox.fontSize == null) return;
         const fontSize: number = this.textbox.fontSize || 14;
         const color = Color((this.object.fill as string).substring(0, 7)).object();
+        console.log(this.object.toSVG());
+
         const parser = new DOMParser(),
             data = parser.parseFromString(this.object.toSVG(), "image/svg+xml"),
             transform = data.querySelector('g')?.getAttribute('transform')?.match(/-?[0-9]+(\.[0-9]*)?/gm)?.map(e => parseFloat(e)) || [1, 0, 0, 0, 1, 0];
-        
+
         page.pushOperators(
             pushGraphicsState(),
             translate(0, height),
             scale(1, -1),
             concatTransformationMatrix(transform[0], transform[1], transform[2], transform[3], transform[4], transform[5])
         );
-        
+
+        if (this.object.fill != undefined) {
+            page.drawRectangle({
+                x: -this.object.width! / 2,
+                y: -this.object.height! / 2,
+                width: this.object.width,
+                height: this.object.height,
+                color: rgb(0, 0, 1),
+            })
+        }
+
         for (const tspan of data.querySelectorAll('tspan').values()) {
-            const translation = new fabric.Point(parseFloat(tspan.getAttribute('x') || '0') + parseFloat(tspan.getAttribute('dx') || '0'), 
-            parseFloat(tspan.getAttribute('y') || '0') + parseFloat(tspan.getAttribute('dy') || '0'));
+            const translation = new fabric.Point(parseFloat(tspan.getAttribute('x') || '0') + parseFloat(tspan.getAttribute('dx') || '0'),
+                parseFloat(tspan.getAttribute('y') || '0') + parseFloat(tspan.getAttribute('dy') || '0'));
             const textStyle = this.parseTextStyle(tspan.getAttribute('style') || '');
             const fontStyle = this.getFontFromParsedStyle(textStyle);
             const fontFamily = textStyle['font-family'] || this.textbox.fontFamily;
-            if(textStyle['font-size'] != undefined){
+            if (textStyle['font-size'] != undefined) {
                 textStyle['font-size'] = parseFloat(textStyle['font-size'].substring(0, textStyle['font-size'].length - 2));
             }
             await EmbedFont(doc, fontFamily, fontStyle);
@@ -102,16 +125,16 @@ export class TextAnnotation extends Annotation {
                 x: 0,
                 y: 0,
                 size: textStyle['font-size'] || fontSize,
-                font: doc?.embeddedResources[fontFamily+fontStyle],
+                font: doc?.embeddedResources[fontFamily + fontStyle],
                 color: rgb(color.r / 255, color.g / 255, color.b / 255),
                 lineHeight: this.textbox._fontSizeMult * fontSize,
-                opacity: parseInt((this.object.fill as string).substring(7, 9), 16) / 255 || 1,
+                opacity: parseInt((this.object.stroke as string).substring(7, 9), 16) / 255 || 1,
             }
-    
+
             // unescape html in tspan.innerHTML
             const dom = new DOMParser().parseFromString(tspan.innerHTML, 'text/html');
             const text = dom.body.textContent || '';
-    
+
             page.drawText(text, options);
             page.pushOperators(popGraphicsState());
         }
@@ -125,6 +148,7 @@ export class TextAnnotation extends Annotation {
             fontFamily: this.textbox.fontFamily,
             fontSize: this.textbox.fontSize,
             fill: this.textbox.fill,
+            backgroundColor: this.textbox.backgroundColor,
             width: this.object.width,
             height: this.object.height,
             hasControls: this.object.hasControls,
@@ -139,13 +163,13 @@ export class TextAnnotation extends Annotation {
         style = style.replaceAll('\'', '');
         const ret: any = {};
         for (const s of style.split(';')) {
-            if(s == '') continue;
+            if (s == '') continue;
             const data = s.split(':');
-            if(data[0].length == 1 || data[1].length == 1)
+            if (data[0].length == 1 || data[1].length == 1)
                 continue;
-            if(data[0].startsWith(' '))
+            if (data[0].startsWith(' '))
                 data[0] = data[0].substring(1);
-            if(data[1].startsWith(' '))
+            if (data[1].startsWith(' '))
                 data[1] = data[1].substring(1);
             ret[data[0]] = data[1];
         }
@@ -153,7 +177,7 @@ export class TextAnnotation extends Annotation {
     }
 
     getFontFromParsedStyle(parsedStyle: any): 'normal' | 'bold' | 'italic' | 'boldItalic' {
-        if(parsedStyle['font-style'] == 'italic' && parsedStyle['font-weight'] == '600')
+        if (parsedStyle['font-style'] == 'italic' && parsedStyle['font-weight'] == '600')
             return 'boldItalic';
         else if (parsedStyle['font-style'] == 'italic')
             return 'italic';
