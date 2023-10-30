@@ -6,6 +6,7 @@ import { ImageAnnotation, PathAnnotation, SignAnnotation } from "@/Annotation";
 import eventHub from "./Mixins/EventHub";
 import { Tool } from "./@types";
 import store from './Store';
+import { emojiRegex } from "./components/Tools/Util";
 export class Canvas extends fabric.Canvas {
     Clear(): void {
         try {
@@ -22,7 +23,7 @@ export class Canvas extends fabric.Canvas {
     drawnShapes: fabric.Path[] = [];
     static selectedTool: Tool<fabric.IObjectOptions> | undefined = undefined;
     initialized = false;
-    constructor(el: any, private pdf: PDFdocument, private page: number) {
+    constructor(el: any, public pdf: PDFdocument, private page: number) {
         super(el);
         this.selection = false;
         eventHub.$on('tool:select', (tool: Tool<fabric.IObjectOptions>) => Canvas.selectedTool = tool);
@@ -125,6 +126,12 @@ export class Canvas extends fabric.Canvas {
                     hasStrokeWidth: false,
                     hasText: false,
                 };
+            }
+        });
+        this.on('text:changed', (e) => {
+            if(e.target instanceof fabric.Textbox){
+                this.resetStylesForBlankCharacters(e.target)
+                this.setFontForEmojis(e.target)
             }
         });
         this.on('mouse:move', (e) => {
@@ -261,5 +268,55 @@ export class Canvas extends fabric.Canvas {
         if (this.viewportTransform)
             this.viewportTransform = fabric.util.multiplyTransformMatrices(this.viewportTransform || [1, 0, 0, 1, 0, 0], rotate);
         this.renderAll();
+    }
+
+
+    resetStylesForBlankCharacters(textbox: fabric.Textbox) {
+        const styles = Object.keys(textbox.styles).map(e => parseInt(e));
+        for (const row of styles) {
+            const blank = [' ', '\t', '\n'];
+            const text = textbox.textLines[row];
+            if (text === undefined) continue;
+            const rowStyles = Object.keys(textbox.styles[row]).map(e=> parseInt(e));
+            for (const style of rowStyles) {
+                if (blank.includes(text.charAt(style))){
+                    delete textbox.styles[row][style];
+                }
+            }
+        }
+    }
+
+    setFontForEmojis(textbox: fabric.Textbox) {
+        textbox.textLines.forEach((line, i) => {
+            const emojis: Set<number> = new Set();
+            let emojiCount = 0;
+            for (const emoji of line.matchAll(emojiRegex)) {
+                console.log(emoji);
+                const idx = (emoji.index || 0) - emojiCount
+                emojis.add(idx)
+
+                textbox.styles[i] = textbox.styles[i] || {};
+                textbox.styles[i][idx] = textbox.styles[i][idx] || {};
+                textbox.styles[i][idx] = {fontFamily: 'Emoji'}
+                emojiCount++;
+            }
+
+            if(textbox.styles[i] === undefined) return;
+            for (let j = 0; j < line.length; j++) {
+                if (emojis.has(j)) continue;
+                if (textbox.styles[i][j] === undefined) continue;
+                if (textbox.styles[i][j].fontFamily === 'Emoji'){
+                    delete textbox.styles[i][j].fontFamily
+                }
+            }
+        })
+        console.log(textbox);
+        
+        // const styles = Object.keys(textbox.styles).map(e => parseInt(e));
+        // for (const row of styles) {
+        //     const blank = [' ', '\t', '\n'];
+        //     const text = textbox.textLines[row];
+        //     const rowStyles = Object.keys(textbox.styles[row]).map(e=> parseInt(e));
+
     }
 }

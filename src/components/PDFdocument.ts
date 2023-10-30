@@ -7,8 +7,6 @@ import { Annotation, EllipseAnnotation, ImageAnnotation, LineAnnotation, PathAnn
 import type { Tool, Document } from "@/@types";
 import fontKit from '@pdf-lib/fontkit';
 
-var pdf = require('pdfvuer');
-
 export class PDFdocument {
 
     static viewport: Vue;
@@ -16,7 +14,7 @@ export class PDFdocument {
     static initDocument: Function;
     static activeObject: fabric.Object | undefined;
     modifyRef: PDFDocument | undefined;
-    viewref: any;
+    // viewref: any;
     initialized = false;
     pages: PDFPage[] = [];
     annotations: Annotation[] = [];
@@ -25,14 +23,16 @@ export class PDFdocument {
     get pageCount(): number {
         return this.pages.length;
     }
-    pdfbytes: ArrayBuffer | undefined;
+    pdfbytes: ArrayBuffer | null = null;
     embeddedResources: Record<string, any> = {};
     constructor(url: string | ArrayBuffer, public id: number) {
         this.init(url).then(pdf => {
             this.pdfbytes = pdf;
+            console.log('PDF loaded');
+
             this.InitModifyRef();
         });
-        this.pdfbytes = undefined;
+        this.pdfbytes = null;
     }
 
     async init(data: string | ArrayBuffer) {
@@ -46,10 +46,12 @@ export class PDFdocument {
     }
 
     private async InitModifyRef() {
-        if (this.pdfbytes == null) {
+        if (this.pdfbytes == null || this.pdfbytes.byteLength == 0) {
             console.error('PDF not loaded')
             return;
         }
+
+        console.log(this.pdfbytes);
         this.modifyRef = await PDFDocument.load(this.pdfbytes);
         this.modifyRef.registerFontkit(fontKit)
         this.font = await this.modifyRef.embedFont(StandardFonts.Helvetica);
@@ -58,10 +60,12 @@ export class PDFdocument {
     }
 
     private LoadPdfToViewport(pdfbytes: ArrayBuffer) {
-        this.viewref = pdf.createLoadingTask({ data: new Uint8Array(pdfbytes) });
+        const src = new ArrayBuffer(pdfbytes.byteLength);
+        new Uint8Array(src).set(new Uint8Array(pdfbytes));
+
         setTimeout(() => {
-            PDFdocument.initDocument.call(PDFdocument.viewport, this.viewref, this);
-        }, 500);
+            PDFdocument.initDocument.call(PDFdocument.viewport, src, this);
+        }, 30);
     }
 
     async write(annotation: Annotation) {
@@ -144,7 +148,7 @@ export class PDFdocument {
                 break;
             default:
                 throw new Error("Unknown annotation type");
-                
+
         }
         this.addAnnotation(annotation);
         return annotation;

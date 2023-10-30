@@ -21,12 +21,12 @@
             </h3>
             <b-form-input
               ref="pointInput"
-              v-model.number="$data.currentScore.points"
+              v-model.number="currentScore.points"
               type="number"
               class="w-50"
               step="0.5"
               placeholder="Zadaj body ..."
-              :disabled="currentScore.final"
+              :disabled="isFinal"
               @change="saveScoring"
             />
             <div class="d-flex flex-row mr-2" />
@@ -42,7 +42,7 @@
                 v-model="acceptedCriteria[i]"
                 class="form-check-input"
                 type="checkbox"
-                :disabled="currentScore.final"
+                :disabled="isFinal"
                 @change="calculatePoints"
               />
               <label
@@ -83,6 +83,8 @@
             Upraviť bodovanie
           </b-button>
           <score-modal />
+          <hr />
+          <b-form-textarea @input="saveScoring" placeholder="Poznámka" v-model="comment" />
         </div>
       </transition>
     </div>
@@ -112,7 +114,6 @@ import Component from "vue-class-component";
 import {getViewedDocument} from "@/Documents/DocumentManager";
 import {BFormInput} from "bootstrap-vue";
 import ScoreModal from "./ScoreModal.vue";
-import Scorer from "./scorer";
 import scorer from "./scorer";
 
 @Component({
@@ -128,13 +129,19 @@ export default class Scoring extends Vue {
   doc: Document | null = null;
   showScoringPanel: boolean = false;
   finalizingScoring = false;
+  comment = "";
 
 $refs!: {
     pointInput: BFormInput
   }
 
+  get isFinal (): boolean {
+    return this.currentScore?.final || false;
+  }
+
   mounted() {
-    this.updateCriteria(this.$store.state.scoringCriteria);
+    console.log('mounted');
+    this.updateCriteria(this.$store.getters.scoringCriteria);
     this.eventHub.$on("shortcut:scoring", this.toggle)
     this.pdf = getViewedDocument();
     if (this.pdf) {
@@ -157,12 +164,13 @@ $refs!: {
     );
     this.$store.subscribe((mut, state) =>{
       if(mut.type == 'setCriteria' || mut.type == 'loadData'){
-        this.updateCriteria(state.scoringCriteria);
+        this.updateCriteria(this.$store.getters.scoringCriteria);
       }
     })
   }
 
   updateCriteria(criteria: ScoringCriteria[]){
+    console.log(criteria);
     this.pointCriterias = criteria;
     this.acceptedCriteria = this.pointCriterias.map((e) => false);
     if(this.doc)
@@ -194,6 +202,7 @@ $refs!: {
   saveScoring() {
     if (!this.doc || !this.currentScore) return;
     this.currentScore.acceptedCriteria = this.pointCriterias.filter((c,i) => this.acceptedCriteria[i]).map(c => c.id);
+    this.currentScore.comment = this.comment;
     console.log('save');
 
     scorer.saveScoring(this.currentScore);
@@ -201,7 +210,8 @@ $refs!: {
 
   getScoring(doc: Document) {
     this.doc = doc;
-    this.currentScore = Scorer.getScoring(doc);
+    this.currentScore = scorer.getScoring(doc);
+    this.comment = this.currentScore?.comment || "";
     if(this.currentScore == null){
       throw new Error('Current score null');
     }
@@ -216,7 +226,7 @@ $refs!: {
 
   finalScoringChange() {
     if (!this.pdf) return;
-    if(!this.currentScore?.final){
+    if(!this.isFinal){
       this.finalizingScoring = true;
       scorer.finalizeScoring().then((id: string)=>{
         this.finalizingScoring = false;

@@ -41,20 +41,13 @@
           @click="useUtil(util)"
         />
       </div>
-      <tool-button
-        id="zoomInButton"
-        icon="add"
-        :outline="true"
-        tooltip="Priblížiť"
-        @click="eventHub.$emit('viewport:scale', 0.1)"
-      />
-      <tool-button
-        id="zoomOutButton"
-        icon="remove"
-        :outline="true"
-        tooltip="Oddialiť"
-        @click="eventHub.$emit('viewport:scale', -0.1)"
-      />
+      <b-dropdown :text="scales[activeScale]">
+        <b-dropdown-item
+          v-for="(scale, key) in scales"
+          :key="key"
+          @click.native="setScale(key)"
+        >{{ scale }}</b-dropdown-item>
+      </b-dropdown>
       <tool-button
         id="repairButton"
         icon="build"
@@ -116,9 +109,28 @@ export default class Toolbar extends Vue {
     repairTool: PdfRepairer;
   }
 
-  mounted() {
-    console.log(this.tools[0].name);
+  scales = {
+    0.25: '25%',
+    0.5: '50%',
+    0.75: '75%',
+    1: '100%',
+    1.25: '125%',
+    1.5: '150%',
+    1.75: '175%',
+    2: '200%',
+    2.5: '250%',
+    3: '300%',
+    4: '400%',
+    5: '500%'
+  }
+  activeScale = 1;
 
+  setScale(scale: number) {
+    this.activeScale = scale;
+    this.eventHub.$emit("viewport:scale", scale);
+  }
+
+  mounted() {
     this.eventHub.$emit("tool:init", this);
     Canvas.toolbarRef = this;
 

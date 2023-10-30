@@ -13,7 +13,7 @@ export class LineAnnotation extends Annotation {
     }
     constructor(page: number, options: fabric.ILineOptions, canvas: Canvas) {
         options.hasControls = true;
-        options.hasBorders = true;
+        options.hasBorders = false;
         options.strokeLineCap = 'round';
         options.cornerSize = 20;
         options.cornerStyle = "circle";

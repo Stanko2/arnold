@@ -35,4 +35,5 @@ export interface Font {
     bold?: string;
     italic?: string; 
     boldItalic?: string;
+    hidden?: boolean;
 }

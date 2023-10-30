@@ -10,7 +10,7 @@ export interface State {
     scoringEntries: {id: string, points: number}[];
     tags: Tag[];
     documents: Document[];
-    scoringCriteria: ScoringCriteria[];
+    scoringCriteria: Record<string, ScoringCriteria[]>;
     loadedProblems: Set<string>;
     currentProblem: string;
 }
@@ -22,7 +22,7 @@ const store = new Store<State>({
         settings: defaultSettings,
         tags: [],
         documents: [],
-        scoringCriteria: [],
+        scoringCriteria: {},
         currentProblem: '',
         loadedProblems: new Set<string>(),
         scoringEntries: []
@@ -30,10 +30,12 @@ const store = new Store<State>({
     mutations: {
         loadData: (state) => {
             const data = localStorage.getItem('preferences');
+            console.log('loaddata');
+            
             if (data) {
                 state.settings = JSON.parse(data) as Settings;
                 state.tags = JSON.parse(localStorage.getItem('tags') || '[]');
-                state.scoringCriteria = JSON.parse(localStorage.getItem('bodovanie') || "[]");
+                state.scoringCriteria = JSON.parse(localStorage.getItem('bodovanie') || "{}");
                 state.scoringEntries = JSON.parse(localStorage.getItem('scoringEntries') || '[]');
             }
             for (const problem of JSON.parse(localStorage.getItem('problems') || '[]')) {
@@ -41,7 +43,13 @@ const store = new Store<State>({
             }
             state.currentProblem = localStorage.getItem('currentProblem') || '';
             if(state.currentProblem == "")
-                state.currentProblem = state.loadedProblems.values().next().value;
+            state.currentProblem = state.loadedProblems.values().next().value;
+            if(Array.isArray(state.scoringCriteria)){
+                // @ts-ignore
+                const criteria: ScoringCriteria[] = [...state.scoringCriteria];
+                state.scoringCriteria = {}
+                state.scoringCriteria[state.currentProblem] = criteria;
+            }
             store.dispatch('setTheme');
         },
         applySettings(state, settings: Settings) {
@@ -57,8 +65,8 @@ const store = new Store<State>({
             state.documents[idx] = payload;
         },
         setCriteria(state, payload) {
-            localStorage.setItem('bodovanie', JSON.stringify(payload));
-            state.scoringCriteria = payload;
+            state.scoringCriteria[state.currentProblem] = payload;
+            localStorage.setItem('bodovanie', JSON.stringify(state.scoringCriteria));
         },
         setScoringEntries(state, payload){
             localStorage.setItem('scoringEntries', JSON.stringify(payload));
@@ -68,9 +76,10 @@ const store = new Store<State>({
             localStorage.setItem('tags', JSON.stringify(payload));
             state.tags = payload;
         },
-        addProblem(state, problemName){
-            state.currentProblem = problemName;
-            state.loadedProblems.add(problemName);
+        addProblem(state, payload){
+            state.currentProblem = payload.name;
+            state.loadedProblems.add(payload.name);
+            state.scoringCriteria[payload.name] = payload.scoring;
             store.dispatch('saveProblems');
         },
         setActiveProblem(state, problem){
@@ -80,9 +89,16 @@ const store = new Store<State>({
         unloadCurrentProblem(state) {
             if(state.currentProblem == '') throw new Error('No problem loaded');
             state.loadedProblems.delete(state.currentProblem);
-            store.dispatch('saveProblems')
+            store.dispatch('saveProblems');
+            delete state.scoringCriteria[state.currentProblem];
+            localStorage.setItem('bodovanie', JSON.stringify(state.scoringCriteria));
             state.currentProblem = state.loadedProblems.values().next().value;
             localStorage.setItem('currentProblem', state.currentProblem);
+        }
+    },
+    getters: {
+        scoringCriteria(state) {
+            return state.scoringCriteria[state.currentProblem] || []
         }
     },
     modules: {
