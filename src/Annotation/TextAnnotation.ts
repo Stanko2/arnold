@@ -39,17 +39,17 @@ export class TextAnnotation extends Annotation {
             mt: false,
         };
 
-        canvas.on('object:modified', (e) => {
-            if (e.target != this.object) return;
-            if (this.object.stroke) {
+        // canvas.on('object:modified', (e) => {
+        //     if (e.target != this.object) return;
+        //     if (this.object.stroke) {
 
-                this.object.backgroundColor = this.object.fill as string;
-                this.object.fill = this.object.stroke;
+        //         this.object.backgroundColor = this.object.fill as string;
+        //         this.object.fill = this.object.stroke;
 
-                this.object.stroke = 'transparent';
-            }
+        //         this.object.stroke = 'transparent';
+        //     }
 
-        })
+        // })
         // TODO: show emoji control, that brings up a menu with emojis
         // this.object.controls.emoji = new fabric.Control({
         //     // getVisibility: (obj:fabric.Textbox) => obj.isEditing || false,

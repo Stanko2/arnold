@@ -81,7 +81,7 @@ export const tools: Tool<fabric.IObjectOptions>[] = [
         },
         options: {
             hasFill: true,
-            hasStroke: true,
+            hasStroke: false,
             hasText: true,
             hasStrokeWidth: false,
         },
