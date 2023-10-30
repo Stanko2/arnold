@@ -33,42 +33,50 @@
       Veľkosť písma
     </b-tooltip>
     <tool-button
-      v-if="activeFont.bold !== undefined && selectedTool.name == 'Select'"
+      v-if="activeFont.bold !== undefined && isEditingTextbox"
       id="bold"
       icon="format_bold"
       variant="secondary"
       :outline="fontWeight == 400"
+      tooltip="Bold"
       @click="toggleBold()"
     />
     <tool-button
-      v-if="activeFont.italic !== undefined && selectedTool.name == 'Select'"
+      v-if="activeFont.italic !== undefined && isEditingTextbox"
       id="italic"
       variant="secondary"
       icon="format_italic"
       :outline="!italic"
+      tooltip="italic"
       @click="toggleItalic()"
     />
     <tool-button
-      v-if="selectedTool.name == 'Select'"
+      v-if="isEditingTextbox"
       id="subscript"
       variant="secondary"
       icon="subscript"
       :outline="!subscript"
+      tooltip="dolny index"
       @click="toggleScript(true)"
     />
     <tool-button
-      v-if="selectedTool.name == 'Select'"
+      v-if="isEditingTextbox"
       id="superscript"
       variant="secondary"
       icon="superscript"
       :outline="!superscript"
+      tooltip="horny index"
       @click="toggleScript(false)"
+    />
+    <emoji-picker
+      v-if="isEditingTextbox"
+      @emoji_click="addEmoji"
     />
   </div>
 </template>
 
 <script lang="ts">
-import { Tool } from '@/@types';
+import { Font, Tool } from '@/@types';
 import {fabric} from 'fabric';
 import Vue from 'vue'
 import Component from 'vue-class-component';
@@ -76,28 +84,49 @@ import { Prop } from 'vue-property-decorator';
 import { FontsAvailable } from '../Fonts';
 import { PDFdocument } from '../PDFdocument';
 import ToolButton from './Toolbutton.vue';
+import EmojiPicker from './Emoji/EmojiPicker.vue'
+import { Canvas } from '@/Canvas';
+import { emojiRegex } from './Util';
 
 @Component({
   components: {
-    ToolButton
+    ToolButton,
+    EmojiPicker
   }
 })
 export default class TextSettings extends Vue {
   @Prop({ required: true })
   selectedTool!: Tool<fabric.ITextboxOptions>;
-  fonts = FontsAvailable;
   activeFont = FontsAvailable['Open Sans'];
   fontWeight = 400;
   italic = false;
   subscript = false;
   superscript = false;
+  editingActiveTextbox = false
   updateInterval!: NodeJS.Timer;
+
+  get isEditingTextbox(): boolean {
+    return this.selectedTool.name == 'Select' && this.editingActiveTextbox
+  }
+
+  get fonts(): Record<string, Font> {
+    const names = Object.keys(FontsAvailable);
+    const ret: Record<string, Font> = {}
+    for (const font of names) {
+      if(FontsAvailable[font].hidden) continue;
+      ret[font] = FontsAvailable[font];
+    }
+    return ret;
+  }
+
   mounted(){
     this.eventHub.$on('shortcut:bold', this.toggleBold);
     this.eventHub.$on('shortcut:italic', this.toggleItalic);
     this.eventHub.$on('shortcut:superscript', ()=> this.toggleScript(false));
     this.eventHub.$on('shortcut:subscript', ()=> this.toggleScript(true));
     this.updateInterval = setInterval(this.updateStatus, 300);
+    console.log(this.selectedTool);
+    
   }
 
   unmounted(){
@@ -149,7 +178,6 @@ export default class TextSettings extends Vue {
     this.activeFont = this.fonts[font];
     if(this.selectedTool.name == 'Select'){
       const obj = PDFdocument.activeObject as fabric.Textbox;
-      console.log('updating selection');
       if(obj.selectionStart == obj.selectionEnd){
         this.selectedTool.defaultOptions.fontFamily = font;
         return;
@@ -190,6 +218,7 @@ export default class TextSettings extends Vue {
   updateStatus(){
     if(PDFdocument.activeObject == undefined || !(PDFdocument.activeObject instanceof fabric.Textbox)) return;
     const obj = PDFdocument.activeObject as fabric.Textbox;
+    this.editingActiveTextbox = obj.isEditing || false
     const styles = obj.getSelectionStyles(obj.selectionStart, obj.selectionEnd)
     const isBold = styles.some(x => {
       return (Object as any).hasOwn(x, 'fontWeight') && x.fontWeight === 600;
@@ -215,6 +244,24 @@ export default class TextSettings extends Vue {
     if(!keys.includes('fontSize') || !keys.includes('deltaY'))
       return false;
     return x['fontSize'] < (obj.fontSize || 0) && x['deltaY'] < 0;
+  }
+
+  addEmoji(emoji: string) {
+    const textbox = PDFdocument.activeObject as fabric.Textbox;
+    if(!textbox.selectionStart) return;
+    textbox.exitEditing();
+    const text = Array.from(textbox.text || '');
+    const newText = text.slice(0, textbox.selectionStart).join('') + emoji + text.slice(textbox.selectionStart).join('');
+    console.log(newText);
+    
+    textbox.set({
+      text: newText,
+    });
+    textbox.setSelectionStart(textbox.selectionStart + 1);
+    textbox.setSelectionEnd(textbox.selectionStart);
+    (textbox.canvas as Canvas).setFontForEmojis(textbox);
+    textbox.enterEditing();
+    textbox.canvas?.requestRenderAll();
   }
 }
 </script>

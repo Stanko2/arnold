@@ -52,6 +52,7 @@ $theme-colors: (
     $popover-color: $gray-100;
     $popover-header-bg: lighten($gray-600, 6%);
     $dropdown-bg: $gray-600;
+    $popover-max-width: 350px;
     
     @import "node_modules/bootstrap/scss/list-group";
     $theme-colors: (

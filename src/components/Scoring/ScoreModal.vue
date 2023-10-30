@@ -61,7 +61,7 @@ export default class ScoreModal extends Vue {
   
 
   mounted() {
-    this.pointCriterias = this.$store.state.scoringCriteria;
+    this.pointCriterias = this.$store.getters.scoringCriteria;
   }
 
   deleteCriteria(id: string) {

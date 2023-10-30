@@ -65,7 +65,7 @@
 </template>
 
 <script lang="ts">
-const VSwatches = require("vue-swatches");
+import VSwatches from "vue-swatches";
 
 import "vue-swatches/dist/vue-swatches.css";
 import Vue from "vue";

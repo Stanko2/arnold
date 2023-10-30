@@ -7,41 +7,42 @@ declare let FontFace: any;
 export const FontsAvailable: Record<string, Font> = {
     'Open Sans': {
         url: 'https://fonts.googleapis.com/css2?family=Open+Sans&display=swap',
-        pdf: '/fonts/OpenSans/OpenSans.otf',
-        bold: '/fonts/OpenSans/OpenSans-SemiBold.otf',
-        italic: '/fonts/OpenSans/OpenSans-Italic.otf',
-        boldItalic: '/fonts/OpenSans/OpenSans-SemiBoldItalic.otf',
+        pdf: new URL('/fonts/OpenSans/OpenSans.otf', import.meta.url).href,
+        bold: new URL('/fonts/OpenSans/OpenSans-SemiBold.otf', import.meta.url).href,
+        italic: new URL('/fonts/OpenSans/OpenSans-Italic.otf', import.meta.url).href,
+        boldItalic: new URL('/fonts/OpenSans/OpenSans-SemiBoldItalic.otf', import.meta.url).href,
         viewport: 'Open Sans',
     },
     'Ubuntu': {
         url: 'https://fonts.googleapis.com/css2?family=Ubuntu&display=swap',
-        pdf: '/fonts/Ubuntu/Ubuntu.otf',
-        bold: '/fonts/Ubuntu/Ubuntu-SemiBold.otf',
-        italic: '/fonts/Ubuntu/Ubuntu-Italic.otf',
-        boldItalic: '/fonts/Ubuntu/Ubuntu-SemiBoldItalic.otf',
+        pdf: new URL('/fonts/Ubuntu/Ubuntu.otf', import.meta.url).href,
+        bold: new URL('/fonts/Ubuntu/Ubuntu-SemiBold.otf', import.meta.url).href,
+        italic: new URL('/fonts/Ubuntu/Ubuntu-Italic.otf', import.meta.url).href,
+        boldItalic: new URL('/fonts/Ubuntu/Ubuntu-SemiBoldItalic.otf', import.meta.url).href,
         viewport: 'Ubuntu',
     },
     'Noto Sans Mono': {
         url: 'https://fonts.googleapis.com/css2?family=Noto+Sans+Mono&display=swap',
-        pdf: '/fonts/NotoSansMono/NotoSansMono.otf',
-        bold: '/fonts/NotoSansMono/NotoSansMono-SemiBold.otf',
+        pdf: new URL('/fonts/NotoSansMono/NotoSansMono.otf', import.meta.url).href,
+        bold: new URL('/fonts/NotoSansMono/NotoSansMono-SemiBold.otf', import.meta.url).href,
         viewport: 'Noto Sans Mono',
     },
     'Gloria Hallelujah': {
         url: 'https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap',
-        pdf: '/fonts/GloriaHallelujah.otf',
+        pdf: new URL('/fonts/GloriaHallelujah.otf', import.meta.url).href,
         viewport: 'Gloria Hallelujah'
     },
     'Bebas neue': {
         url: 'https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap',
-        pdf: '/fonts/BebasNeue.otf',
+        pdf: new URL('/fonts/BebasNeue.otf', import.meta.url).href,
         viewport: 'Bebas neue'
     },
-    // 'Emoji': {
-    //     url: '/fonts/OpenMoji.woff',
-    //     pdf: '/fonts/OpenMoji.otf',
-    //     viewport: 'Emoji'
-    // }
+    'Emoji': {
+        url: '/fonts/OpenMoji.woff',
+        pdf: '/fonts/OpenMoji.otf',
+        viewport: 'Emoji',
+        hidden: true
+    }
 }
 
 export async function loadFonts() {
@@ -77,7 +78,7 @@ export async function EmbedFont(pdf: PDFdocument | null, font: string, fontStyle
         return;
     }
     if (!FontsAvailable[font].pdf || Object.keys(pdf.embeddedResources).includes(font + fontStyle)) {
-        console.log(`font ${font+fontStyle} is already embedded`);
+        console.log(`font ${font + fontStyle} is already embedded`);
         return;
     }
     const fontbytes = await fetch(getURL(font, fontStyle)).then(res => {
@@ -86,9 +87,9 @@ export async function EmbedFont(pdf: PDFdocument | null, font: string, fontStyle
     pdf.embeddedResources[font + fontStyle] = await pdf.modifyRef.embedFont(fontbytes);
 }
 
-function getURL(fontName: string, style: 'normal' | 'bold' | 'italic' | 'boldItalic'){
+function getURL(fontName: string, style: 'normal' | 'bold' | 'italic' | 'boldItalic') {
     let ret;
-    switch(style){
+    switch (style) {
         case 'bold':
             ret = FontsAvailable[fontName].bold;
             break;

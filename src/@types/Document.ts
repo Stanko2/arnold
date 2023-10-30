@@ -36,6 +36,7 @@ export interface IScoring {
     final: boolean;
     annotName?: string;
     comments?: string[];
+    comment?: string;
 }
 
 export interface Tag {

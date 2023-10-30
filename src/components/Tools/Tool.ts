@@ -1,11 +1,11 @@
-import {fabric} from "fabric";
-import {EllipseAnnotation, ImageAnnotation, LineAnnotation, RectAnnotation, TextAnnotation} from "@/Annotation";
-import {PDFdocument} from "../PDFdocument";
-import {getViewedDocument} from '@/Documents/DocumentManager';
+import { fabric } from "fabric";
+import { EllipseAnnotation, ImageAnnotation, LineAnnotation, RectAnnotation, TextAnnotation } from "@/Annotation";
+import { PDFdocument } from "../PDFdocument";
+import { getViewedDocument } from '@/Documents/DocumentManager';
 import Vue from "vue";
-import {Database} from "@/Db";
+import { Database } from "@/Db";
 import eventHub from "@/Mixins/EventHub";
-import type {Tool} from "@/@types";
+import type { Tool } from "@/@types";
 import store from '@/Store';
 import { ToolSettings, Settings } from '@/@types/Preferences';
 import { Canvas } from '../../Canvas';
@@ -24,8 +24,8 @@ function init(VueRef: Vue | undefined = undefined) {
     const data = store.state.settings
     if (data) {
         ApplySettings(data);
-        store.subscribe((mut, state)=>{
-            if(mut.type !== 'applySettings' && mut.type !== 'loadData') return;
+        store.subscribe((mut, state) => {
+            if (mut.type !== 'applySettings' && mut.type !== 'loadData') return;
             ApplySettings(state.settings);
         })
     }
@@ -34,7 +34,7 @@ function init(VueRef: Vue | undefined = undefined) {
     }
 }
 
-function ApplySettings(settings: Settings){
+function ApplySettings(settings: Settings) {
     console.log(settings);
     const prefs = settings.tools.settings;
     const shortcuts = settings.shortcut.settings;
@@ -126,12 +126,9 @@ export const tools: Tool<fabric.IObjectOptions>[] = [
         defaultOptions: { name: '', image: '' },
         click: async (pdf: PDFdocument, page: number, position: { x: number; y: number; }): Promise<fabric.Object> => {
             const options: fabric.IImageOptions & { image: string } = Object.assign({}, selectedTool.defaultOptions as fabric.IImageOptions & { image: string });
-            console.log(selectedTool.defaultOptions);
+            console.log(options);
             const template = await Database.getTemplate((options as any).image);
-            const img = new Image();
-            img.src = template.data.img;
-            (options as any).image = template.data.img;
-            const annot = new ImageAnnotation(page, { ...options, ...template.templateOptions}, pdf.pageCanvases[page]);
+            const annot = new ImageAnnotation(page, { ...options, ...template.templateOptions }, pdf.pageCanvases[page]);
             pdf.addAnnotation(annot);
             return annot.object;
         },
@@ -232,7 +229,7 @@ export const tools: Tool<fabric.IObjectOptions>[] = [
         defaultOptions: {},
         click: async (pdf: PDFdocument, page: number, position: { x: number, y: number }): Promise<fabric.Group> => {
             const sign = (selectedTool.defaultOptions as any).sign
-            if(sign === undefined)
+            if (sign === undefined)
                 throw new Error('No sign Selected');
             const signTemplate = await Database.getTemplate(sign)
             const cnv = pdf.pageCanvases[page]
