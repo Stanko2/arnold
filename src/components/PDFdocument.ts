@@ -51,7 +51,6 @@ export class PDFdocument {
             return;
         }
 
-        console.log(this.pdfbytes);
         this.modifyRef = await PDFDocument.load(this.pdfbytes);
         this.modifyRef.registerFontkit(fontKit)
         this.font = await this.modifyRef.embedFont(StandardFonts.Helvetica);
@@ -77,7 +76,7 @@ export class PDFdocument {
         await this.InitModifyRef();
         this.embeddedResources = {};
         for (const annotation of this.annotations) {
-            await this.write(annotation);
+            await this.write(annotation).catch(e => console.error(e));
         }
         // for (let i = 0; i < this.pageCanvases.length; i++) {
         //     const canvas = this.pageCanvases[i];
@@ -92,6 +91,7 @@ export class PDFdocument {
         const changes = currDoc.changes;
         currDoc.changes = [];
         currDoc.pdfData = pdfBytes;
+
         for (let i = 0; i < this.annotations.length; i++) {
             const annot = this.annotations[i];
             currDoc.changes.push(annot.serializeToJSON());

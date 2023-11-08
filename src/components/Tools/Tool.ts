@@ -35,7 +35,6 @@ function init(VueRef: Vue | undefined = undefined) {
 }
 
 function ApplySettings(settings: Settings) {
-    console.log(settings);
     const prefs = settings.tools.settings;
     const shortcuts = settings.shortcut.settings;
     prefs.tools.forEach((tool: ToolSettings, index: number) => {

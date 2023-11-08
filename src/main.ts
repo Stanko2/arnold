@@ -8,7 +8,7 @@ import '@/theme.scss'
 import router from './router'
 import './Mixins/EventHub'
 import store from './Store'
-import { registerSW } from './registerServiceWorker'
+import { register } from './registerServiceWorker'
 
 
 import shortkey from 'vue-shortkey'
@@ -26,5 +26,5 @@ export const app = new Vue({
   render: h => h(App),
 }).$mount('#app')
 
-registerSW()
+register()
 

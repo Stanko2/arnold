@@ -126,7 +126,6 @@ export default class SearchBar extends Vue {
 
     // @ts-ignore
     const filter: string = this.$route.query.filter ?? '';
-    console.log(this.$route.query);
 
     setTimeout(() => {
       if(filter != ''){

@@ -230,7 +230,6 @@ export default class DocumentPreview extends Vue {
   }
   updatePreview() {
     Database.getDocument(this.documentID).then((doc) => {
-      console.trace('update');
       this.documentBusy = false;
       if (!this.document) return;
       this.document.tags = doc.tags.map((e) =>

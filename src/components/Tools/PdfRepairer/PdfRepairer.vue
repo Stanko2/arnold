@@ -249,7 +249,6 @@ export default class PDFRepairer extends Vue {
             images[i].width = e.target.width * e.target.scaleX;
             images[i].height = e.target.height * e.target.scaleY;
             cnv.renderAll();
-            console.log(images);
           }
         });
 

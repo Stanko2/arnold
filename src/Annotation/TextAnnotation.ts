@@ -83,7 +83,6 @@ export class TextAnnotation extends Annotation {
         if (this.object == null || this.object.top == null || this.object.left == null || this.textbox.fontSize == null) return;
         const fontSize: number = this.textbox.fontSize || 14;
         const color = Color((this.object.fill as string).substring(0, 7)).object();
-        console.log(this.object.toSVG());
 
         const parser = new DOMParser(),
             data = parser.parseFromString(this.object.toSVG(), "image/svg+xml"),
@@ -96,15 +95,15 @@ export class TextAnnotation extends Annotation {
             concatTransformationMatrix(transform[0], transform[1], transform[2], transform[3], transform[4], transform[5])
         );
 
-        if (this.object.fill != undefined) {
-            page.drawRectangle({
-                x: -this.object.width! / 2,
-                y: -this.object.height! / 2,
-                width: this.object.width,
-                height: this.object.height,
-                color: rgb(0, 0, 1),
-            })
-        }
+        // if (this.object.fill != undefined) {
+        //     page.drawRectangle({
+        //         x: -this.object.width! / 2,
+        //         y: -this.object.height! / 2,
+        //         width: this.object.width,
+        //         height: this.object.height,
+        //         color: rgb(0, 0, 1),
+        //     })
+        // }
 
         for (const tspan of data.querySelectorAll('tspan').values()) {
             const translation = new fabric.Point(parseFloat(tspan.getAttribute('x') || '0') + parseFloat(tspan.getAttribute('dx') || '0'),
@@ -128,7 +127,7 @@ export class TextAnnotation extends Annotation {
                 font: doc?.embeddedResources[fontFamily + fontStyle],
                 color: rgb(color.r / 255, color.g / 255, color.b / 255),
                 lineHeight: this.textbox._fontSizeMult * fontSize,
-                opacity: parseInt((this.object.stroke as string).substring(7, 9), 16) / 255 || 1,
+                opacity: parseInt((this.object.fill as string).substring(7, 9), 16) / 255 || 1,
             }
 
             // unescape html in tspan.innerHTML

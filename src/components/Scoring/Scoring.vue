@@ -140,7 +140,6 @@ $refs!: {
   }
 
   mounted() {
-    console.log('mounted');
     this.updateCriteria(this.$store.getters.scoringCriteria);
     this.eventHub.$on("shortcut:scoring", this.toggle)
     this.pdf = getViewedDocument();
@@ -170,7 +169,6 @@ $refs!: {
   }
 
   updateCriteria(criteria: ScoringCriteria[]){
-    console.log(criteria);
     this.pointCriterias = criteria;
     this.acceptedCriteria = this.pointCriterias.map((e) => false);
     if(this.doc)
@@ -203,7 +201,6 @@ $refs!: {
     if (!this.doc || !this.currentScore) return;
     this.currentScore.acceptedCriteria = this.pointCriterias.filter((c,i) => this.acceptedCriteria[i]).map(c => c.id);
     this.currentScore.comment = this.comment;
-    console.log('save');
 
     scorer.saveScoring(this.currentScore);
   }
@@ -235,7 +232,7 @@ $refs!: {
           this.currentScore.annotName = id;
           scorer.saveScoring(this.currentScore);
         }
-      }).catch(err=>console.log(err))
+      }).catch(err=>console.error(err))
     }
     else {
       scorer.removeFinalScoring();

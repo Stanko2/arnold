@@ -125,7 +125,6 @@ export default class TextSettings extends Vue {
     this.eventHub.$on('shortcut:superscript', ()=> this.toggleScript(false));
     this.eventHub.$on('shortcut:subscript', ()=> this.toggleScript(true));
     this.updateInterval = setInterval(this.updateStatus, 300);
-    console.log(this.selectedTool);
     
   }
 
