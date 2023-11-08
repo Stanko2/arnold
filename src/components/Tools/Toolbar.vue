@@ -43,10 +43,10 @@
       </div>
       <b-dropdown :text="scales[activeScale]">
         <b-dropdown-item
-          v-for="(scale, key) in scales"
-          :key="key"
-          @click.native="setScale(key)"
-        >{{ scale }}</b-dropdown-item>
+          v-for="(scale) in getScales()"
+          :key="scale.key"
+          @click.native="setScale(scale.key)"
+        >{{ scale.scale }}</b-dropdown-item>
       </b-dropdown>
       <tool-button
         id="repairButton"
@@ -91,6 +91,7 @@ import Vue from "vue";
 import {Tool, Util} from "@/@types";
 import ToolSettings from "./ToolSettings.vue";
 import ToolButton from "./Toolbutton.vue";
+import { scale } from "pdf-lib";
 
 @Component({
   components: {
@@ -109,7 +110,7 @@ export default class Toolbar extends Vue {
     repairTool: PdfRepairer;
   }
 
-  scales = {
+  scales: Record<number, string> = {
     0.25: '25%',
     0.5: '50%',
     0.75: '75%',
@@ -124,6 +125,15 @@ export default class Toolbar extends Vue {
     5: '500%'
   }
   activeScale = 1;
+
+  getScales() {
+    const s = Object.keys(this.scales).sort((a, b) => parseFloat(a) - parseFloat(b));
+    return s.map((key) => { return {
+      key: parseFloat(key), 
+      scale: this.scales[parseFloat(key)],
+      }
+  });
+  }
 
   setScale(scale: number) {
     this.activeScale = scale;

@@ -23,9 +23,11 @@ export class Canvas extends fabric.Canvas {
     drawnShapes: fabric.Path[] = [];
     static selectedTool: Tool<fabric.IObjectOptions> | undefined = undefined;
     initialized = false;
-    constructor(el: any, public pdf: PDFdocument, private page: number) {
+    constructor(el: HTMLCanvasElement, public pdf: PDFdocument, private page: number) {
         super(el);
         this.selection = false;
+        console.log(getComputedStyle(el).getPropertyValue('--primary'));
+        this.selectionColor = getComputedStyle(el).getPropertyValue('--primary') + '40';
         eventHub.$on('tool:select', (tool: Tool<fabric.IObjectOptions>) => Canvas.selectedTool = tool);
     }
 
@@ -48,7 +50,7 @@ export class Canvas extends fabric.Canvas {
             if (e.absolutePointer == null) return;
             if (this.isDrawingMode) return;
             eventHub.$emit('canvas:tap', this, e.e);
-            if(!Canvas.active) return;
+            if (!Canvas.active) return;
             // for (const annotation of this.pdf.annotations) {
             //     if (annotation.object.containsPoint(e.absolutePointer)) {
             //         return;
@@ -67,14 +69,14 @@ export class Canvas extends fabric.Canvas {
                     (Canvas.selectedTool.defaultOptions as fabric.ILineOptions).y1 = pointerPos.y;
                 }
                 else {
-                    try{
+                    try {
                         this.creating = await Canvas.selectedTool.click?.(this.pdf, this.page, pointerPos);
                         this.setActiveObject(this.creating);
                         this.requestRenderAll();
                         eventHub.$emit('tool:select', tools[7]);
                     }
-                    catch(err){
-                        eventHub.$emit('canvas:error', err);   
+                    catch (err) {
+                        eventHub.$emit('canvas:error', err);
                     }
                 }
             }
@@ -86,7 +88,7 @@ export class Canvas extends fabric.Canvas {
             if (Canvas.selectedTool && Canvas.selectedTool.name == 'Arrow') {
                 (Canvas.selectedTool.defaultOptions as fabric.ILineOptions).x2 = pointerPos.x;
                 (Canvas.selectedTool.defaultOptions as fabric.ILineOptions).y2 = pointerPos.y;
-                
+
                 this.creating = await Canvas.selectedTool.click?.(this.pdf, this.page, pointerPos);
                 this.setActiveObject(this.creating);
                 this.requestRenderAll();
@@ -106,7 +108,7 @@ export class Canvas extends fabric.Canvas {
                     height: (e.target?.height || 0) * scaleY
                 })
             }
-            else if (e.target?.type === 'ellipse'){
+            else if (e.target?.type === 'ellipse') {
                 const ellipse = e.target as fabric.Ellipse
                 ellipse.set({
                     scaleX: 1,
@@ -129,15 +131,15 @@ export class Canvas extends fabric.Canvas {
             }
         });
         this.on('text:changed', (e) => {
-            if(e.target instanceof fabric.Textbox){
+            if (e.target instanceof fabric.Textbox) {
                 this.resetStylesForBlankCharacters(e.target)
                 this.setFontForEmojis(e.target)
             }
         });
         this.on('mouse:move', (e) => {
             const mouse = e.absolutePointer;
-            store.commit('Clipboard/setMousePos', { pos:{x: mouse?.x, y: mouse?.y }, page: this.page });
-            
+            store.commit('Clipboard/setMousePos', { pos: { x: mouse?.x, y: mouse?.y }, page: this.page });
+
         })
         this.on('object:scaled', (e) => {
             if (e.target != null && e.target.type != 'group' && e.target.type != 'ellipse' && e.target.type != 'image') {
@@ -277,9 +279,9 @@ export class Canvas extends fabric.Canvas {
             const blank = [' ', '\t', '\n'];
             const text = textbox.textLines[row];
             if (text === undefined) continue;
-            const rowStyles = Object.keys(textbox.styles[row]).map(e=> parseInt(e));
+            const rowStyles = Object.keys(textbox.styles[row]).map(e => parseInt(e));
             for (const style of rowStyles) {
-                if (blank.includes(text.charAt(style))){
+                if (blank.includes(text.charAt(style))) {
                     delete textbox.styles[row][style];
                 }
             }
@@ -297,21 +299,21 @@ export class Canvas extends fabric.Canvas {
 
                 textbox.styles[i] = textbox.styles[i] || {};
                 textbox.styles[i][idx] = textbox.styles[i][idx] || {};
-                textbox.styles[i][idx] = {fontFamily: 'Emoji'}
+                textbox.styles[i][idx] = { fontFamily: 'Emoji' }
                 emojiCount++;
             }
 
-            if(textbox.styles[i] === undefined) return;
+            if (textbox.styles[i] === undefined) return;
             for (let j = 0; j < line.length; j++) {
                 if (emojis.has(j)) continue;
                 if (textbox.styles[i][j] === undefined) continue;
-                if (textbox.styles[i][j].fontFamily === 'Emoji'){
+                if (textbox.styles[i][j].fontFamily === 'Emoji') {
                     delete textbox.styles[i][j].fontFamily
                 }
             }
         })
         console.log(textbox);
-        
+
         // const styles = Object.keys(textbox.styles).map(e => parseInt(e));
         // for (const row of styles) {
         //     const blank = [' ', '\t', '\n'];
