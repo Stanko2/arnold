@@ -1,0 +1,1 @@
+.img{width:100%;display:flex;align-items:center;justify-content:center;max-width:700px;margin-top:20px;margin-bottom:20px;border-radius:10px;box-shadow:0 0 20px #00000080}.content{height:calc(100vh - 205px)}.content:first-child::-webkit-scrollbar{display:none}h4,h5,h6{margin-top:2rem}.backButton{position:absolute;top:60px;left:20px}
